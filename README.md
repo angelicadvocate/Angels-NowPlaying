@@ -1,4 +1,4 @@
-# 🎵 Angels-NowPlaying-Widget (Work in Progress)
+# 🎵 Angels-NowPlaying (Work in Progress)
 ### ⚠️ This project is still in development and not production-ready.
 **Current version:** 0.4.2
 ---
