@@ -1,0 +1,327 @@
+:root {
+  --highlight: hsl(221, 82%, 58%);
+  --font-main: "proxima-nova", sans-serif;
+}
+
+/* Reset and base styles */
+body {
+  background: #ebebeb;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: var(--font-main);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Site wrapper - takes remaining space after header */
+#site {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px 60px;
+}
+
+/* Controls container */
+#controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 0;
+  flex: 0 0 calc(33.333% - 40px);
+}
+
+/* Middle controls container */
+#controls-middle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 0;
+  flex: 0 0 calc(33.333% - 40px);
+}
+
+/* Right controls container */
+#controls-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 0;
+  flex: 0 0 calc(33.333% - 40px);
+}
+
+/* Labels for sliders and controls */
+.info {
+  font-family: var(--font-main);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--highlight);
+  margin-bottom: 0px;
+  display: block;
+}
+
+/* Sliders */
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 350px;
+  height: 25px;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  border-radius: 5px;
+}
+
+.slider:hover {
+  opacity: 1;
+}
+
+.slider::-webkit-slider-thumb,
+.slider::-moz-range-thumb {
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  background: var(--highlight);
+  cursor: pointer;
+  border-radius: 50%;
+  border: none;
+}
+
+.slider.auto-rotate {
+  visibility: hidden;
+}
+
+/* Color picker */
+.color-picker {
+  width: 350px;
+  height: 50px;
+  border: 2px solid var(--highlight);
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* Color picker container */
+.color-picker-container {
+  position: relative;
+  width: 350px;
+  margin-bottom: 10px;
+}
+
+/* Color code overlay */
+.color-code-overlay {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 5px 10px;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.color-code-overlay code {
+  color: #fff;
+  font-size: 12px;
+  font-family: monospace;
+}
+
+/* Dropdown */
+.dropdown {
+  width: 350px;
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid var(--highlight);
+  border-radius: 5px;
+  background: white;
+  cursor: pointer;
+  font-family: var(--font-main);
+}
+
+.dropdown:hover {
+  background: #f0f0f0;
+}
+
+/* Sample preview section */
+#sample {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: transparent;
+  margin: 20px 0;
+}
+
+/* Big container for album art + text */
+#background {
+  position: relative;
+  width: 500px;
+  min-width: 500px;
+  max-width: 500px;
+  height: 220px;
+  border-radius: 8px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: visible;
+}
+
+#frame-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  object-fit: contain;
+}
+
+#background::before {
+  display: none;
+}
+
+/* Now Playing text container */
+#now-playing-container {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 5;
+  overflow: hidden;
+}
+
+#now-playing-text {
+  margin: 0;
+  padding: 0;
+  margin-top: 3px;
+  margin-left: 25px;
+  font-family: "proxima-nova", sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: #8B4513;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Album art wrapper */
+#image-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  overflow: visible;
+  margin-left: 50px;
+  margin-top: 15px;
+  padding-left: 0;
+  z-index: 5;
+}
+
+/* Album art image */
+#image {
+  width: 110px;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Content container - text */
+#content {
+  flex: 1;
+  overflow: hidden;
+  padding: 0 20px 0 30px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  z-index: 5;
+}
+
+/* Text box */
+#text-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  flex-grow: 1;
+  overflow: hidden;
+  text-align: left;
+}
+
+/* Artist and song text */
+#artist {
+  text-transform: uppercase;
+  font-family: "proxima-nova", sans-serif;
+  font-weight: 600;
+  font-size: 22px;
+  margin: 0 0 15px 0;
+  margin-top: 20px;
+  margin-left: 0;
+  margin-right: 0;
+  color: #FF8C00;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+#song {
+  font-family: "proxima-nova", sans-serif;
+  font-weight: bold;
+  font-size: 28px;
+  margin: 0;
+  margin-left: 0;
+  margin-right: 0;
+  color: #8B4513;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Progress bar */
+#progress-container-preview {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 85%;
+  height: 10px;
+  background: #333;
+  border-radius: 4px;
+  z-index: 5;
+}
+
+#progress-bar-preview {
+  height: 100%;
+  width: 33%;
+  background: #FFC800;
+  transition: width 0.1s ease;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+#progress-bar-preview::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: -5px;
+  width: 6px;
+  height: calc(100% + 10px);
+  background: var(--indicator-color, #8B4513);
+  box-shadow: 1px 0 2px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}
+
+/* Save button */
+#save {
+  display: none;
+}

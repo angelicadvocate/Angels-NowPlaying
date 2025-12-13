@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>F8 Now Playing Vinyl</title>
+  <link rel="stylesheet" href="../css/main_pages/08-NowPlaying-F8-Styles.css" />
+</head>
+<body>
+  <div id="background">
+    <div id="album-art-container" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 0;">
+      <img id="album-bg-img" src="../assets/Album.png" alt="Album Art" />
+    </div>
+    <div id="vinyl-container" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1;">
+      <img id="vinyl-record" src="../assets/vinyl_base.png" alt="Vinyl Record" />
+    </div>
+    <div id="content">
+      <div id="text-box">
+        <p id="artist"></p>
+        <p id="song"></p>
+      </div>
+    </div>
+  </div>
+  <script src="js/common.js"></script>
+  <script>
+    // Poll Song.json and update artist/song text
+    function updateSongInfo() {
+      fetch('Song.json?_=' + Date.now())
+        .then(r => r.json())
+        .then(data => {
+          document.getElementById('artist').textContent = data.album_artist || (data.artists && data.artists[0]) || '';
+          document.getElementById('song').textContent = data.title || '';
+        });
+    }
+    setInterval(updateSongInfo, 1000);
+    updateSongInfo();
+  </script>
+</body>
+</html>

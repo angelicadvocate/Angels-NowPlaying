@@ -1,9 +1,9 @@
 # 🎵 Angels-NowPlaying (Work in Progress)
 ### ⚠️ This project is still in development and not production-ready.
-**Current version:** 0.4.2
+**Current version:** 0.5.0
 ---
 
-**Angels-NowPlaying-Widget** is a browser-based widget for OBS that displays now playing information from local audio sources using Tuna for OBS. It includes multiple visual templates (overlay frames), all of which update in real time from the same data source.
+**Angels-NowPlaying** is a browser-based widget for OBS that displays now playing information from local audio sources using Tuna for OBS. It includes multiple visual templates (overlay frames), all of which update in real time from the same data source.
 
 You can use each template as a separate browser source in OBS, allowing for flexible and customizable scene layouts.
 
@@ -24,7 +24,7 @@ You can use each template as a separate browser source in OBS, allowing for flex
 ### 1. Download the Widget
 
 1. Download the entire repo as a ZIP or clone it via Git.
-2. Place the `Angels-NowPlaying-Widget` directory wherever you want to use it from (e.g., a permanent location on your drive).
+2. Place the `Angels-NowPlaying` directory wherever you want to use it from (e.g., a permanent location on your drive).
 
 ---
 
@@ -34,7 +34,7 @@ You can use each template as a separate browser source in OBS, allowing for flex
 2. Inside OBS, configure Tuna to output the following files:
    - `Song.json` (Add this in the "Song Info Outputs" section in Tuna Settings. Song format is {json_compact})
    - `Artwork.png` (Add this from the "Song Cover Path" section in Tuna Settings)
-3. These files **must be saved to the root of the `Angels-NowPlaying-Widget` directory**.
+3. These files **must be saved to the root of the `Angels-NowPlaying` directory**.
 
 > ⚠️ Tested and developed using Tuna's VLC integration in Tuna v1.9.9. Other sources and versions may work but are not yet tested.
 
@@ -63,7 +63,7 @@ To feed music into Tuna:
 
 The widget includes a built-in configuration editor:
 
-- Open the `00-TemplateEditor.html` file in a browser by double clicking on the file.
+- Open the `index.html` file in a browser by double clicking on the file.
 - Follow the on-screen instructions to edit visual styles for each frame.
 - When you are finished with the changes, click the "save" button and replace the downloaded css file in the "css_files" folder for the widget.
 - If OBS was open when you changed the css file you will have to click the refresh button on the source in OBS.

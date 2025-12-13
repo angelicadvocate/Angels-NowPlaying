@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EditorV2-Frame3</title>
+  <link rel="stylesheet" href="../css/editor_pages/header.css" />
+  <link rel="stylesheet" href="../css/editor_pages/F3-Editor.css" />
+</head>
+<body>
+    <!-- Header Module -->
+    <header id="editor-header">
+      <div class="header-content">
+        <!-- Left Section: Logo & Back Button -->
+        <div class="header-left">
+          <div class="logo">Angel's NowPlaying</div>
+          <button id="back-btn" class="header-btn" onclick="history.back()" title="Back to Editor Dashboard">
+            <span class="btn-icon">←</span> Back
+          </button>
+        </div>
+
+        <!-- Middle Section: Page Title -->
+        <div class="header-middle">
+          <h1 id="page-title">Frame Editor</h1>
+        </div>
+
+        <!-- Right Section: Action Buttons -->
+        <div class="header-right">
+          <button id="copy-url-btn" class="header-btn" title="Copy URL to Clipboard">
+            <span class="btn-icon">📋</span> Copy URL
+          </button>
+          <button id="save-btn" class="header-btn primary" title="Save Configuration">
+            <span class="btn-icon">💾</span> Save
+          </button>
+        </div>
+      </div>
+    </header>
+
+  <main id="site">
+    <!-- Column 1: Left Controls -->
+    <section id="col-1">
+      <div class="controls-column">
+        <label for="artist_name" class="info">Artist Name Size</label>
+        <input type="range" min="8" max="30" value="19" class="slider" id="artist_name"> 
+
+        <label for="track_title" class="info">Track Title Size</label>
+        <input type="range" min="8" max="30" value="26" class="slider" id="track_title">  
+
+        <label for="spacing" class="info">Spacing Horizontal</label>
+        <input type="range" min="-8" max="20" value="8" class="slider" id="spacing">  
+
+        <label for="color" class="info">Accent Color</label>
+        <input type="range" min="0" max="355" value="355" class="slider" id="color">
+          <div id="colorDisplay" class="info" style="margin-top: 5px;">
+            Color Code: <code id="colorCode">#ff66aa</code>
+          </div>
+      </div>
+    </section>
+
+    <!-- Column 2: Right Controls -->
+    <section id="col-2">
+      <div class="controls-column">
+        <label class="info" for="imageSize">Album Art Size</label>
+        <input type="range" min="40" max="400" value="250" class="slider" id="imageSize">
+
+        <label for="imageMarginTop" class="info">Image Top Margin</label>
+        <input type="range" min="-100" max="100" value="12" class="slider" id="imageMarginTop">
+
+        <label for="textMarginTop" class="info">Text Top Margin</label>
+        <input type="range" min="-100" max="100" value="-15" class="slider" id="textMarginTop">
+
+        <label for="imagePadding" class="info">Image Left Padding</label>
+        <input type="range" min="-50" max="50" value="0" class="slider" id="imagePadding">
+      </div>
+    </section>
+
+    <!-- Column 3: Preview -->
+    <section id="col-3">
+      <div id="sample">
+        <div id="background">
+          <div id="image-wrapper">
+            <img id="image" src="../assets/SampleAlbum.png" alt="Album Art" />
+          </div>
+          <div id="content">
+            <div id="text-box">
+              <p id="artist">Sample Artist</p>
+              <p id="song">Sample Song Title</p>
+            </div>
+          </div>
+          <div id="progress-container-preview">
+            <div id="progress-bar-preview"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const artistSize = document.getElementById("artist_name");
+    const songSize = document.getElementById("track_title");
+    const spacing = document.getElementById("spacing");
+    const color = document.getElementById("color");
+    const artistEl = document.getElementById("artist");
+    const songEl = document.getElementById("song");
+    const image = document.getElementById('image');
+    const imageSizeSlider = document.getElementById('imageSize');
+    const imagePaddingSlider = document.getElementById('imagePadding');
+    const imageMarginTopSlider = document.getElementById('imageMarginTop');
+    
+  const textMarginTopSlider = document.getElementById('textMarginTop');
+  let textMarginTopValue = textMarginTopSlider.value;
+    
+  let imageMarginTopValue = imageMarginTopSlider.value;
+  let imagePaddingValue = imagePaddingSlider.value;    
+    let imageSizeValue = imageSizeSlider.value;
+    let artistSizeValue = artistSize.value;
+    let songSizeValue = songSize.value;
+    let spacingValue = spacing.value;
+    let colorValue = color.value;
+
+function applyPreview() {
+  artistEl.style.fontSize = artistSizeValue + "px";
+  songEl.style.fontSize = songSizeValue + "px";
+  artistEl.style.marginBottom = spacingValue + "px";
+  artistEl.style.color = `hsl(${colorValue}, 100%, 68%)`;
+  
+    // Convert HSL to hex for OBS
+      function hslToHex(h, s, l) {
+        s /= 100;
+        l /= 100;
+        const k = n => (n + h / 30) % 12;
+        const a = s * Math.min(l, 1 - l);
+        const f = n =>
+          Math.round(255 * (l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))));
+        return "#" + [f(0), f(8), f(4)].map(x => x.toString(16).padStart(2, '0')).join('');
+      }
+      const hex = hslToHex(colorValue, 100, 68);
+      document.getElementById("colorCode").textContent = hex;
+
+  image.style.width = imageSizeValue + "px";
+  image.style.height = imageSizeValue + "px";
+  const content = document.getElementById('content');
+  // editor preview centers text for F3; content padding control removed
+  const imageWrapper = document.getElementById('image-wrapper');
+  imageWrapper.style.marginLeft = imagePaddingValue + "px";
+  imageWrapper.style.marginTop = imageMarginTopValue + "px";
+  const textBox = document.getElementById('text-box');
+  textBox.style.marginTop = textMarginTopValue + "px";
+  
+  // Update progress bar color (F3 uses static width based on default image size)
+  const progressBar = document.getElementById('progress-bar-preview');
+  if (progressBar) {
+    // Update progress bar color to match accent color (same as artist)
+    progressBar.style.backgroundColor = `hsl(${colorValue}, 100%, 68%)`;
+  }
+}
+
+
+    function generateCSS() {
+      // Map editor sliders to F3 runtime CSS variables and structure.
+      return `
+/* /static css placeholder/ */
+
+:root {
+  --highlight: hsl(${colorValue}, 90%, 60%);
+  --font-main: "proxima-nova", sans-serif;
+  --f3-image-margin-left: ${imagePaddingValue};
+  --f3-image-margin-bottom: ${8};
+  --f3-content-padding-top: ${0};
+  --f3-content-padding-side: ${0};
+  --f3-text-margin-top: ${textMarginTopValue};
+  --f3-text-margin-bottom: ${85};
+  --f3-progress-bottom: ${85};
+  --f3-text-margin-left: ${0};
+  --f3-text-box-width: ${360};
+  --f3-progress-scale: 0.9;
+}
+
+body {
+  background: #ebebeb;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: var(--font-main);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+#background {
+  position: relative;
+  width: 360px;
+  min-width: 360px;
+  max-width: 360px;
+  height: 640px;
+  background-image: url('../assets/Frame3.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  border-radius: 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0;
+  overflow: visible;
+  z-index: 1;
+}
+
+#image {
+  width: ${imageSizeValue * scale}px;
+  height: ${imageSizeValue * scale}px;
+  object-fit: cover;
+  margin-top: ${76 * scale}px;
+  margin-left: calc(var(--f3-image-margin-left) * 1px);
+  margin-bottom: calc(var(--f3-image-margin-bottom) * 1px);
+  padding-top: 0px;
+  border-radius: 16px;
+  display: block;
+}
+
+#content { width:100%; height:100%; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:calc(var(--f3-content-padding-top) * 1px) calc(var(--f3-content-padding-side) * 1px); overflow:hidden; }
+
+#text-box { display:flex; flex-direction:column; justify-content:center; min-width:0; flex-grow:1; overflow:hidden; text-align:center; --scroll-extra:40px; --scroll-start-offset:40px; }
+
+#text-box { margin-top: calc(var(--f3-text-margin-top) * 1px); margin-right:0; margin-left: calc(var(--f3-text-margin-left) * 1px); margin-bottom: calc(var(--f3-text-margin-bottom) * 1px); position:relative; z-index:10; width: calc(var(--f3-text-box-width) * 1px); box-sizing:border-box; display:block; }
+
+#artist { text-transform: uppercase; font-weight: 600; font-size: ${artistSizeValue * scale}px; margin-bottom: ${spacingValue * scale}px; color: var(--highlight); }
+
+#song { font-weight: bold; font-size: ${songSizeValue * scale}px; color: white; margin: 0; }
+
+p { white-space: nowrap; }
+
+#progress-container {
+  width: ${250 * scale}px;
+  height: ${8 * scale}px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: ${30 * scale}px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: ${4 * scale}px;
+  overflow: hidden;
+}
+
+#progress-bar {
+  height: 100%;
+  background-color: var(--highlight);
+  width: 0%;
+  transition: width 0.3s ease;
+  border-radius: ${4 * scale}px;
+}
+
+      `.trim();
+    }
+
+    function downloadCSS(filename, content) {
+      const blob = new Blob([content], {type: "text/css"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 0);
+    }
+
+[artistSize, songSize, spacing, color, imageSizeSlider, imagePaddingSlider, imageMarginTopSlider, textMarginTopSlider].forEach((slider) => {
+  slider.addEventListener("input", (e) => {
+    if (e.target === artistSize) artistSizeValue = e.target.value;
+    if (e.target === songSize) songSizeValue = e.target.value;
+    if (e.target === spacing) spacingValue = e.target.value;
+    if (e.target === color) colorValue = e.target.value;
+  if (e.target === imageSizeSlider) imageSizeValue = e.target.value;
+  if (e.target === imagePaddingSlider) imagePaddingValue = e.target.value;
+    if (e.target === imageMarginTopSlider) imageMarginTopValue = e.target.value;
+    if (e.target === textMarginTopSlider) textMarginTopValue = e.target.value;
+    applyPreview();
+  });
+});
+
+
+    applyPreview();
+
+    // Initialize header with F3-specific configuration
+    initializeHeader({
+      pageTitle: "Frame 3 - Album Focus",
+      onSave: () => {
+        applyPreview();
+        downloadCSS("03-NowPlaying-F3-Styles.css", generateCSS());
+      }
+    });
+
+    /**
+     * Initialize the header with custom configuration
+     * @param {Object} config - Configuration object
+     * @param {string} config.pageTitle - Title to display in the header
+     * @param {Function} config.onSave - Callback function when Save button is clicked
+     * @param {Function} config.onBack - Optional callback for Back button (defaults to history.back())
+     * @param {boolean} config.showCopyUrl - Whether to show Copy URL button (default: true)
+     */
+    function initializeHeader(config = {}) {
+      const {
+        pageTitle = "Frame Editor",
+        onSave = null,
+        onBack = null,
+        showCopyUrl = true
+      } = config;
+
+      // Set page title
+      const pageTitleEl = document.getElementById("page-title");
+      if (pageTitleEl) {
+        pageTitleEl.textContent = pageTitle;
+      }
+
+      // Set up Save button callback
+      const saveBtn = document.getElementById("save-btn");
+      if (saveBtn && onSave) {
+        saveBtn.addEventListener("click", onSave);
+      }
+
+      // Set up Back button callback if provided
+      const backBtn = document.getElementById("back-btn");
+      if (backBtn && onBack) {
+        backBtn.onclick = onBack;
+      }
+
+      // Set up Copy Link button
+      const copyUrlBtn = document.getElementById("copy-url-btn");
+      if (copyUrlBtn) {
+        if (!showCopyUrl) {
+          copyUrlBtn.style.display = "none";
+        } else {
+          copyUrlBtn.addEventListener("click", () => {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+              // Visual feedback
+              const originalText = copyUrlBtn.innerHTML;
+              copyUrlBtn.innerHTML = '<span class="btn-icon">✓</span> Copied!';
+              setTimeout(() => {
+                copyUrlBtn.innerHTML = originalText;
+              }, 2000);
+            }).catch(err => {
+              console.error("Failed to copy Link:", err);
+              alert("Failed to copy Link to clipboard");
+            });
+          });
+        }
+      }
+    }
+
+  </script>
+</body>
+</html>

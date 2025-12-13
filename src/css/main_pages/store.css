@@ -1,0 +1,226 @@
+    :root {
+      --highlight: hsl(221, 82%, 58%);
+      --font-main: "proxima-nova", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0.5rem 2rem 1rem 2rem;
+      font-family: var(--font-main), sans-serif;
+      background-color: #121212;
+      color: #f0f0f0;
+    }
+
+    html {
+      overflow-y: scroll;
+    }
+
+    html::-webkit-scrollbar {
+      display: none;
+    }
+
+    html {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    a {
+      color: #3b82f6;
+      text-decoration: none;
+    }
+
+    .header-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      padding: 0.5rem 2rem 0.5rem 2rem;
+      gap: 1.5rem;
+    }
+
+    .header-center {
+      position: static;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      flex: 0;
+    }
+
+    .floating-mascot {
+      height: 110px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .header-text {
+      height: 95px;
+      object-fit: contain;
+      margin-left: -10px;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+
+    .header-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.6rem;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+    }
+
+    .button-row-label {
+      font-size: 1rem;
+      font-weight: bold;
+      margin: 0;
+      opacity: 1;
+    }
+
+    .action-button {
+      background-color: var(--highlight);
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s ease-in-out;
+      height: 40px;
+      display: flex;
+      align-items: center;
+    }
+
+    .action-button:hover {
+      background-color: hsl(221, 82%, 65%);
+    }
+
+    .action-button.tip-button {
+      height: 1.2rem;
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      background-color: white;
+      color: var(--highlight);
+    }
+
+    .action-button.tip-button:hover {
+      background-color: var(--highlight);
+      color: white;
+    }
+
+    .action-button.tip-button:hover i {
+      color: white;
+    }
+
+    .action-button.tip-button i {
+      font-size: 1.2rem;
+      margin-right: 0.3rem;
+      color: var(--highlight);
+    }
+
+    .action-button.social-button {
+      height: 1.2rem;
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      background-color: white;
+      color: var(--highlight);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s ease-in-out;
+    }
+
+    .action-button.social-button:hover {
+      background-color: var(--highlight);
+      color: white;
+    }
+
+    .action-button.social-button:hover i {
+      color: white;
+    }
+
+    .action-button i {
+      font-size: 1.4rem;
+      margin-right: 0.5rem;
+    }
+
+    .action-button.social-button i {
+      font-size: 1.2rem;
+      margin: 0;
+      color: var(--highlight);
+    }
+
+    .store-container {
+      width: 100%;
+      margin: 0 -2rem -1rem -2rem;
+      padding: 2rem;
+      background-color: #1e1e1e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 220px);
+      text-align: center;
+    }
+
+    .coming-soon {
+      font-size: 5rem;
+      font-weight: bold;
+      color: var(--highlight);
+    }
+
+    .coming-soon-text {
+      font-size: 2.4rem;
+      color: #b0b0b0;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 1000px) {
+      .header-container {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0;
+      }
+
+      .header-center {
+        order: -1;
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+      }
+
+      .header-actions {
+        align-items: center;
+      }
+    }
+
+    @media (max-width: 550px) {
+      .floating-mascot {
+        height: 82.5px;
+      }
+
+      .header-text {
+        height: 71.25px;
+      }
+
+      .coming-soon {
+        font-size: 3.6rem;
+      }
+
+      .coming-soon-text {
+        font-size: 2rem;
+      }
+    }

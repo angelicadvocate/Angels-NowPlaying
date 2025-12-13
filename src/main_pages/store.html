@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Angel's-NowPlaying Store -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Store - Angel's-NowPlaying</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="../css/main_pages/store.css" />
+</head>
+<body>
+
+  <div class="header-container">
+    <!-- Left: Mascot/Title -->
+    <div class="header-center">
+      <img src="../assets/mascot.png" alt="Mascot" class="floating-mascot" />
+      <img src="../assets/header-text.png" alt="Header Text" class="header-text" />
+    </div>
+
+    <!-- Right Action Buttons -->
+    <div class="header-actions">
+      <!-- Support Development Row -->
+      <div class="button-row">
+        <p class="button-row-label">Support Development:</p>
+        <a href="https://streamelements.com/angelicadvocate/tip" target="_blank"><button class="action-button tip-button" title="Buy Me a Coffee"><i class="fas fa-heart" style="font-size: 1.2rem;"></i> Buy Me a Coffee</button></a>
+      </div>
+
+      <!-- Share this Widget Row -->
+      <div class="button-row">
+        <p class="button-row-label">Share this widget:</p>
+        <a href="#" onclick="shareToTwitter(); return false;"><button class="action-button social-button" title="Share on Twitter"><i class="fab fa-twitter"></i></button></a>
+        <a href="#" onclick="shareOnFacebook(); return false;"><button class="action-button social-button" title="Share on Facebook"><i class="fab fa-facebook"></i></button></a>
+        <a href="#" onclick="shareToReddit(); return false;"><button class="action-button social-button" title="Share on Reddit"><i class="fab fa-reddit"></i></button></a>
+        <a href="#" onclick="shareToDiscord(); return false;"><button class="action-button social-button" title="Share on Discord"><i class="fab fa-discord"></i></button></a>
+      </div>
+      <div class="button-row">
+        <a href="https://github.com/angelicadvocate/Angels-NowPlaying" target="_blank"><button class="action-button" title="GitHub"><i class="fab fa-github"></i> GitHub</button></a>
+        <a href="index.html"><button class="action-button" title="Home"><i class="fas fa-home"></i> Home</button></a>
+        <a href="settings.html"><button class="action-button" title="Settings"><i class="fas fa-cog"></i> Settings</button></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Store Content Placeholder -->
+  <div class="store-container">
+    <div>
+      <div class="coming-soon">Coming Soon</div>
+      <div class="coming-soon-text">The Angel's-NowPlaying Store is under development.<br>Check back soon for exclusive overlays and themes!</div>
+    </div>
+  </div>
+
+  <script>
+    const shareURL = encodeURIComponent("https://github.com/angelicadvocate/Angels-NowPlaying");
+    const shareText = encodeURIComponent("Check out this awesome customizable Angel's-NowPlaying overlay!");
+
+    function shareToTwitter() {
+      window.open(`https://twitter.com/intent/tweet?text=${shareText}&url=${shareURL}`, '_blank');
+    }
+
+    function shareToReddit() {
+      window.open(`https://www.reddit.com/submit?url=${shareURL}&title=${shareText}`, '_blank');
+    }
+
+    function shareToDiscord() {
+      navigator.clipboard.writeText(`${decodeURIComponent(shareText)}\n${decodeURIComponent(shareURL)}`);
+      alert("Link copied! Paste it into your favorite Discord server.");
+    }
+    
+    function shareOnFacebook() {
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${shareURL}`, "_blank");
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Angel's-NowPlaying Editor v0.4.2 -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Angel's-NowPlaying Editor</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="../css/main_pages/index.css" />
+</head>
+<body>
+
+  <div class="header-container">
+    <!-- Center Mascot/Title -->
+    <div class="header-center">
+      <img src="../assets/mascot.png" alt="Mascot" class="floating-mascot" />
+      <img src="../assets/header-text.png" alt="Header Text" class="header-text" />
+    </div>
+
+    <!-- Right Action Buttons -->
+    <div class="header-actions">
+      <!-- Support Development Row -->
+      <div class="button-row">
+        <p class="button-row-label">Support Development:</p>
+        <a href="https://streamelements.com/angelicadvocate/tip" target="_blank"><button class="action-button tip-button" title="Buy Me a Coffee"><i class="fas fa-heart" style="font-size: 1.2rem;"></i> Buy Me a Coffee</button></a>
+      </div>
+
+      <!-- Share this Widget Row -->
+      <div class="button-row">
+        <p class="button-row-label">Share this widget:</p>
+        <a href="#" onclick="shareToTwitter(); return false;"><button class="action-button social-button" title="Share on Twitter"><i class="fab fa-twitter"></i></button></a>
+        <a href="#" onclick="shareOnFacebook(); return false;"><button class="action-button social-button" title="Share on Facebook"><i class="fab fa-facebook"></i></button></a>
+        <a href="#" onclick="shareToReddit(); return false;"><button class="action-button social-button" title="Share on Reddit"><i class="fab fa-reddit"></i></button></a>
+        <a href="#" onclick="shareToDiscord(); return false;"><button class="action-button social-button" title="Share on Discord"><i class="fab fa-discord"></i></button></a>
+      </div>
+      <div class="button-row">
+        <a href="https://github.com/angelicadvocate/Angels-NowPlaying" target="_blank"><button class="action-button" title="GitHub"><i class="fab fa-github"></i> GitHub</button></a>
+        <button class="action-button" onclick="openStore()" title="Open Store"><i class="fas fa-store"></i> Store</button>
+        <a href="settings.html"><button class="action-button" title="Settings"><i class="fas fa-cog"></i> Settings</button></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <img src="../assets/f1preview.png" alt="Template 1 Thumbnail" />
+      <p>A sleek horizontal layout with smaller album artwork and a progress bar. Great for minimal, unobtrusive overlays.</p>
+      <p>OBS: Width 728, Height 180</p>
+      <a href="../editor_pages/F1-Editor.html"><button>Edit Overlay 1</button></a>
+    </div>
+
+    <div class="card">
+      <img src="../assets/f2preview.png" alt="Template 2 Thumbnail" />
+      <p>A bold horizontal layout featuring larger album artwork and a longer playback progress bar.</p>
+      <p>OBS: Width xxx, Height xxx</p>
+      <a href="../editor_pages/F2-Editor.html"><button>Edit Overlay 2</button></a>
+    </div>
+
+    <div class="card">
+      <img src="../assets/f3preview.png" alt="Template 3 Thumbnail" />
+      <p>A vertically stacked layout with large album art. Perfect for side panel placement or portrait scenes.</p>
+      <p>OBS: Width xxx, Height xxx</p>
+      <a href="../editor_pages/F3-Editor.html"><button>Edit Overlay 3</button></a>
+    </div>
+
+    <div class="card">
+      <img src="../assets/f4preview.png" alt="Template 4 Thumbnail" />
+      <p>A fullscreen banner-style layout that includes a pseudo-music visualizer. Ideal for high impact overlays.</p>
+      <p>OBS: Width xxx, Height xxx</p>
+      <a href="../editor_pages/F4-Editor.html"><button>Edit Overlay 4</button></a>
+    </div>
+
+    <div class="card">
+      <img src="../assets/coming-soon.png" alt="Template 5 Thumbnail" />
+      <p>A frosted glass style layout with large album artwork and a subtle blurred background effect. Limited customization.</p>
+      <p>OBS: Width xxx, Height xxx</p>
+      <a href="../editor_pages/F5-Editor.html"><button>Edit Overlay 5</button></a>
+    </div>
+
+    <div class="card">
+  <img src="../assets/coming-soon.png" alt="Template 6 Thumbnail" />
+  <p>A minimalist glassmorphism layout focusing on artist and track details with no album art. Limited customization.</p>
+  <p>OBS: Width xxx, Height xxx</p>
+  <a href="../editor_pages/F6-Editor.html"><button>Edit Overlay 6</button></a>
+    </div>
+
+    <div class="card">
+  <img src="../assets/f7preview.png" alt="Template 7 Thumbnail" />
+  <p>A retro cassette tape layout with animated winding reels and classic tape styling. Great for retro and synthwave streams.</p>
+  <p>OBS: Width xxx, Height xxx</p>
+  <a href="../editor_pages/F7-Editor.html"><button>Edit Overlay 7</button></a>
+    </div>
+
+    <div class="card">
+  <img src="../assets/f8preview.png" alt="Template 8 Thumbnail" />
+  <p>A retro vinyl record design with animated spinning effects and album art. Perfect for that nostalgic feel.</p>
+      <p>OBS: Width xxx, Height xxx</p>
+      <a href="../editor_pages/F8-Editor.html"><button>Edit Overlay 8</button></a>
+    </div>
+
+    <div class="card">
+      <img src="../assets/coming-soon.png" alt="Template 9 Thumbnail" />
+      <p>A neon theme with bright glowing borders, animated effects, and vibrant accents on dark backgrounds.</p>
+      <p>OBS: Width xxx, Height xxx</p>
+      <a href="../editor_pages/F9-Editor.html"><button>Edit Overlay 9</button></a>
+    </div>
+
+    <div class="card">
+      <img src="../assets/color-bar-visualizer-preview.png" alt="Template 10 Thumbnail" />
+      <p>An animated equalizer bars visualizer with colorful spectrum display and dynamic moving bars.</p>
+      <p>OBS: Width xxx, Height xxx</p>
+      <a href="../editor_pages/F10-Editor.html"><button>Edit Overlay 10</button></a>
+    </div>
+
+    <div class="card">
+      <img src="../assets/f11preview.png" alt="Template 11 Thumbnail" />
+      <p>A desktop interface theme inspired by UI elements, window frames, and system fonts. Perfect for retro PC gaming.</p>
+      <p>OBS: Width xxx, Height xxx</p>
+      <a href="../editor_pages/F11-Editor.html"><button>Edit Overlay 11</button></a>
+    </div>
+
+    <div class="welcome-card">
+      <div class="welcome-section">
+        <img src="../assets/instructions.png" alt="Getting Started" />
+        <p class="welcome-text">If this is your first time using this tool, please see the instructions page in <strong>Settings</strong>.</p>
+      </div>
+      <div class="welcome-divider"></div>
+      <div class="welcome-section-bottom">
+        <i class="fas fa-store"></i>
+        <span>To add more overlays, go to <strong>Settings</strong> or search in the <strong>Store</strong>.</span>
+      </div>
+      <div class="welcome-divider"></div>
+      <div class="welcome-section-bottom" style="justify-content: center; font-style: italic; opacity: 0.9;">
+        <i class="fas fa-heart" style="color: #ff6b6b; margin-right: 1rem;"></i>
+        Thanks for trying out our tool. We hope you enjoy it! Please consider leaving feedback or supporting development.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const shareURL = encodeURIComponent("https://github.com/angelicadvocate/Angels-NowPlaying");
+    const shareText = encodeURIComponent("Check out this awesome customizable Angel's-NowPlaying overlay!");
+
+    function shareToTwitter() {
+      window.open(`https://twitter.com/intent/tweet?text=${shareText}&url=${shareURL}`, '_blank');
+    }
+
+    function shareToReddit() {
+      window.open(`https://www.reddit.com/submit?url=${shareURL}&title=${shareText}`, '_blank');
+    }
+
+    function shareToDiscord() {
+      navigator.clipboard.writeText(`${decodeURIComponent(shareText)}\n${decodeURIComponent(shareURL)}`);
+      alert("Link copied! Paste it into your favorite Discord server.");
+    }
+    
+    function shareOnFacebook() {
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${shareURL}`, "_blank");
+    }
+
+    function openStore() {
+      window.location.href = "store.html";
+    }
+
+    function openSettings() {
+      alert("Settings functionality coming soon!");
+    }
+  </script>
+
+</body>
+</html>

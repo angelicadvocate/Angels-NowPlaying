@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EditorV2-Frame8-Vinyl</title>
+  <link rel="stylesheet" href="../css/editor_pages/header.css" />
+  <link rel="stylesheet" href="../css/editor_pages/F8-Editor.css" />
+</head>
+<body>
+    <!-- Header Module -->
+    <header id="editor-header">
+      <div class="header-content">
+        <!-- Left Section: Logo & Back Button -->
+        <div class="header-left">
+          <div class="logo">Angel's NowPlaying</div>
+          <button id="back-btn" class="header-btn" onclick="history.back()" title="Back to Editor Dashboard">
+            <span class="btn-icon">←</span> Back
+          </button>
+        </div>
+
+        <!-- Middle Section: Page Title -->
+        <div class="header-middle">
+          <h1 id="page-title">Frame 8 - Retro Vinyl</h1>
+        </div>
+
+        <!-- Right Section: Action Buttons -->
+        <div class="header-right">
+          <button id="copy-url-btn" class="header-btn" title="Copy URL to Clipboard">
+            <span class="btn-icon">📋</span> Copy URL
+          </button>
+          <button id="save-btn" class="header-btn primary" title="Save Configuration">
+            <span class="btn-icon">💾</span> Save
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="site">
+    <section id="controls">
+      <label for="artist_name" class="info">Artist Name Size</label>
+      <input type="range" min="12" max="48" value="24" class="slider" id="artist_name"> 
+
+      <label for="track_title" class="info">Track Title Size</label>
+      <input type="range" min="16" max="50" value="30" class="slider" id="track_title">  
+
+      <label for="textColor" class="info">Text Color</label>
+      <input type="color" id="textColor" class="color-picker" value="#ffffff">
+      
+      <label for="accentColor" class="info">Accent Color</label>
+      <input type="color" id="accentColor" class="color-picker" value="#ff2a2a">
+
+      <label for="contentOffset" class="info">Text Vertical Offset</label>
+      <input type="range" min="-290" max="290" value="136" class="slider" id="contentOffset">
+    </section>
+
+    <section id="sample">
+      <div id="background">
+        <!-- Preview Album Art Background (centered in container) -->
+        <div id="album-art-container">
+          <img id="image" src="../assets/SampleAlbum.png" alt="Album Art" />
+        </div>
+        <!-- Vinyl Elements (centered in container) -->
+        <div id="vinyl-container">
+          <img id="vinyl-record" src="../assets/vinyl_base.png" alt="Vinyl Record" />
+        </div>
+
+        <!-- Common Content -->
+        <div id="content">
+          <div id="text-box">
+            <p id="artist">Sample Artist</p>
+            <p id="song">Sample Song Title</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    </main>
+
+  <script>
+    // Input elements
+    const artistSize = document.getElementById("artist_name");
+    const songSize = document.getElementById("track_title");
+    const textColor = document.getElementById("textColor");
+    const accentColor = document.getElementById("accentColor");
+    const contentOffset = document.getElementById("contentOffset");
+    
+    // Storage keys
+    const STORAGE_KEY = 'F8EditorSettings';
+    
+    // Load settings from localStorage on page load
+    function loadSettings() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const settings = JSON.parse(saved);
+        artistSize.value = settings.artistSize || "24";
+        songSize.value = settings.songSize || "30";
+        textColor.value = settings.textColor || "#ffffff";
+        accentColor.value = settings.accentColor || "#ff2a2a";
+        contentOffset.value = settings.contentOffset || "136";
+        applyPreview();
+      }
+    }
+    
+    // Save settings to localStorage
+    function saveSettings() {
+      const settings = {
+        artistSize: artistSize.value,
+        songSize: songSize.value,
+        textColor: textColor.value,
+        accentColor: accentColor.value,
+        contentOffset: contentOffset.value
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    }
+    
+    // Apply preview
+    function applyPreview() {
+      const artist = document.getElementById("artist");
+      const song = document.getElementById("song");
+      const content = document.getElementById("content");
+      
+      artist.style.fontSize = artistSize.value + 'px';
+      artist.style.color = accentColor.value;
+      song.style.fontSize = songSize.value + 'px';
+      song.style.color = textColor.value;
+      content.style.transform = `translateY(${contentOffset.value}px)`;
+    }
+    
+    // Event listeners for live preview
+    [artistSize, songSize, textColor, accentColor, contentOffset].forEach(input => {
+      input.addEventListener('input', () => {
+        applyPreview();
+      });
+    });
+    
+    // Save button handler
+    document.getElementById("save-btn").addEventListener("click", () => {
+      saveSettings();
+      alert("Settings saved!");
+    });
+    
+    // Copy URL button handler
+    document.getElementById("copy-url-btn").addEventListener("click", () => {
+      const params = new URLSearchParams({
+        artistSize: artistSize.value,
+        songSize: songSize.value,
+        textColor: textColor.value.replace('#', ''),
+        accentColor: accentColor.value.replace('#', ''),
+        contentOffset: contentOffset.value
+      });
+      const url = window.location.pathname + '?' + params.toString();
+      navigator.clipboard.writeText(window.location.origin + url).then(() => {
+        alert("URL copied to clipboard!");
+      });
+    });
+    
+    // Load URL parameters if present
+    function loadFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('artistSize')) {
+        artistSize.value = params.get('artistSize');
+        songSize.value = params.get('songSize');
+        textColor.value = '#' + params.get('textColor');
+        accentColor.value = '#' + params.get('accentColor');
+        contentOffset.value = params.get('contentOffset');
+        applyPreview();
+      }
+    }
+    
+    // Initialize
+    window.addEventListener('DOMContentLoaded', () => {
+      loadFromURL();
+      if (!window.location.search) {
+        loadSettings();
+      }
+    });
+  </script>
+</body>
+</html>

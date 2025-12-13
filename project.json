@@ -1,10 +1,10 @@
 {
-  "name": "angels-nowplaying-widget",
-  "version": "0.4.2",
+  "name": "angels-nowplaying",
+  "version": "0.5.1",
   "description": "OBS Now Playing widget frames for displaying current song information with customizable styling",
   "repository": {
     "type": "git",
-    "url": "https://github.com/angelicadvocate/Angels-NowPlaying-Widget"
+    "url": "https://github.com/angelicadvocate/Angels-NowPlaying"
   },
   "keywords": [
     "obs",

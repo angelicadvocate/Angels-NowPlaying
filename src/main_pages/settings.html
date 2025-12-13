@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Angel's-NowPlaying Settings -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Settings - Angel's-NowPlaying</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="../css/main_pages/settings.css" />
+</head>
+<body>
+
+  <div class="header-container">
+    <!-- Left: Mascot/Title -->
+    <div class="header-center">
+      <img src="../assets/mascot.png" alt="Mascot" class="floating-mascot" />
+      <img src="../assets/header-text.png" alt="Header Text" class="header-text" />
+    </div>
+
+    <!-- Right Action Buttons -->
+    <div class="header-actions">
+      <!-- Support Development Row -->
+      <div class="button-row">
+        <p class="button-row-label">Support Development:</p>
+        <a href="https://streamelements.com/angelicadvocate/tip" target="_blank"><button class="action-button tip-button" title="Buy Me a Coffee"><i class="fas fa-heart" style="font-size: 1.2rem;"></i> Buy Me a Coffee</button></a>
+      </div>
+
+      <!-- Share this Widget Row -->
+      <div class="button-row">
+        <p class="button-row-label">Share this widget:</p>
+        <a href="#" onclick="shareToTwitter(); return false;"><button class="action-button social-button" title="Share on Twitter"><i class="fab fa-twitter"></i></button></a>
+        <a href="#" onclick="shareOnFacebook(); return false;"><button class="action-button social-button" title="Share on Facebook"><i class="fab fa-facebook"></i></button></a>
+        <a href="#" onclick="shareToReddit(); return false;"><button class="action-button social-button" title="Share on Reddit"><i class="fab fa-reddit"></i></button></a>
+        <a href="#" onclick="shareToDiscord(); return false;"><button class="action-button social-button" title="Share on Discord"><i class="fab fa-discord"></i></button></a>
+      </div>
+      <div class="button-row">
+        <a href="https://github.com/angelicadvocate/Angels-NowPlaying" target="_blank"><button class="action-button" title="GitHub"><i class="fab fa-github"></i> GitHub</button></a>
+        <button class="action-button" onclick="openStore()" title="Open Store"><i class="fas fa-store"></i> Store</button>
+        <a href="index.html"><button class="action-button" title="Home"><i class="fas fa-home"></i> Home</button></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-grid">
+    <!-- Settings Card -->
+    <div class="settings-card">
+      <h2><i class="fas fa-sliders-h"></i> Settings</h2>
+
+      <div class="settings-item">
+        <p class="template-section-title"><i class="fas fa-moon" id="dark-mode-icon"></i> Dark Mode</p>
+        <button class="toggle-switch active" id="dark-mode-toggle" title="Toggle Dark Mode"></button>
+      </div>
+
+      <div class="settings-item" style="margin-top: 1.5rem; border-top: 1px solid #333; padding-top: 1rem; flex-direction: column; align-items: flex-start;">
+        <p class="template-section-title">Current Version: <strong id="version-number">Loading...</strong></p>
+        <button class="settings-button" onclick="checkForUpdates()" style="width: 100%;">
+          <i class="fas fa-download"></i> Check for Updates
+        </button>
+        <p id="update-status" style="font-size: 0.85rem; margin-top: 0.8rem; display: none; width: 100%; color: var(--text-color);"></p>
+      </div>
+
+      <div class="template-management">
+        <div class="template-section">
+          <p class="template-section-title"><i class="fas fa-upload"></i> Upload Template</p>
+          <div class="template-section-content">
+            <button class="upload-button" onclick="openUploadModal()">
+              <i class="fas fa-plus"></i> Upload New Template
+            </button>
+          </div>
+        </div>
+
+        <div class="template-section">
+          <p class="template-section-title"><i class="fas fa-trash"></i> Delete Template</p>
+          <div class="template-section-content">
+            <select class="template-dropdown" id="template-select">
+              <option value="">Select a template to delete...</option>
+            </select>
+            <button class="delete-button" onclick="deleteTemplate()">
+              <i class="fas fa-trash-alt"></i> Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instructions Card -->
+    <div class="card">
+      <h2><i class="fas fa-book"></i> Instructions</h2>
+      <img src="../assets/instructions.png" alt="Instructions Thumbnail" />
+      <p>Need help? Visit the instructions page for setup guides and detailed usage information. We recomend checking for updates regularly. </p>
+      <a href="../main_pages/instructions.html"><button>View Instructions</button></a>
+    </div>
+    <div class="settings-card">
+      <h2><i class="fas fa-info-circle"></i> About</h2>
+
+      <div class="about-text">
+        <p><strong>Angel's-NowPlaying</strong> is a customizable, browser-based overlay for streamers. Perfect for OBS, it displays your current song, album art, and artist information in beautiful, animated layouts.</p>
+
+        <p>Choose from multiple theme designs including retro cassette tapes, spinning vinyl records, glassmorphism, and neon cyberpunk aesthetics. Each template is fully customizable to match your stream's visual style.</p>
+
+        <p><strong>Created by:</strong> AngelicAdvocate</p>
+
+        <p style="font-size: 0.9rem; opacity: 0.8;">Made with ❤️ for content creators</p>
+        <p style="font-size: 0.85rem; margin-top: 0.5rem;"><strong>Dependencies:</strong> Tuna, OBS, VLC</p>
+      </div>
+
+      <div class="about-links">
+        <a href="https://github.com/angelicadvocate/Angels-NowPlaying" target="_blank" title="GitHub Repository">
+          <i class="fab fa-github"></i> GitHub
+        </a>
+        <a href="https://streamelements.com/angelicadvocate/tip" target="_blank" title="Support">
+          <i class="fas fa-heart"></i> Support
+        </a>
+      </div>
+
+      <img src="https://avatars.githubusercontent.com/u/202484976?v=4" alt="angelicadvocate" class="about-avatar" />
+    </div>
+  </div>
+
+  <!-- Upload Template Modal -->
+  <div class="modal-overlay" id="uploadModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><i class="fas fa-cloud-upload-alt"></i> Upload New Template</h3>
+        <button class="modal-close" onclick="closeUploadModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="uploadForm">
+          <!-- OBS Dimensions -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="obsWidth">OBS Width</label>
+              <input type="number" id="obsWidth" placeholder="1920" min="0" required>
+            </div>
+            <div class="form-group">
+              <label for="obsHeight">OBS Height</label>
+              <input type="number" id="obsHeight" placeholder="1080" min="0" required>
+            </div>
+          </div>
+
+          <!-- Template Info -->
+          <div class="form-group">
+            <label for="buttonName">Button Name</label>
+            <input type="text" id="buttonName" placeholder="e.g., Retro Cassette" required>
+          </div>
+
+          <div class="form-group">
+            <label for="pageName">Page Name</label>
+            <input type="text" id="pageName" placeholder="e.g., F1-NowPlaying" required>
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" placeholder="Describe your template and its features..." required></textarea>
+          </div>
+
+          <!-- File Uploads -->
+          <div class="form-group">
+            <label for="htmlFile">HTML File</label>
+            <input type="file" id="htmlFile" accept=".html" required>
+            <div class="file-upload-hint">Upload the main HTML file</div>
+          </div>
+
+          <div class="form-group">
+            <label for="previewImage">Preview Image</label>
+            <input type="file" id="previewImage" accept="image/*" required>
+            <div class="file-upload-hint">JPG, PNG (thumbnail for card)</div>
+          </div>
+
+          <div class="form-group">
+            <label for="mainImages">Main Images (up to 10)</label>
+            <input type="file" id="mainImages" accept="image/*" multiple>
+            <div class="file-upload-hint">Additional images needed by the template</div>
+            <div class="file-count" id="fileCount"></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeUploadModal()">Cancel</button>
+        <button class="btn-submit" onclick="submitUpload()">Upload Template</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const shareURL = encodeURIComponent("https://github.com/angelicadvocate/Angels-NowPlaying");
+    const shareText = encodeURIComponent("Check out this awesome customizable Angel's-NowPlaying overlay!");
+
+    function shareToTwitter() {
+      window.open(`https://twitter.com/intent/tweet?text=${shareText}&url=${shareURL}`, '_blank');
+    }
+
+    function shareToReddit() {
+      window.open(`https://www.reddit.com/submit?url=${shareURL}&title=${shareText}`, '_blank');
+    }
+
+    function shareToDiscord() {
+      navigator.clipboard.writeText(`${decodeURIComponent(shareText)}\n${decodeURIComponent(shareURL)}`);
+      alert("Link copied! Paste it into your favorite Discord server.");
+    }
+    
+    function shareOnFacebook() {
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${shareURL}`, "_blank");
+    }
+
+    function openStore() {
+      window.location.href = "store.html";
+    }
+
+    // Dark mode toggle
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    const darkModeIcon = document.getElementById('dark-mode-icon');
+    
+    darkModeToggle.addEventListener('click', function() {
+      this.classList.toggle('active');
+      const isDarkMode = this.classList.contains('active');
+      localStorage.setItem('darkMode', isDarkMode);
+      applyDarkMode(isDarkMode);
+      
+      // Toggle icon between moon and sun
+      if (isDarkMode) {
+        darkModeIcon.classList.remove('fa-sun');
+        darkModeIcon.classList.add('fa-moon');
+      } else {
+        darkModeIcon.classList.remove('fa-moon');
+        darkModeIcon.classList.add('fa-sun');
+      }
+    });
+
+    // Load version from VERSION file
+    function loadVersion() {
+      fetch('../../VERSION')
+        .then(response => response.text())
+        .then(version => {
+          document.getElementById('version-number').textContent = version.trim();
+        })
+        .catch(error => {
+          console.error('Error loading version:', error);
+          document.getElementById('version-number').textContent = 'Unknown';
+        });
+    }
+
+    // Check for updates
+    function checkForUpdates() {
+      const updateStatus = document.getElementById('update-status');
+      updateStatus.style.display = 'block';
+      updateStatus.textContent = 'Checking for updates...';
+
+      // Simulating API call - in production this would check against a version endpoint
+      setTimeout(() => {
+        updateStatus.textContent = '✓ You are running the latest version!';
+        updateStatus.style.color = '#4ade80';
+      }, 1000);
+    }
+
+    // Apply dark mode setting
+    function applyDarkMode(isDark) {
+      if (isDark) {
+        document.documentElement.style.colorScheme = 'dark';
+      } else {
+        document.documentElement.style.colorScheme = 'light';
+      }
+    }
+
+    // Load dark mode preference on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      const isDarkMode = localStorage.getItem('darkMode') !== 'false';
+      if (!isDarkMode) {
+        darkModeToggle.classList.remove('active');
+        darkModeIcon.classList.remove('fa-moon');
+        darkModeIcon.classList.add('fa-sun');
+      }
+      applyDarkMode(isDarkMode);
+      
+      // Populate template dropdown
+      populateTemplateDropdown();
+
+      // Load version from VERSION file
+      loadVersion();
+    });
+
+    // Template Management Functions
+    const templates = [
+      { id: 'template-1', name: '01-NowPlaying-F1', displayName: 'Template 1 - Retro Cassette', isDeletable: false },
+      { id: 'template-2', name: '02-NowPlaying-F2', displayName: 'Template 2 - Vinyl Record', isDeletable: false },
+      { id: 'template-3', name: '03-NowPlaying-F3', displayName: 'Template 3 - Glassmorphism', isDeletable: false },
+      { id: 'template-4', name: '04-NowPlaying-F4', displayName: 'Template 4 - Neon Cyberpunk', isDeletable: false },
+      { id: 'template-5', name: '05-NowPlaying-F5', displayName: 'Template 5 - Minimalist', isDeletable: false },
+      { id: 'template-6', name: '06-NowPlaying-F6', displayName: 'Template 6 - Retro OS', isDeletable: false },
+      { id: 'template-7', name: '07-NowPlaying-F7', displayName: 'Template 7 - Digital Display', isDeletable: false },
+      { id: 'template-8', name: '08-NowPlaying-F8', displayName: 'Template 8 - Hologram', isDeletable: false },
+      { id: 'template-9', name: '09-NowPlaying-F9', displayName: 'Template 9 - Coming Soon', isDeletable: false },
+      { id: 'template-10', name: '10-NowPlaying-F10', displayName: 'Template 10 - Coming Soon', isDeletable: false },
+      { id: 'template-11', name: '11-NowPlaying-F11', displayName: 'Template 11 - Coming Soon', isDeletable: false }
+      // User-uploaded templates (stored in app-data/templates/custom/ in Tauri) would be added here dynamically:
+      // { id: 'custom-1', name: 'user-template-1', displayName: 'My Custom Template', isDeletable: true }
+    ];
+
+    function populateTemplateDropdown() {
+      const select = document.getElementById('template-select');
+      // Only show templates that are deletable (user-uploaded)
+      const deletableTemplates = templates.filter(t => t.isDeletable);
+      
+      if (deletableTemplates.length === 0) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'No custom templates to delete';
+        option.disabled = true;
+        select.appendChild(option);
+        return;
+      }
+      
+      deletableTemplates.forEach(template => {
+        const option = document.createElement('option');
+        option.value = template.id;
+        option.textContent = template.displayName;
+        select.appendChild(option);
+      });
+    }
+
+    function openUploadModal() {
+      document.getElementById('uploadModal').classList.add('active');
+    }
+
+    function closeUploadModal() {
+      document.getElementById('uploadModal').classList.remove('active');
+      document.getElementById('uploadForm').reset();
+      document.getElementById('fileCount').textContent = '';
+    }
+
+    function submitUpload() {
+      const obsWidth = document.getElementById('obsWidth').value;
+      const obsHeight = document.getElementById('obsHeight').value;
+      const buttonName = document.getElementById('buttonName').value;
+      const pageName = document.getElementById('pageName').value;
+      const description = document.getElementById('description').value;
+      const htmlFile = document.getElementById('htmlFile').files[0];
+      const previewImage = document.getElementById('previewImage').files[0];
+      const mainImages = document.getElementById('mainImages').files;
+
+      // Validate required fields
+      if (!obsWidth || !obsHeight || !buttonName || !pageName || !description || !htmlFile || !previewImage) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
+      // Validate main images count
+      if (mainImages.length > 10) {
+        alert('Maximum 10 images allowed');
+        return;
+      }
+
+      // TODO: Add actual upload logic when backend is ready
+      console.log('Upload form data:', {
+        obsWidth,
+        obsHeight,
+        buttonName,
+        pageName,
+        description,
+        htmlFile: htmlFile.name,
+        previewImage: previewImage.name,
+        mainImagesCount: mainImages.length
+      });
+
+      alert('Template upload ready! Actual upload functionality will be added in Tauri integration.');
+      closeUploadModal();
+    }
+
+    function deleteTemplate() {
+      const selected = document.getElementById('template-select').value;
+      if (!selected) {
+        alert('Please select a template to delete');
+        return;
+      }
+
+      if (confirm('Are you sure you want to delete this template? This action cannot be undone.')) {
+        // TODO: Add actual deletion logic when backend is ready
+        console.log('Deleting template:', selected);
+        alert('Template deletion ready! Actual deletion functionality will be added in Tauri integration.');
+      }
+    }
+
+    // File count display for main images
+    document.getElementById('mainImages')?.addEventListener('change', function() {
+      const count = this.files.length;
+      if (count > 0) {
+        document.getElementById('fileCount').textContent = count === 1 ? '1 file selected' : count + ' files selected (max 10)';
+      } else {
+        document.getElementById('fileCount').textContent = '';
+      }
+    });
+
+    // Close modal when clicking outside
+    document.getElementById('uploadModal')?.addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeUploadModal();
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Angels-NowPlaying - Instructions</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="../css/main_pages/instructions.css" />
+</head>
+
+<body>
+
+  <div class="header-container">
+    <!-- Left: Mascot/Title -->
+    <div class="header-center">
+      <img src="../assets/mascot.png" alt="Mascot" class="floating-mascot" />
+      <img src="../assets/header-text.png" alt="Header Text" class="header-text" />
+    </div>
+
+    <!-- Right Action Buttons -->
+    <div class="header-actions">
+      <!-- Support Development Row -->
+      <div class="button-row">
+        <p class="button-row-label">Support Development:</p>
+        <a href="https://streamelements.com/angelicadvocate/tip" target="_blank"><button class="action-button tip-button" title="Buy Me a Coffee"><i class="fas fa-heart" style="font-size: 1.2rem;"></i> Buy Me a Coffee</button></a>
+      </div>
+
+      <!-- Share this Widget Row -->
+      <div class="button-row">
+        <p class="button-row-label">Share this widget:</p>
+        <a href="#" onclick="shareToTwitter(); return false;"><button class="action-button social-button" title="Share on Twitter"><i class="fab fa-twitter"></i></button></a>
+        <a href="#" onclick="shareOnFacebook(); return false;"><button class="action-button social-button" title="Share on Facebook"><i class="fab fa-facebook"></i></button></a>
+        <a href="#" onclick="shareToReddit(); return false;"><button class="action-button social-button" title="Share on Reddit"><i class="fab fa-reddit"></i></button></a>
+        <a href="#" onclick="shareToDiscord(); return false;"><button class="action-button social-button" title="Share on Discord"><i class="fab fa-discord"></i></button></a>
+      </div>
+      <div class="button-row">
+        <a href="https://github.com/angelicadvocate/Angels-NowPlaying" target="_blank"><button class="action-button" title="GitHub"><i class="fab fa-github"></i> GitHub</button></a>
+        <button class="action-button" onclick="openStore()" title="Open Store"><i class="fas fa-store"></i> Store</button>
+        <a href="index.html"><button class="action-button" title="Home"><i class="fas fa-home"></i> Home</button></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-container">
+    <div class="card" id="left-column">
+      <h1>Editor Instructions</h1>
+      <h3>How to use the visual editor</h3>
+      <p>Quick steps to customize a frame using the editor:</p>
+      <ol>
+        <li>Open the editor for the frame you want to customize.</li>
+        <li>Use the sliders to tweak values such as accent color, artist and track font sizes, image size, and spacing.
+          The preview updates live.</li>
+        <li>When you're happy with the look, click the <strong>Save</strong> button to generate the CSS for that frame.
+        </li>
+      </ol>
+
+      <h3>Applying Editor CSS (Download & Replace)</h3>
+      <p>The editor generates a CSS file when you click the <strong>Save</strong> button. Because the editor runs in
+        your browser (no backend), the generated file is downloaded to your computer.</p>
+      <ol>
+        <li>Download the generated CSS (it will be named like <code>01-NowPlaying-F1-Styles.css</code>).</li>
+        <li>Move or copy the downloaded file into the project's <code>css/</code> directory, replacing the existing file
+          for that frame.</li>
+        <li>In OBS, open the Browser Source properties for the HTML frame and click <strong>Refresh</strong> (or toggle
+          the source) so OBS picks up the updated CSS.</li>
+      </ol>
+
+      <h3>Going back to edit later</h3>
+      <p>You can return to the editor at any time to adjust layout and styling. Repeat the steps above: tweak sliders,
+        click <strong>Save</strong>, download the generated CSS, and replace the file in the <code>css/</code> folder.
+      </p>
+
+      <h3>Feedback & Support</h3>
+      <p>Thanks for trying Angels-NowPlaying! If you find bugs, have feature requests, or want to contribute,
+        please open an issue or pull request on <a href="https://github.com/angelicadvocate/Angels-NowPlaying"
+          target="_blank" rel="noopener">GitHub</a>. Reporting the OBS version, Tuna version, and a short description of
+        how to reproduce the problem (screenshots or a copy of your <code>Song.json</code> can help) makes it much
+        easier to diagnose issues.</p>
+    </div>
+
+    <div class="card" id="right-column">
+      <h1>Setup Instructions</h1>
+
+      <p>Welcome! This page will guide you through setting up and using the NowPlaying Widget with OBS and Tuna.</p>
+
+      <h3>Setup Steps</h3>
+      <ol>
+        <li>Download the repository from the <a href="https://github.com/angelicadvocate/Angels-NowPlaying"
+            target="_blank" rel="noopener">GitHub</a> and extract it if necessary. Place the
+          <code>Angels-NowPlaying</code> folder where you'd like to keep the widget files.</li>
+        <li>Install the Tuna plugin and enable it in OBS — available on the <a
+            href="https://github.com/univrsal/tuna/releases" target="_blank" rel="noopener">Tuna releases page</a>.
+          <strong><em>Special thanks to the Tuna project for their excellent work — this project wouldn't exist without
+              their plugin.</em></strong></li>
+        <li>Configure Tuna to write <code>Song.json</code> and <code>Artwork.png</code> into the root of the widget
+          folder. Some example files are included in the repo to help you locate the correct destination. In Tuna's
+          settings, set the <code>Song format</code> to <code>json_compact</code>.</li>
+        <li>Open the visual editor for a template by clicking its Edit button on the dashboard; use the sliders to build
+          the look you want (see left).</li>
+        <li>To add a widget to your OBS scene, create a new Browser Source, select the <em>Local File</em> option, and
+          point it to the corresponding HTML file for your chosen template. (They will be named like
+          <code>01-NowPlaying-F1.html</code> and <code>02-NowPlaying-F2.html</code> etc.).</li>
+        <li>You can adjust the resolution in OBS to match the dimensions shown on the editor page for the selected
+          template to reduce empty space around the browser source in OBS.</li>
+        <li>(Optional) Adjust the Browser Source settings as needed, such as enabling <em>Shutdown source when not
+            visible</em> to save resources. (Note: This may cause a delay in the widget appearing when you switch to the
+          scene.)</li>
+        <li>Ensure the widget is positioned correctly in your OBS scene, and test it by playing audio through a
+          <code>VLC video source</code> in OBS. (Note: You can add entire playlists by selecting a directory here
+          instead of individual files.)</li>
+      </ol>
+
+      <h3>Important Notes</h3>
+      <div class="note">
+        <strong>Local File Playback:</strong> This widget has been tested primarily with local audio files played via
+        VLC integration inside OBS with Tuna v1.9.9. To use local music, add your music directory as a VLC Video Source
+        in OBS (not a Media Source). Only VLC Video Sources currently work with Tuna for local playback.
+      </div>
+
+      <h3>Future Features</h3>
+      <ul>
+        <li>Support for additional media sources like Spotify, YouTube Music, and Apple Music (as Tuna compatibility
+          allows).</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    function shareToTwitter() {
+      const url = encodeURIComponent(window.location.href);
+      const text = encodeURIComponent("Check out Angels-NowPlaying!");
+      window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, "_blank");
+    }
+
+    function shareOnFacebook() {
+      const url = encodeURIComponent(window.location.href);
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank");
+    }
+
+    function shareToReddit() {
+      const url = encodeURIComponent(window.location.href);
+      window.open(`https://reddit.com/submit?url=${url}`, "_blank");
+    }
+
+    function shareToDiscord() {
+      alert("Copy the URL from your browser to share on Discord.");
+    }
+
+    function openStore() {
+      window.location.href = "../store.html";
+    }
+  </script>
+
+</body>
+
+</html>

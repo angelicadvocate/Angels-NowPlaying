@@ -1,0 +1,311 @@
+:root {
+  --highlight: hsl(221, 82%, 58%);
+  --font-main: "proxima-nova", sans-serif;
+  /* Editor preview tuning */
+  --editor-preview-padding-top: 0; /* px - increase to move preview down */
+}
+
+/* Reset and base styles */
+body {
+  background: #ebebeb;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: var(--font-main);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+/* Controls container */
+#col-1, #col-2, #col-3 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 15px;
+  margin: 0;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* Two-column grid for sliders - REMOVED, now 3 direct columns */
+
+.controls-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Column alignment adjustments */
+.controls-column:first-child {
+  margin-top: 0;
+}
+
+.controls-column:last-child {
+  margin-top: 0;
+}
+
+/* Labels for sliders */
+.info {
+  font-family: var(--font-main);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--highlight);
+  margin-bottom: 0px;
+  display: block;
+}
+
+/* Sliders */
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 350px;
+  height: 25px;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  border-radius: 5px;
+}
+
+.slider:hover {
+  opacity: 1;
+}
+
+.slider::-webkit-slider-thumb,
+.slider::-moz-range-thumb {
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  background: var(--highlight);
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.slider-group {
+  margin: 0;
+  padding: 0;
+}
+
+.slider-group .info {
+  display: block;
+  margin-bottom: 14px;
+  font-size: 20px;
+  text-align: center;
+}
+
+.slider-group .slider {
+  width: 100%;
+}
+
+/* Sample preview section */
+#sample {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  padding: 0;
+  margin: 0;
+}
+
+/* Sample and save container for column layout */
+#sample-and-save {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+
+/* Big container for album art + text */
+#background {
+  position: relative;
+  width: 300px;
+  min-width: 300px;
+  max-width: 300px;
+  height: 380px;
+  background-image: url('../../assets/Frame3.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  border-radius: 8px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: visible;
+}
+
+#image-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  overflow: visible;
+  margin-left: 0;
+  padding-left: 0;
+  z-index: 5;
+}
+
+/* Flex container for image + text (centered text for F3 preview) */
+#content {
+  flex: 1;
+  overflow: hidden;
+  padding: 0 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+/* Album art image */
+#image {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+  margin-top: var(--image-margin-top, 0px); /* Default to 0, will be set dynamically */
+}
+
+/* Text container under the album art (centered) */
+#text-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  flex-grow: 1;
+  overflow: hidden;
+  text-align: center;
+}
+
+#text-box p {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#artist, #song {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+
+/* Artist name styling */
+#artist {
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 15px;
+  margin: 0 0 5px 0;
+  margin-left: 0;
+  margin-right: 0;
+  color: var(--highlight);
+}
+
+/* Song title styling */
+#song {
+  font-weight: bold;
+  font-size: 24px;
+  margin: 0;
+  margin-left: 0;
+  margin-right: 0;
+  color: white;
+}
+
+/* Progress bar preview (static width based on default image size) */
+#progress-container-preview {
+  position: absolute;
+  bottom: 10px;
+  left: 50%; /* Center horizontally for vertical layout */
+  transform: translateX(-50%); /* Center alignment trick */
+  width: 250px; /* Match default image size */
+  height: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  border-radius: 5px;
+  z-index: 9999;
+}
+
+#progress-bar-preview {
+  height: 100%;
+  width: 50%; /* Static 50% progress for preview */
+  background-color: hsl(221, 100%, 68%); /* Default color, updated dynamically by JS */
+  transition: width 0.3s linear;
+}
+
+/* Save button */
+#save {
+  margin-top: 120px;
+  background-color: var(--highlight);
+  color: white;
+  padding: 10px 60px;
+  border: none;
+  border-radius: 10px;
+  font-size: 24px;
+  text-transform: uppercase;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s ease-in-out;
+  font-family: var(--font-main);
+}
+
+#back_button {
+  background-color: var(--highlight);
+  color: white;
+  padding: 10px 60px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  margin-top: -20px;
+  text-transform: uppercase;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s ease-in-out;
+  font-family: var(--font-main);
+}
+
+#save:hover, #back_button:hover {
+  opacity: 1;
+}
+
+/* Utility */
+p {
+  white-space: nowrap;
+}
+
+#site {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0;
+  padding: 0;
+  flex: 1;
+  overflow: hidden;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+#layout {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+#bottom_back_button {
+  position: fixed;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  z-index: 1000; /* optional, if overlapping needed */
+}

@@ -1,0 +1,202 @@
+/* Vertical frame (F3) styles — modeled on F2 but for a portrait layout */
+
+:root {
+  --highlight: hsl(200, 90%, 60%);
+  --font-main: "proxima-nova", sans-serif;
+
+  /* Numeric spacing vars for F3 (numbers only — px applied via calc) */
+  --f3-image-margin-left: 0;          /* px */
+  --f3-image-margin-bottom: 0;       /* px */
+  --f3-content-padding-top: 0;       /* px */
+  --f3-content-padding-side: 0;      /* px */
+  --f3-text-margin-top: 25;          /* px: distance from top to text block */
+  --f3-text-margin-bottom: 85;        /* px: gap above progress bar */
+  --f3-progress-bottom: 85;           /* px: distance from bottom for progress bar */
+  --f3-text-margin-left: 0;           /* px: horizontal offset for text block */
+  --f3-text-box-width: 360;          /* px: fixed width for the text box */
+  --f3-progress-scale: 0.9;           /* fraction of full width for the progress bar (0-1) */
+}
+
+/* Reset and base styles */
+body {
+  background: #ebebeb;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: var(--font-main);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+#background {
+  position: relative;
+  width: 360px;
+  min-width: 360px;
+  max-width: 360px;
+  height: 640px;
+  background-image: url('../static_assets/Frame3.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  border-radius: 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column; /* stack image above text for vertical frame */
+  align-items: center;    /* center horizontally */
+  justify-content: flex-start; /* start from top and let padding push content down */
+  padding: 0;
+  overflow: visible;
+  z-index: 1;
+}
+
+/* Album art image (main) — stacked above/below text in vertical frame */
+#image {
+  width: 340px;
+  height: 340px;
+  object-fit: cover;
+  margin-top: 76px;
+  margin-left: calc(var(--f3-image-margin-left) * 1px);
+  margin-bottom: calc(var(--f3-image-margin-bottom) * 1px);
+  padding-top: 0px;
+  border-radius: 16px;
+  display: block;
+}
+
+#image-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  overflow: visible;
+  margin: 0px 0;
+  padding: 0;
+  z-index: 5;
+}
+
+/* Content area holds image + text stacked vertically */
+#content {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start; /* stack from top; text positioning controlled by numeric vars */
+  padding: calc(var(--f3-content-padding-top) * 1px) calc(var(--f3-content-padding-side) * 1px);
+  overflow: hidden;
+}
+
+/* Text container */
+#text-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  flex-grow: 1;
+  overflow: hidden;
+  text-align: center;
+  /* Extra vertical/horizontal space to include for scrolling calculations (px) */
+  --scroll-extra: 40px;
+  /* How far off-screen the text starts before scrolling (px) */
+  --scroll-start-offset: 40px;
+}
+
+#text-box {
+  /* Fixed numeric spacing instead of auto margins */
+  margin-top: calc(var(--f3-text-margin-top) * 1px);
+  margin-right: 0; /* keep centered unless overridden by left offset */
+  margin-left: calc(var(--f3-text-margin-left) * 1px);
+  margin-bottom: calc(var(--f3-text-margin-bottom) * 1px);
+  position: relative;
+  z-index: 10;
+  /* fixed width so the box doesn't resize with text length */
+  width: calc(var(--f3-text-box-width) * 1px);
+  box-sizing: border-box;
+  display: block;
+}
+
+#artist,
+#song {
+  position: relative;
+  margin: 0;
+}
+
+.text-box {
+  width: 100%;
+  overflow: visible; /* allow scroller or wrapping to show text */
+  white-space: normal; /* allow wrapping so fixed width behaves predictably */
+  position: relative;
+}
+
+/* Artist name styling */
+#artist {
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 24px;
+  margin-bottom: 8px;
+  color: var(--highlight);
+}
+
+/* Song title styling */
+#song {
+  font-weight: bold;
+  font-size: 40px;
+  color: white;
+  margin: 0;
+}
+
+#artist, #song {
+  display: block; /* ensure they fill the text-box width and do not shrink to content */
+  text-align: left; /* default; editor uses left alignment with padding control */
+}
+
+p {
+  white-space: nowrap;
+}
+
+/* Scrolling span — uses horizontal scroll in this vertical frame for long titles */
+#text-box span {
+  display: inline-block;
+  white-space: nowrap;
+  will-change: transform;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  transform: translateX(var(--marquee-start, 0));
+}
+
+/* Marquee animation (keeps parity with F2) */
+.marquee {
+  animation-name: marqueeAnim;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: var(--marquee-duration, 8s);
+}
+
+@keyframes marqueeAnim {
+  0% { transform: translateX(var(--marquee-start, 0)); }
+  100% { transform: translateX(var(--marquee-end, 0)); }
+}
+
+/* Progress bar container — place near the bottom for vertical frame */
+#progress-container {
+  position: absolute;
+  bottom: calc(var(--f3-progress-bottom) * 1px);
+  /* center the progress container and scale its width relative to background */
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% * var(--f3-progress-scale));
+  max-width: calc(100% - 16px); /* keep a small gutter at very small scales */
+  height: 10px;
+  background-color: rgba(255,255,255,0.08);
+  overflow: hidden;
+  border-radius: 6px;
+  z-index: 9999;
+}
+
+#progress-bar {
+  height: 100%;
+  width: 0%;
+  background-color: var(--highlight);
+  transition: width 0.3s linear;
+}
+

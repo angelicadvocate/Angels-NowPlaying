@@ -1,0 +1,160 @@
+/* F4 Now-Playing frame styles
+   Baseline derived from editor_assets/04-EditorV2-F4-Styles.css
+   - Removed editor control styles
+   - Added a positioned looping #visualizer video element
+   - Exposed a few tuning variables for F4 layout
+*/
+:root{
+  --f4-width: 1800px;
+  --f4-height: 150px;
+  --highlight: hsl(221, 82%, 58%);
+  --font-main: "proxima-nova", sans-serif;
+  --scroll-extra: 40; /* px added to overflow calculation for marquee */
+  --scroll-start-offset: 30; /* px to start the scroller off-screen */
+  --visualizer-opacity: 0.7; /* opacity of the visuals over the background */
+  /* Progress bar measured in pixels relative to the text box */
+  --progress-width-px: 450px; /* target pixel width of the progress bar */
+  --progress-left-px: 0px;    /* left margin offset inside the text-box */
+  --text-left-px: 0px;        /* left margin for visible text (independent of progress bar) */
+  --text-start-offset: 0px;   /* the margin-left reset used when text is not scrolling */
+}
+
+html,body{
+  margin:0;
+  padding:0;
+  height:100%;
+  font-family:var(--font-main);
+  background:transparent; /* OBS will composite over scene */
+}
+
+#background{
+  position:relative;
+  width:var(--f4-width);
+  min-width:var(--f4-width);
+  max-width:var(--f4-width);
+  height:var(--f4-height);
+  background-image: url('../static_assets/Frame4.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  overflow:visible;
+}
+
+/* Visualizer video sits above the background image but behind the image and text */
+#visualizer{
+  position:absolute;
+  right:-120px; /* tune this in pixels to line up with the frame art */
+  top:0px;
+  width:1430px;
+  height:150px;
+  object-fit:cover;
+  opacity:var(--visualizer-opacity);
+  pointer-events:none; /* allow clicks to pass through in the editor */
+  z-index:2;
+}
+
+/* Progress inside text-box: width is controlled relative to the text-box via --progress-width */
+#progress-container{
+  position:relative;
+  width:var(--progress-width-px);
+  margin-left:var(--progress-left-px);
+  height:8px;
+  margin-top:8px;
+  background:rgba(255,255,255,0.06);
+  border-radius:4px;
+  overflow:hidden;
+  z-index:45;
+}
+
+#progress-bar{
+  width:0%;
+  height:100%;
+  background:linear-gradient(90deg,var(--highlight), #8fe);
+  transition: width 0.1s linear;
+}
+
+/* Album art */
+#image{
+  width:120px;
+  height:120px;
+  object-fit:cover;
+  border-radius:4px;
+  display:block;
+  margin-left:20px;
+  z-index:40;
+}
+
+#content{
+  flex:1;
+  overflow:hidden;
+  padding:0 20px 0 30px;
+  box-sizing:border-box;
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  z-index:40;
+}
+
+#text-box{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  min-width:0;
+  margin-left: -10px;
+  flex-grow:1;
+  overflow:hidden;
+  text-align:left;
+}
+
+/* Clip container that limits visible text to the progress bar width */
+.text-clip{
+  width:var(--progress-width-px);
+  margin-left:var(--text-left-px);
+  overflow:hidden;
+  white-space:nowrap;
+}
+
+.text-item{ display:inline-block; white-space:nowrap; }
+
+.text-row{ display:block; overflow:visible; }
+.text-inner{ display:inline-block; white-space:nowrap; }
+
+#artist,#song{ margin:0; display:inline-block; }
+.text-row{ display:block; overflow:visible; margin-bottom:4px; line-height:1; }
+.text-inner{ display:block; white-space:nowrap; }
+
+#artist,#song{ margin:0; display:block; }
+
+#artist{
+  text-transform:uppercase;
+  font-weight:600;
+  font-size:15px;
+  margin:0 0 5px 0;
+  color:var(--highlight);
+}
+
+#song{
+  font-weight:bold;
+  font-size:24px;
+  margin:0;
+  color:white;
+}
+
+/* Small helper to keep the scroller contained */
+.scroller-wrap{
+  position:relative;
+  overflow:hidden;
+}
+
+/* Ensure the visual layers stack correctly in OBS */
+#background > *{pointer-events:none}
+
+/* Responsive fallback (will not change dimensions but keeps layout safe) */
+@media (max-width:1200px){
+  #visualizer{display:none}
+}

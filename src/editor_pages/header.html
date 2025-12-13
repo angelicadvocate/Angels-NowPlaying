@@ -1,0 +1,89 @@
+<!-- Reusable Header Template for Editor Pages -->
+<!-- Usage: Include this file and call initializeHeader({ pageTitle: "Frame 7 - Cassette Tape", ... }) -->
+
+<header id="editor-header">
+  <div class="header-content">
+    <!-- Left Section: Logo & Back Button -->
+    <div class="header-left">
+      <div class="logo">Angel's NowPlaying</div>
+      <button id="back-btn" class="header-btn" onclick="history.back()" title="Back to Editor Dashboard">
+        <span class="btn-icon">←</span> Back
+      </button>
+    </div>
+
+    <!-- Middle Section: Page Title -->
+    <div class="header-middle">
+      <h1 id="page-title">Frame Editor</h1>
+    </div>
+
+    <!-- Right Section: Action Buttons -->
+    <div class="header-right">
+      <button id="copy-url-btn" class="header-btn" title="Copy URL to Clipboard">
+        <span class="btn-icon">📋</span> Copy URL
+      </button>
+      <button id="save-btn" class="header-btn primary" title="Save Configuration">
+        <span class="btn-icon">💾</span> Save
+      </button>
+    </div>
+  </div>
+</header>
+
+<script>
+  /**
+   * Initialize the header with custom configuration
+   * @param {Object} config - Configuration object
+   * @param {string} config.pageTitle - Title to display in the header (e.g., "Frame 7 - Cassette Tape")
+   * @param {Function} config.onSave - Callback function when Save button is clicked
+   * @param {Function} config.onBack - Optional callback for Back button (defaults to history.back())
+   * @param {boolean} config.showCopyUrl - Whether to show Copy URL button (default: true)
+   */
+  function initializeHeader(config = {}) {
+    const {
+      pageTitle = "Frame Editor",
+      onSave = null,
+      onBack = null,
+      showCopyUrl = true
+    } = config;
+
+    // Set page title
+    const pageTitleEl = document.getElementById("page-title");
+    if (pageTitleEl) {
+      pageTitleEl.textContent = pageTitle;
+    }
+
+    // Set up Save button callback
+    const saveBtn = document.getElementById("save-btn");
+    if (saveBtn && onSave) {
+      saveBtn.addEventListener("click", onSave);
+    }
+
+    // Set up Back button callback if provided
+    const backBtn = document.getElementById("back-btn");
+    if (backBtn && onBack) {
+      backBtn.onclick = onBack;
+    }
+
+    // Set up Copy Link button
+    const copyUrlBtn = document.getElementById("copy-url-btn");
+    if (copyUrlBtn) {
+      if (!showCopyUrl) {
+        copyUrlBtn.style.display = "none";
+      } else {
+        copyUrlBtn.addEventListener("click", () => {
+          const url = window.location.href;
+          navigator.clipboard.writeText(url).then(() => {
+            // Visual feedback
+            const originalText = copyUrlBtn.innerHTML;
+            copyUrlBtn.innerHTML = '<span class="btn-icon">✓</span> Copied!';
+            setTimeout(() => {
+              copyUrlBtn.innerHTML = originalText;
+            }, 2000);
+          }).catch(err => {
+            console.error("Failed to copy Link:", err);
+            alert("Failed to copy Link to clipboard");
+          });
+        });
+      }
+    }
+  }
+</script>
