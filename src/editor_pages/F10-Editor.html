@@ -38,6 +38,21 @@
 
     <main id="site">
     <section id="controls">
+      <label for="fontFamily" class="info">Font Family</label>
+      <select id="fontFamily" class="dropdown">
+        <option value="proxima-nova, sans-serif" selected>Proxima Nova</option>
+        <option value="Comic Sans MS, cursive">Comic Sans MS</option>
+        <option value="Brush Script MT, cursive">Brush Script MT</option>
+        <option value="Georgia, serif">Georgia</option>
+        <option value="Times New Roman, serif">Times New Roman</option>
+        <option value="Courier New, monospace">Courier New</option>
+        <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
+        <option value="Verdana, sans-serif">Verdana</option>
+      </select>
+
+      <label class="info" for="imageSize">Album Art Size</label>
+      <input type="range" min="40" max="150" value="70" class="slider" id="imageSize">
+
       <label for="artist_name" class="info">Artist Name Size</label>
       <input type="range" min="8" max="32" value="16" class="slider" id="artist_name"> 
 
@@ -45,8 +60,16 @@
       <input type="range" min="8" max="32" value="24" class="slider" id="track_title">  
 
       <label for="spacing" class="info">Spacing Horizontal</label>
-      <input type="range" min="-8" max="20" value="8" class="slider" id="spacing">  
+      <input type="range" min="-8" max="20" value="1" class="slider" id="spacing">
 
+      <label for="textVerticalOffset" class="info">Text Vertical Position</label>
+      <input type="range" min="-50" max="30" value="-7" class="slider" id="textVerticalOffset">
+
+      <label for="progressBarOffset" class="info">Progress Bar Vertical Position</label>
+      <input type="range" min="-30" max="30" value="-5" class="slider" id="progressBarOffset">
+    </section>
+
+    <section id="controls-middle">
       <label for="accentColor" class="info">Accent Color</label>
       <div class="color-picker-container">
         <input type="color" id="accentColor" class="color-picker" value="#db0000">
@@ -54,11 +77,6 @@
           <code id="accentColorCode">#DB0000</code>
         </div>
       </div>
-    </section>
-
-    <section id="controls-middle">
-      <label class="info" for="imageSize">Album Art Size</label>
-      <input type="range" min="40" max="150" value="70" class="slider" id="imageSize">
 
       <label for="contentPadding" class="info">Text Left Padding</label>
       <input type="range" min="0" max="50" value="15" class="slider" id="contentPadding">
@@ -110,6 +128,7 @@
   </main>
 
   <script>
+    const fontFamily = document.getElementById("fontFamily");
     const artistSize = document.getElementById("artist_name");
     const songSize = document.getElementById("track_title");
     const spacing = document.getElementById("spacing");
@@ -124,13 +143,18 @@
     const frameBrightnessSlider = document.getElementById('frameBrightness');
     const frameHue = document.getElementById('frameHue');
     const autoRotateHue = document.getElementById('autoRotateHue');
+    const textVerticalOffsetSlider = document.getElementById('textVerticalOffset');
+    const progressBarOffsetSlider = document.getElementById('progressBarOffset');
 
+    let fontFamilyValue = fontFamily.value;
     let imagePaddingValue = imagePaddingSlider.value;    
     let contentPaddingValue = contentPaddingSlider.value;
     let imageSizeValue = imageSizeSlider.value;
     let frameOpacityValue = frameOpacitySlider.value;
     let frameBrightnessValue = frameBrightnessSlider.value;
     let artistSizeValue = artistSize.value;
+    let textVerticalOffsetValue = textVerticalOffsetSlider.value;
+    let progressBarOffsetValue = progressBarOffsetSlider.value;
     let songSizeValue = songSize.value;
     let spacingValue = spacing.value;
     let accentColorValue = accentColor.value || "#db0000";
@@ -144,14 +168,20 @@ function applyPreview() {
   songEl.style.fontSize = songSizeValue + "px";
   artistEl.style.marginBottom = spacingValue + "px";
   artistEl.style.color = accentColorValue;
+  artistEl.style.fontFamily = fontFamilyValue;
+  artistEl.style.textShadow = "0 2px 4px rgba(0, 0, 0, 0.5)";
+  songEl.style.fontFamily = fontFamilyValue;
+  songEl.style.textShadow = "0 2px 4px rgba(0, 0, 0, 0.5)";
   
   // Display hex color code
   document.getElementById("accentColorCode").textContent = accentColorValue.toUpperCase();
 
   image.style.width = imageSizeValue + "px";
   image.style.height = imageSizeValue + "px";
+  image.style.filter = "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4))";
   const content = document.getElementById('content');
   content.style.padding = `0 20px 0 ${contentPaddingValue}px`;
+  content.style.transform = `translateY(${textVerticalOffsetValue}px)`;
   const imageWrapper = document.getElementById('image-wrapper');
   imageWrapper.style.marginLeft = imagePaddingValue + "px";
   
@@ -168,6 +198,8 @@ function applyPreview() {
     
     progressContainer.style.left = progressStartPos + "px";
     progressContainer.style.width = progressWidth + "px";
+    progressContainer.style.transform = `translateY(${progressBarOffsetValue}px)`;
+    progressContainer.style.filter = "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4))";
     
     // Update progress bar color to match accent color
     progressBar.style.backgroundColor = accentColorValue;
@@ -235,7 +267,7 @@ function applyPreview() {
 
 :root {
   --highlight: hsl(${highlightHsl});
-  --font-main: "proxima-nova", sans-serif;
+  --font-main: ${fontFamilyValue};
 }
 
 /* Reset and base styles */
@@ -293,6 +325,7 @@ body {
   margin-left: ${imagePaddingValue * scale}px;
   border-radius: ${4 * scale}px;
   display: block;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
 }
 
 /* Fading overlay image */
@@ -314,6 +347,7 @@ body {
   display: flex;
   flex-direction: row;
   align-items: center;
+  transform: translateY(${textVerticalOffsetValue * scale}px);
 }
 
 /* Text container */
@@ -348,6 +382,7 @@ body {
   font-size: ${artistSizeValue * scale}px;
   margin-bottom: ${spacingValue * scale}px;
   color: var(--highlight);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Song title styling */
@@ -356,6 +391,7 @@ body {
   font-size: ${songSizeValue * scale}px;
   color: white;
   margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 p {
@@ -401,6 +437,8 @@ p {
   overflow: hidden;
   border-radius: 10px 10px 10px 10px;
   z-index: 9999;
+  transform: translateY(${progressBarOffsetValue * scale}px);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
 }
 
 #progress-bar {
@@ -427,7 +465,7 @@ p {
       }, 0);
     }
 
-[artistSize, songSize, spacing, imageSizeSlider, contentPaddingSlider, imagePaddingSlider, frameOpacitySlider, frameBrightnessSlider, frameHue].forEach((slider) => {
+[artistSize, songSize, spacing, imageSizeSlider, contentPaddingSlider, imagePaddingSlider, frameOpacitySlider, frameBrightnessSlider, frameHue, textVerticalOffsetSlider, progressBarOffsetSlider].forEach((slider) => {
   slider.addEventListener("input", (e) => {
     if (e.target === artistSize) artistSizeValue = e.target.value;
     if (e.target === songSize) songSizeValue = e.target.value;
@@ -438,6 +476,8 @@ p {
     if (e.target === frameOpacitySlider) frameOpacityValue = e.target.value;
     if (e.target === frameBrightnessSlider) frameBrightnessValue = e.target.value;
     if (e.target === frameHue) frameHueValue = e.target.value;
+    if (e.target === textVerticalOffsetSlider) textVerticalOffsetValue = e.target.value;
+    if (e.target === progressBarOffsetSlider) progressBarOffsetValue = e.target.value;
     applyPreview();
   });
 });
@@ -445,6 +485,12 @@ p {
 // Color picker event listener
 accentColor.addEventListener("input", (e) => {
   accentColorValue = e.target.value;
+  applyPreview();
+});
+
+// Font family event listener
+fontFamily.addEventListener("change", (e) => {
+  fontFamilyValue = e.target.value;
   applyPreview();
 });
 

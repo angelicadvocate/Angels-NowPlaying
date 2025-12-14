@@ -747,3 +747,33 @@ Please be sure to add date, completed tag, `github:[username]`, and version numb
    - Created F11 editor page with header module integrated
    - Standardized all editor pages to use consistent header styling and save functionality across F1-F4
 
+---------------------------------------------------------------------------------
+
+- [X] **Created F10 Editor Base** ✨ *COMPLETED* `github:AngelicAdvocate` **v0.5.1** *(2025-12-09)*
+   - Created base for F10 Editor page
+   - Still needs to be implemented:
+       - Font picker
+       - Rearrange sliders to balance columns
+       - Text position up/down
+       - Progress bar position up down
+   - Awaiting further testing
+
+---------------------------------------------------------------------------------
+
+- [X] **Created F9 Editor Base** ✨ *COMPLETED* `github:AngelicAdvocate` **v0.5.1** *(2025-12-12)*
+   - Created base for F9 Editor page
+   - Still needs to be implemented:
+       - Thumbnail image correction for transparency (or)
+       - Thumbnail image generation for light mode switch
+   - Awaiting further testing
+   - Future general editor page enhancement:
+       - All pages need to be updated to use the same height for the dropdowns, color pickers, and sliders for better alignment
+
+---------------------------------------------------------------------------------
+
+- [X] **Finished F9 & F10 Editor / Created F5 & F6 Base** ✨ *COMPLETED* `github:AngelicAdvocate` **v0.5.2** *(2025-12-13)*
+   - Added the rest of the sliders to F10 Editor controls
+   - Corrected drop shaddows on text and album art for F10
+   - Generated new thumbnail for F10 Overlay
+   - Created base for F5 Editor page
+   - Created base for F6 Editor page

@@ -2,61 +2,605 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Coming Soon</title>
-  <style>
-    :root {
-      --highlight: hsl(221, 82%, 58%);
-      --font-main: "proxima-nova", sans-serif;
-    }
-
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: var(--font-main);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      background-color: #121212;
-      color: white;
-      text-align: center;
-    }
-
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 35px;
-    }
-
-    #back_button {
-      background-color: var(--highlight);
-      color: white;
-      padding: 10px 60px;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      margin-top: -20px;
-      text-transform: uppercase;
-      cursor: pointer;
-      opacity: 0.8;
-      transition: opacity 0.2s ease-in-out;
-      font-family: var(--font-main);
-    }
-
-    #back_button:hover {
-      opacity: 1;
-    }
-
-    img {
-      max-width: 400px;
-      margin-bottom: 30px;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EditorV2-Frame9</title>
+  <link rel="stylesheet" href="../css/editor_pages/header.css" />
+  <link rel="stylesheet" href="../css/editor_pages/F9-Editor.css" />
 </head>
 <body>
-  <img src="../assets/coming-soon.png" alt="Coming Soon" />
-  <h1>Coming Soon</h1>
-  <button id="back_button" onclick="history.back()">Back to Editor Dashboard</button>
+    <!-- Header Module -->
+    <header id="editor-header">
+      <div class="header-content">
+        <!-- Left Section: Logo & Back Button -->
+        <div class="header-left">
+          <div class="logo">Angel's NowPlaying</div>
+          <button id="back-btn" class="header-btn" onclick="history.back()" title="Back to Editor Dashboard">
+            <span class="btn-icon">←</span> Back
+          </button>
+        </div>
+
+        <!-- Middle Section: Page Title -->
+        <div class="header-middle">
+          <h1 id="page-title">Frame Editor</h1>
+        </div>
+
+        <!-- Right Section: Action Buttons -->
+        <div class="header-right">
+          <button id="copy-url-btn" class="header-btn" title="Copy URL to Clipboard">
+            <span class="btn-icon">📋</span> Copy URL
+          </button>
+          <button id="save-btn" class="header-btn primary" title="Save Configuration">
+            <span class="btn-icon">💾</span> Save
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="site">
+    <section id="controls">
+      <!-- Two-column layout for all sliders -->
+      <div class="controls-grid">
+        <!-- Left Column -->
+        <div class="controls-column">
+          <label for="fontFamily" class="info">Font Family</label>
+          <select id="fontFamily" class="dropdown">
+            <option value="proxima-nova, sans-serif" selected>Proxima Nova</option>
+            <option value="Comic Sans MS, cursive">Comic Sans MS</option>
+            <option value="Brush Script MT, cursive">Brush Script MT</option>
+            <option value="Georgia, serif">Georgia</option>
+            <option value="Times New Roman, serif">Times New Roman</option>
+            <option value="Courier New, monospace">Courier New</option>
+            <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
+            <option value="Verdana, sans-serif">Verdana</option>
+          </select>
+
+          <label for="artist_name" class="info">Artist Name Size</label>
+          <input type="range" min="8" max="32" value="18" class="slider" id="artist_name"> 
+
+          <label for="track_title" class="info">Track Title Size</label>
+          <input type="range" min="8" max="32" value="26" class="slider" id="track_title">  
+
+          <label for="spacing" class="info">Spacing Horizontal</label>
+          <input type="range" min="-8" max="20" value="1" class="slider" id="spacing">
+
+          <label for="frameHue" class="info">Frame Hue</label>
+          <input type="range" min="-180" max="180" value="0" class="slider" id="frameHue">
+
+          <div id="autoRotateFrameHueMessage" style="display: none; padding: 10px; background: #d3d3d3; border-radius: 5px; text-align: center; font-size: 14px; color: var(--highlight); font-weight: bold;">
+            Disable hue rotation to set hue color manually.
+          </div>
+
+          <label for="autoRotateFrameHue" class="info">Auto Rotate Frame Hue</label>
+          <select id="autoRotateFrameHue" class="dropdown">
+            <option value="no" selected>No</option>
+            <option value="frame-only">Yes - Frame Only</option>
+            <option value="frame-accent">Yes - Frame + Accent</option>
+          </select>
+        </div>
+
+        <!-- Right Column -->
+        <div class="controls-column">
+          <label class="info" for="imageSize">Album Art Size</label>
+          <input type="range" min="40" max="150" value="72" class="slider" id="imageSize">
+
+          <label for="contentPadding" class="info">Text Left Padding</label>
+          <input type="range" min="0" max="100" value="10" class="slider" id="contentPadding">
+
+          <label for="imagePadding" class="info">Image Left Padding</label>
+          <input type="range" min="-50" max="150" value="80" class="slider" id="imagePadding">
+
+          <label for="progressBarOffset" class="info">Progress Bar Vertical Position</label>
+          <input type="range" min="-30" max="30" value="22" class="slider" id="progressBarOffset">
+
+          <label for="textVerticalOffset" class="info">Text Vertical Position</label>
+          <input type="range" min="-50" max="30" value="-16" class="slider" id="textVerticalOffset">
+
+          <label for="color" class="info">Accent Color</label>
+          <div class="color-picker-container">
+            <input type="color" id="color" class="color-picker" value="#ff2ed2">
+            <div id="colorDisplay" class="color-code-overlay">
+              <code id="colorCode">#FF2ED2</code>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="sample">
+      <div id="background">
+        <video id="neon-frame" autoplay loop muted playsinline crossorigin="anonymous" preload="auto">
+          <source src="../assets/neon-color-frame-main.webm" type="video/webm">
+        </video>
+        <div id="image-wrapper">
+          <img id="image" src="../assets/SampleAlbum.png" alt="Album Art" />
+          <video id="neon-album-art-frame" autoplay loop muted playsinline crossorigin="anonymous" preload="auto">
+            <source src="../assets/neon-album-art-frame.webm" type="video/webm">
+          </video>
+        </div>
+        <div id="content">
+          <div id="text-box">
+            <p id="artist">Sample Artist</p>
+            <p id="song">Sample Song Title</p>
+          </div>
+        </div>
+        <div id="progress-container-preview">
+          <div id="progress-bar-preview"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const artistSize = document.getElementById("artist_name");
+    const songSize = document.getElementById("track_title");
+    const spacing = document.getElementById("spacing");
+    const fontFamily = document.getElementById("fontFamily");
+    const frameHueSlider = document.getElementById("frameHue");
+    const autoRotateFrameHueSelect = document.getElementById("autoRotateFrameHue");
+    const autoRotateFrameHueMessage = document.getElementById("autoRotateFrameHueMessage");
+    const color = document.getElementById("color");
+    const artistEl = document.getElementById("artist");
+    const songEl = document.getElementById("song");
+    const image = document.getElementById('image');
+    const imageSizeSlider = document.getElementById('imageSize');
+    const contentPaddingSlider = document.getElementById('contentPadding');
+    const imagePaddingSlider = document.getElementById('imagePadding');
+    const progressBarOffsetSlider = document.getElementById('progressBarOffset');
+    const textVerticalOffsetSlider = document.getElementById('textVerticalOffset');
+
+    let imagePaddingValue = imagePaddingSlider.value;    
+    let contentPaddingValue = contentPaddingSlider.value;
+    let imageSizeValue = imageSizeSlider.value;
+    let progressBarOffsetValue = progressBarOffsetSlider.value;
+    let textVerticalOffsetValue = textVerticalOffsetSlider.value;
+    let artistSizeValue = artistSize.value;
+    let songSizeValue = songSize.value;
+    let spacingValue = spacing.value;
+    let fontFamilyValue = fontFamily.value;
+    let frameHueValue = frameHueSlider.value;
+    let colorValue = color.value;
+    let autoRotateFrameHue = false;
+    let autoRotateFrameHueInterval = null;
+
+    const scale = 2;
+
+    function startAutoRotateFrameHue() {
+      let currentHue = 0;
+      autoRotateFrameHueInterval = setInterval(() => {
+        currentHue = (currentHue + 1) % 360;
+        frameHueValue = currentHue;
+        frameHueSlider.value = currentHue;
+        applyPreview();
+      }, 60);
+    }
+
+    function stopAutoRotateFrameHue() {
+      if (autoRotateFrameHueInterval) {
+        clearInterval(autoRotateFrameHueInterval);
+        autoRotateFrameHueInterval = null;
+      }
+    }
+
+function applyPreview() {
+  // Apply hue rotation to frame elements
+  const neonFrame = document.getElementById('neon-frame');
+  const neonAlbumFrame = document.getElementById('neon-album-art-frame');
+  if (neonFrame) {
+    neonFrame.style.filter = `hue-rotate(${frameHueValue}deg)`;
+  }
+  if (neonAlbumFrame) {
+    neonAlbumFrame.style.filter = `hue-rotate(${frameHueValue}deg)`;
+  }
+  
+  // Apply hue rotation to entire preview container when in frame-accent mode
+  const background = document.getElementById('background');
+  if (autoRotateFrameHue === "frame-accent") {
+    background.style.filter = `hue-rotate(${frameHueValue}deg)`;
+    // Exclude album art from hue rotation
+    image.style.filter = `hue-rotate(-${frameHueValue}deg)`;
+  } else {
+    background.style.filter = '';
+    image.style.filter = '';
+  }
+  
+  artistEl.style.fontSize = artistSizeValue + "px";
+  songEl.style.fontSize = songSizeValue + "px";
+  artistEl.style.marginBottom = spacingValue + "px";
+  artistEl.style.fontFamily = fontFamilyValue;
+  songEl.style.fontFamily = fontFamilyValue;
+  artistEl.style.color = colorValue;
+  
+  // Add subtle neon glow effect to artist name
+  artistEl.style.textShadow = `0 2px 4px rgba(0, 0, 0, 0.8), 0 0 6px ${colorValue}60`;
+
+  document.getElementById("colorCode").textContent = colorValue.toUpperCase();
+
+  image.style.width = imageSizeValue + "px";
+  image.style.height = imageSizeValue + "px";
+  const content = document.getElementById('content');
+  content.style.padding = `0 20px 0 ${contentPaddingValue}px`;
+  content.style.marginTop = textVerticalOffsetValue + "px";
+  const imageWrapper = document.getElementById('image-wrapper');
+  imageWrapper.style.marginLeft = imagePaddingValue + "px";
+  
+  // Update progress bar positioning and color dynamically
+  const progressContainer = document.getElementById('progress-container-preview');
+  const progressBar = document.getElementById('progress-bar-preview');
+  if (progressContainer && progressBar) {
+    // Calculate dynamic positioning based on image position and size
+    const imageLeftPos = parseInt(imagePaddingValue) + 5; // Base padding + image padding
+    const imageRightEdge = imageLeftPos + parseInt(imageSizeValue);
+    const progressStartPos = imageRightEdge + 10; // Small gap after image
+    const containerWidth = 500; // Preview container width
+    const progressWidth = containerWidth - progressStartPos - 30 - 10; // Leave some right margin
+    
+    progressContainer.style.left = progressStartPos + "px";
+    progressContainer.style.width = progressWidth + "px";
+    progressContainer.style.bottom = (6 + parseInt(progressBarOffsetValue)) + "px";
+    
+    // Update progress bar color to match accent color
+    progressBar.style.backgroundColor = colorValue;
+    
+    // Add neon glow effect to progress bar
+    progressContainer.style.filter = `drop-shadow(0 0 6px ${colorValue}) drop-shadow(0 0 12px ${colorValue}80)`;
+  }
+}
+
+
+    function generateCSS() {
+      // Convert hex color to HSL for CSS output
+      function hexToHsl(hex) {
+        hex = hex.replace(/^#/, '');
+        const r = parseInt(hex.substring(0, 2), 16) / 255;
+        const g = parseInt(hex.substring(2, 4), 16) / 255;
+        const b = parseInt(hex.substring(4, 6), 16) / 255;
+        
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        let h, s, l = (max + min) / 2;
+        
+        if (max === min) {
+          h = s = 0;
+        } else {
+          const d = max - min;
+          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+          switch (max) {
+            case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+            case g: h = ((b - r) / d + 2) / 6; break;
+            case b: h = ((r - g) / d + 4) / 6; break;
+          }
+        }
+        
+        h = Math.round(h * 360);
+        s = Math.round(s * 100);
+        l = Math.round(l * 100);
+        
+        return `${h}, ${s}%, ${l}%`;
+      }
+      
+      const highlightHsl = hexToHsl(colorValue);
+      const frameHueFilter = frameHueValue !== '0' ? `filter: hue-rotate(${frameHueValue}deg);` : '';
+      return `
+/* /static css placeholder/ */
+
+:root {
+  --highlight: hsl(${highlightHsl});
+  --font-main: "proxima-nova", sans-serif;
+}
+
+/* Neon frame video element */
+#neon-frame {
+  position: absolute;
+  left: 18.5px;
+  width: 100%;
+  object-fit: cover;
+  z-index: -1;
+  ${frameHueFilter}
+}
+
+/* Neon album art frame video element */
+#neon-album-art-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  z-index: 6;
+  pointer-events: none;
+  ${frameHueFilter}
+}
+
+/* Reset and base styles */
+body {
+  background: #ebebeb;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: var(--font-main);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Widget container */
+#background {
+  position: relative;
+  width: ${400 * scale}px;
+  min-width: ${400 * scale}px;
+  max-width: ${400 * scale}px;
+  height: ${90 * scale}px;
+  background-image: url('../assets/Frame1.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  border-radius: ${8 * scale}px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: visible;
+  z-index: 1;
+}
+
+/* Album art image (main) */
+#image {
+  width: ${imageSizeValue * scale}px;
+  height: ${imageSizeValue * scale}px;
+  object-fit: cover;
+  margin-left: ${imagePaddingValue * scale}px;
+  border-radius: ${4 * scale}px;
+  display: block;
+}
+
+/* Fading overlay image */
+#image-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  overflow: visible;
+  margin-left: 0px;
+  padding-left: 0;
+  z-index: 5;
+}
+
+/* Flex container for image + text */
+#content {
+  flex: 1;
+  overflow: hidden;
+  padding: 0 ${20 * scale}px 0 ${contentPaddingValue * scale}px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+/* Text container */
+#text-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  flex-grow: 1;
+  overflow: hidden;
+  text-align: left;
+}
+
+#artist,
+#song {
+  position: relative;
+  margin: 0;
+}
+
+.text-box {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+
+/* Artist name styling */
+#artist {
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: ${artistSizeValue * scale}px;
+  margin-bottom: ${spacingValue * scale}px;
+  font-family: ${fontFamilyValue};
+  color: var(--highlight);
+}
+
+/* Song title styling */
+#song {
+  font-weight: bold;
+  font-size: ${songSizeValue * scale}px;
+  font-family: ${fontFamilyValue};
+  color: white;
+  margin: 0;
+}
+
+p {
+  white-space: nowrap;
+}
+
+/* Scrolling span */
+#text-box span {
+  display: inline-block;
+  white-space: nowrap;
+  will-change: transform;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  transform: translateX(var(--marquee-start, 0));
+}
+
+/* Marquee animation */
+.marquee {
+  animation-name: marqueeAnim;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: var(--marquee-duration, 10s);
+}
+
+@keyframes marqueeAnim {
+  0% {
+    transform: translateX(var(--marquee-start, 0));
+  }
+  100% {
+    transform: translateX(var(--marquee-end, 0));
+  }
+}
+
+/* Progress bar container - dynamically positioned */
+#progress-container {
+  position: absolute;
+  bottom: 0;
+  left: ${(parseInt(imagePaddingValue) * scale + parseInt(imageSizeValue) * scale + 20)}px;
+  width: ${(400 * scale) - (parseInt(imagePaddingValue) * scale + parseInt(imageSizeValue) * scale + 60)}px;
+  margin-bottom: ${12 * scale}px;
+  height: ${15 * scale}px;
+  background-color: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  border-radius: 10px 10px 10px 10px;
+  z-index: 9999;
+}
+
+#progress-bar {
+  height: 100%;
+  width: 0%;
+  background-color: var(--highlight);
+  transition: width 0.3s linear;
+}
+
+      `.trim();
+    }
+
+    function downloadCSS(filename, content) {
+      const blob = new Blob([content], {type: "text/css"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 0);
+    }
+[artistSize, songSize, spacing, color, imageSizeSlider, contentPaddingSlider, imagePaddingSlider, progressBarOffsetSlider, textVerticalOffsetSlider, frameHueSlider].forEach((slider) => {
+  if (!slider) return; // Skip if slider is null
+  slider.addEventListener("input", (e) => {
+    if (e.target === artistSize) artistSizeValue = e.target.value;
+    if (e.target === songSize) songSizeValue = e.target.value;
+    if (e.target === spacing) spacingValue = e.target.value;
+    if (e.target === color) colorValue = e.target.value;
+    if (e.target === imageSizeSlider) imageSizeValue = e.target.value;
+    if (e.target === contentPaddingSlider) contentPaddingValue = e.target.value;
+    if (e.target === imagePaddingSlider) imagePaddingValue = e.target.value;
+    if (e.target === progressBarOffsetSlider) progressBarOffsetValue = e.target.value;
+    if (e.target === textVerticalOffsetSlider) textVerticalOffsetValue = e.target.value;
+    if (e.target === frameHueSlider) frameHueValue = e.target.value;
+    applyPreview();
+  });
+});
+
+fontFamily.addEventListener("change", (e) => {
+  fontFamilyValue = e.target.value;
+  applyPreview();
+});
+
+autoRotateFrameHueSelect.addEventListener("change", (e) => {
+  autoRotateFrameHue = e.target.value;
+  stopAutoRotateFrameHue();
+  if (autoRotateFrameHue !== "no") {
+    frameHueSlider.style.display = "none";
+    autoRotateFrameHueMessage.style.display = "block";
+    frameHueSlider.disabled = true;
+    frameHueValue = 0;
+    frameHueSlider.value = 0;
+    startAutoRotateFrameHue();
+  } else {
+    frameHueSlider.style.display = "block";
+    autoRotateFrameHueMessage.style.display = "none";
+    frameHueSlider.disabled = false;
+    frameHueValue = 0;
+    frameHueSlider.value = 0;
+    applyPreview();
+  }
+});
+
+    applyPreview();
+
+    // Initialize header with F9-specific configuration
+    initializeHeader({
+      pageTitle: "Frame 9 - Simple Horizontal",
+      onSave: () => {
+        applyPreview();
+        downloadCSS("09-NowPlaying-F9-Styles.css", generateCSS());
+      }
+    });
+
+    /**
+     * Initialize the header with custom configuration
+     * @param {Object} config - Configuration object
+     * @param {string} config.pageTitle - Title to display in the header
+     * @param {Function} config.onSave - Callback function when Save button is clicked
+     * @param {Function} config.onBack - Optional callback for Back button (defaults to history.back())
+     * @param {boolean} config.showCopyUrl - Whether to show Copy URL button (default: true)
+     */
+    function initializeHeader(config = {}) {
+      const {
+        pageTitle = "Frame Editor",
+        onSave = null,
+        onBack = null,
+        showCopyUrl = true
+      } = config;
+
+      // Set page title
+      const pageTitleEl = document.getElementById("page-title");
+      if (pageTitleEl) {
+        pageTitleEl.textContent = pageTitle;
+      }
+
+      // Set up Save button callback
+      const saveBtn = document.getElementById("save-btn");
+      if (saveBtn && onSave) {
+        saveBtn.addEventListener("click", onSave);
+      }
+
+      // Set up Back button callback if provided
+      const backBtn = document.getElementById("back-btn");
+      if (backBtn && onBack) {
+        backBtn.onclick = onBack;
+      }
+
+      // Set up Copy Link button
+      const copyUrlBtn = document.getElementById("copy-url-btn");
+      if (copyUrlBtn) {
+        if (!showCopyUrl) {
+          copyUrlBtn.style.display = "none";
+        } else {
+          copyUrlBtn.addEventListener("click", () => {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+              // Visual feedback
+              const originalText = copyUrlBtn.innerHTML;
+              copyUrlBtn.innerHTML = '<span class="btn-icon">✓</span> Copied!';
+              setTimeout(() => {
+                copyUrlBtn.innerHTML = originalText;
+              }, 2000);
+            }).catch(err => {
+              console.error("Failed to copy Link:", err);
+              alert("Failed to copy Link to clipboard");
+            });
+          });
+        }
+      }
+    }
+
+  </script>
+
 </body>
 </html>

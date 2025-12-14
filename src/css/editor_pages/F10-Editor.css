@@ -247,6 +247,37 @@ body {
   flex-grow: 1;
   overflow: hidden;
   text-align: left;
+  margin-left: -5px;
+}
+
+#artist, #song {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+
+/* Artist name styling */
+#artist {
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 16px;
+  margin: 0 0 8px 0;
+  padding-left: 5px;
+  padding-bottom: 5px;
+  color: var(--highlight);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Song title styling */
+#song {
+  font-weight: bold;
+  font-size: 24px;
+  margin: 0;
+  padding-left: 5px;
+  padding-bottom: 5px;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 #text-box p {
