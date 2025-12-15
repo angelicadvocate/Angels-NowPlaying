@@ -1,4 +1,4 @@
-// Angels Now Playing Widget - Common JavaScript Library v0.4.2
+// Angels Now Playing Widget - Common JavaScript Library v0.5.3
 // Minimal Now Playing script modeled after the reference example
 // Polls Song.json, updates DOM, and uses a JS margin-left scroller for long text.
 (function () {

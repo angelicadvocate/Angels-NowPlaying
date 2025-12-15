@@ -1,19 +1,4 @@
-:root {
-  --highlight: hsl(221, 82%, 58%);
-  --font-main: "proxima-nova", sans-serif;
-}
 
-/* Reset and base styles */
-body {
-  background: #ebebeb;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  font-family: var(--font-main);
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
 
 /* Site wrapper - takes remaining space after header */
 #site {
@@ -23,9 +8,9 @@ body {
   align-items: flex-start;
   justify-content: space-around;
   flex: 1;
-  overflow-y: auto;
-  padding: 40px 20px;
-  margin: 0 300px;
+  overflow-y: hidden; /* prevent page scrollbar when preview content translates */
+  overflow-x: hidden;
+  padding: 40px 400px;
 }
 
 /* Controls container */
@@ -35,63 +20,10 @@ body {
   align-items: center;
   gap: 15px;
   margin-bottom: 0;
+  margin-top: 40px; /* page specific extra header space */
+  padding-left: 60px;
   flex: 0 0 auto;
-  min-width: 350px;
-}
-
-/* Labels for sliders and controls */
-.info {
-  font-family: var(--font-main);
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--highlight);
-  margin-bottom: 0px;
-  display: block;
-}
-
-/* Sliders */
-.slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 350px;
-  height: 25px;
-  background: #d3d3d3;
-  outline: none;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-  border-radius: 5px;
-}
-
-.slider:hover {
-  opacity: 1;
-}
-
-.slider::-webkit-slider-thumb {
-  appearance: none;
-  width: 25px;
-  height: 25px;
-  background: var(--highlight);
-  cursor: pointer;
-  border-radius: 50%;
-  border: none;
-}
-
-.slider::-moz-range-thumb {
-  width: 25px;
-  height: 25px;
-  background: var(--highlight);
-  cursor: pointer;
-  border-radius: 50%;
-  border: none;
-}
-
-/* Color picker */
-.color-picker {
-  width: 350px;
-  height: 50px;
-  border: 2px solid var(--highlight);
-  border-radius: 5px;
-  cursor: pointer;
+  min-width: 100px;
 }
 
 /* Sample preview section */
@@ -101,7 +33,6 @@ body {
   align-items: center;
   flex: 1;
   text-align: center;
-  padding: 20px;
   background: transparent;
 }
 
@@ -196,3 +127,4 @@ body {
     transform: rotate(360deg);
   }
 }
+

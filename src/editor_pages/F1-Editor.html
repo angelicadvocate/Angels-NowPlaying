@@ -4,66 +4,72 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EditorV2-Frame1</title>
-  <link rel="stylesheet" href="../css/editor_pages/header.css" />
+  <link rel="stylesheet" href="../css/editor_pages/editor-header.css" />
   <link rel="stylesheet" href="../css/editor_pages/F1-Editor.css" />
+  <link rel="stylesheet" href="../css/editor_pages/editor-common.css" />
 </head>
 <body>
-    <!-- Header Module -->
-    <header id="editor-header">
-      <div class="header-content">
-        <!-- Left Section: Logo & Back Button -->
-        <div class="header-left">
-          <div class="logo">Angel's NowPlaying</div>
-          <button id="back-btn" class="header-btn" onclick="history.back()" title="Back to Editor Dashboard">
-            <span class="btn-icon">←</span> Back
-          </button>
-        </div>
-
-        <!-- Middle Section: Page Title -->
-        <div class="header-middle">
-          <h1 id="page-title">Frame Editor</h1>
-        </div>
-
-        <!-- Right Section: Action Buttons -->
-        <div class="header-right">
-          <button id="copy-url-btn" class="header-btn" title="Copy URL to Clipboard">
-            <span class="btn-icon">📋</span> Copy URL
-          </button>
-          <button id="save-btn" class="header-btn primary" title="Save Configuration">
-            <span class="btn-icon">💾</span> Save
-          </button>
-        </div>
-      </div>
-    </header>
+    <!-- Dynamic header placeholder. Loaded at runtime by header-loader.js -->
+    <div id="header-root" data-src="../editor_pages/editor-header.html" data-page-title="Frame 1 - Horizontal 1"></div>
 
     <main id="site">
-    <section id="controls">
-      <label for="artist_name" class="info">Artist Name Size</label>
-      <input type="range" min="8" max="32" value="16" class="slider" id="artist_name"> 
+      <div class="controls-grid">
+        <div class="controls-column">
+          <label for="fontFamily" class="info">Font Family</label>
+          <select id="fontFamily" class="dropdown">
+            <option value="proxima-nova, sans-serif" selected>Proxima Nova</option>
+            <option value="Comic Sans MS, cursive">Comic Sans MS</option>
+            <option value="Brush Script MT, cursive">Brush Script MT</option>
+            <option value="Georgia, serif">Georgia</option>
+            <option value="Times New Roman, serif">Times New Roman</option>
+            <option value="Courier New, monospace">Courier New</option>
+            <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
+            <option value="Verdana, sans-serif">Verdana</option>
+          </select>
 
-      <label for="track_title" class="info">Track Title Size</label>
-      <input type="range" min="8" max="32" value="24" class="slider" id="track_title">  
+          <label for="artist_name" class="info">Artist Name Size</label>
+          <input type="range" min="8" max="32" value="16" class="slider" id="artist_name"> 
 
-      <label for="spacing" class="info">Spacing Horizontal</label>
-      <input type="range" min="-8" max="20" value="8" class="slider" id="spacing">  
+          <label for="track_title" class="info">Track Title Size</label>
+          <input type="range" min="8" max="32" value="24" class="slider" id="track_title">  
 
-      <label for="color" class="info">Accent Color</label>
-      <input type="range" min="0" max="355" value="355" class="slider" id="color">
-        <div id="colorDisplay" class="info" style="margin-top: 5px;">
-          Color Code: <code id="colorCode">#ff66aa</code>
+          <label for="spacing" class="info">Text Vertical Spacing</label>
+          <input type="range" min="-8" max="20" value="4" class="slider" id="spacing">  
+          
+          <label for="textVerticalOffset" class="info">Text Vertical Position</label>
+          <input type="range" min="-30" max="30" value="-8" class="slider" id="textVerticalOffset">
+
+          <label for="contentPadding" class="info">Text Left Padding</label>
+          <input type="range" min="0" max="50" value="15" class="slider" id="contentPadding">
         </div>
-    </section>
 
-    <section id="controls-middle">
-      <label class="info" for="imageSize">Album Art Size</label>
-      <input type="range" min="40" max="150" value="70" class="slider" id="imageSize">
+        <div class="controls-column">
+          <label for="color" class="info">Accent Color</label>
+          <div class="color-picker-container">
+            <input type="color" id="color" class="color-picker" value="#3b82f6">
+            <div id="colorDisplay" class="color-code-overlay"><code id="colorCode">#3b82f6</code></div>
+          </div>
+          <label class="info" for="imageSize">Album Art Size</label>
+          <input type="range" min="40" max="150" value="70" class="slider" id="imageSize">
 
-      <label for="contentPadding" class="info">Text Left Padding</label>
-      <input type="range" min="0" max="50" value="15" class="slider" id="contentPadding">
+          <label for="imageVerticalPosition" class="info">Image Vertical Position</label>
+          <input type="range" min="-50" max="50" value="0" class="slider" id="imageVerticalPosition">
 
-      <label for="imagePadding" class="info">Image Left Padding</label>
-      <input type="range" min="-50" max="50" value="30" class="slider" id="imagePadding">
-    </section>
+          <label for="progressBarOffset" class="info">Progress Bar Vertical Position</label>
+          <input type="range" min="-30" max="30" value="-5" class="slider" id="progressBarOffset">
+
+          <label for="imagePadding" class="info">Image Left Padding</label>
+          <input type="range" min="-50" max="50" value="30" class="slider" id="imagePadding">
+
+          <label for="trackColor" class="info">Track Title Color</label>
+          <div class="color-picker-container">
+            <input type="color" id="trackColor" class="color-picker" value="#FFFFFF">
+            <div id="trackColorDisplay" class="color-code-overlay">
+              <code id="trackColorCode">#FFFFFF</code>
+            </div>
+          </div>
+        </div>
+      </div>
 
     <section id="sample">
       <div id="background">
@@ -72,12 +78,12 @@
         </div>
         <div id="content">
           <div id="text-box">
-            <p id="artist">Sample Artist That is really Really Long</p>
+            <p id="artist">Sample Artist</p>
             <p id="song">Sample Song Title</p>
           </div>
         </div>
-        <div id="progress-container-preview">
-          <div id="progress-bar-preview"></div>
+        <div id="progress-container">
+          <div id="progress-bar"></div>
         </div>
       </div>
     </section>
@@ -88,52 +94,80 @@
     const songSize = document.getElementById("track_title");
     const spacing = document.getElementById("spacing");
     const color = document.getElementById("color");
+    const trackColor = document.getElementById("trackColor");
+    const fontFamily = document.getElementById("fontFamily");
     const artistEl = document.getElementById("artist");
     const songEl = document.getElementById("song");
     const image = document.getElementById('image');
     const imageSizeSlider = document.getElementById('imageSize');
     const contentPaddingSlider = document.getElementById('contentPadding');
+    const imageVerticalPosition = document.getElementById('imageVerticalPosition');
+    const textVerticalOffset = document.getElementById('textVerticalOffset');
+    const progressBarOffset = document.getElementById('progressBarOffset');
     const imagePaddingSlider = document.getElementById('imagePadding');
 
     let imagePaddingValue = imagePaddingSlider.value;    
     let contentPaddingValue = contentPaddingSlider.value;
     let imageSizeValue = imageSizeSlider.value;
+    let imageVerticalPositionValue = imageVerticalPosition.value;
     let artistSizeValue = artistSize.value;
     let songSizeValue = songSize.value;
     let spacingValue = spacing.value;
-    let colorValue = color.value;
+    let colorValue = color.value; // hex string like #ff66aa
+    let trackColorValue = trackColor ? trackColor.value : '#ffffff';
+    let textVerticalOffsetValue = textVerticalOffset.value;
+    let progressBarOffsetValue = progressBarOffset ? progressBarOffset.value : 0;
+    let fontFamilyValue = fontFamily.value;
+
+    function hexToHsl(hex) {
+      const r = parseInt(hex.slice(1,3),16)/255;
+      const g = parseInt(hex.slice(3,5),16)/255;
+      const b = parseInt(hex.slice(5,7),16)/255;
+      const max = Math.max(r,g,b), min = Math.min(r,g,b);
+      let h=0, s=0, l=(max+min)/2;
+      if(max!==min){
+        const d = max-min;
+        s = l>0.5? d/(2-max-min) : d/(max+min);
+        switch(max){
+          case r: h = (g-b)/d + (g<b?6:0); break;
+          case g: h = (b-r)/d + 2; break;
+          case b: h = (r-g)/d + 4; break;
+        }
+        h = Math.round(h*60);
+        s = Math.round(s*100);
+        l = Math.round(l*100);
+      } else { h = 0; s = 0; l = Math.round(l*100); }
+      return [h,s,l];
+    }
 
     const scale = 2;
 
 function applyPreview() {
-  artistEl.style.fontSize = artistSizeValue + "px";
-  songEl.style.fontSize = songSizeValue + "px";
-  artistEl.style.marginBottom = spacingValue + "px";
-  artistEl.style.color = `hsl(${colorValue}, 100%, 68%)`;
-  
-    // Convert HSL to hex for OBS
-      function hslToHex(h, s, l) {
-        s /= 100;
-        l /= 100;
-        const k = n => (n + h / 30) % 12;
-        const a = s * Math.min(l, 1 - l);
-        const f = n =>
-          Math.round(255 * (l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))));
-        return "#" + [f(0), f(8), f(4)].map(x => x.toString(16).padStart(2, '0')).join('');
-      }
-      const hex = hslToHex(colorValue, 100, 68);
-      document.getElementById("colorCode").textContent = hex;
+    artistEl.style.fontSize = artistSizeValue + "px";
+    songEl.style.fontSize = songSizeValue + "px";
+    artistEl.style.marginBottom = spacingValue + "px";
+    // colorValue is a hex string; apply directly for preview
+    artistEl.style.color = colorValue;
+    // track title has its own picker
+    songEl.style.color = trackColorValue;
+      artistEl.style.fontFamily = fontFamilyValue;
+      songEl.style.fontFamily = fontFamilyValue;
+  // Update badge display (uppercase)
+  document.getElementById("colorCode").textContent = (colorValue || '').toUpperCase();
 
   image.style.width = imageSizeValue + "px";
   image.style.height = imageSizeValue + "px";
   const content = document.getElementById('content');
   content.style.padding = `0 20px 0 ${contentPaddingValue}px`;
+  content.style.transform = `translateY(${textVerticalOffsetValue}px)`;
   const imageWrapper = document.getElementById('image-wrapper');
   imageWrapper.style.marginLeft = imagePaddingValue + "px";
+  // Apply image vertical position similar to F5/F2
+  imageWrapper.style.marginTop = imageVerticalPositionValue + "px";
   
   // Update progress bar positioning and color dynamically
-  const progressContainer = document.getElementById('progress-container-preview');
-  const progressBar = document.getElementById('progress-bar-preview');
+  const progressContainer = document.getElementById('progress-container');
+  const progressBar = document.getElementById('progress-bar');
   if (progressContainer && progressBar) {
     // Calculate dynamic positioning based on image position and size
     const imageLeftPos = parseInt(imagePaddingValue) + 5; // Base padding + image padding
@@ -144,9 +178,11 @@ function applyPreview() {
     
     progressContainer.style.left = progressStartPos + "px";
     progressContainer.style.width = progressWidth + "px";
-    
+    // Apply vertical offset to progress bar (preview)
+    progressContainer.style.bottom = `${6 - progressBarOffsetValue}px`;
+
     // Update progress bar color to match accent color (same as artist)
-    progressBar.style.backgroundColor = `hsl(${colorValue}, 100%, 68%)`;
+        progressBar.style.backgroundColor = colorValue;
   }
 }
 
@@ -160,7 +196,8 @@ function applyPreview() {
 /* /static css placeholder/ */
 
 :root {
-  --highlight: hsl(${colorValue}, 82%, 58%);
+  /* derive an HSL hue from the picked hex so generated CSS keeps the same hue-based highlight */
+  --highlight: hsl(${Math.min(360, Math.max(0, hexToHsl(colorValue)[0] || 221))}, 82%, 58%);
   --font-main: "proxima-nova", sans-serif;
 }
 
@@ -204,6 +241,7 @@ body {
   height: ${imageSizeValue * scale}px;
   object-fit: cover;
   margin-left: ${imagePaddingValue * scale}px;
+  margin-top: ${imageVerticalPositionValue * scale}px;
   border-radius: ${4 * scale}px;
   display: block;
 }
@@ -302,13 +340,13 @@ p {
   }
 }
 
-/* Progress bar container - dynamically positioned */
+# Progress bar container - dynamically positioned */
 #progress-container {
   position: absolute;
   bottom: 0;
   left: ${(parseInt(imagePaddingValue) * scale + parseInt(imageSizeValue) * scale + 20)}px;
   width: ${(400 * scale) - (parseInt(imagePaddingValue) * scale + parseInt(imageSizeValue) * scale + 60)}px;
-  margin-bottom: ${12 * scale}px;
+  margin-bottom: ${(12 - parseInt(progressBarOffsetValue || 0)) * scale}px;
   height: ${15 * scale}px;
   background-color: rgba(255, 255, 255, 0.1);
   overflow: hidden;
@@ -340,89 +378,42 @@ p {
       }, 0);
     }
 
-[artistSize, songSize, spacing, color, imageSizeSlider, contentPaddingSlider, imagePaddingSlider].forEach((slider) => {
-  slider.addEventListener("input", (e) => {
-    if (e.target === artistSize) artistSizeValue = e.target.value;
-    if (e.target === songSize) songSizeValue = e.target.value;
-    if (e.target === spacing) spacingValue = e.target.value;
-    if (e.target === color) colorValue = e.target.value;
-    if (e.target === imageSizeSlider) imageSizeValue = e.target.value;
-    if (e.target === contentPaddingSlider) contentPaddingValue = e.target.value;
-    if (e.target === imagePaddingSlider) imagePaddingValue = e.target.value;
-    applyPreview();
+  [artistSize, songSize, spacing, color, trackColor, imageSizeSlider, contentPaddingSlider, imageVerticalPosition, textVerticalOffset, progressBarOffset, imagePaddingSlider].forEach((slider) => {
+    slider.addEventListener("input", (e) => {
+      if (e.target === artistSize) artistSizeValue = e.target.value;
+      if (e.target === songSize) songSizeValue = e.target.value;
+      if (e.target === spacing) spacingValue = e.target.value;
+      if (e.target === color) colorValue = e.target.value;
+      if (e.target === trackColor) trackColorValue = e.target.value;
+      if (e.target === imageSizeSlider) imageSizeValue = e.target.value;
+      if (e.target === contentPaddingSlider) contentPaddingValue = e.target.value;
+      if (e.target === imageVerticalPosition) imageVerticalPositionValue = e.target.value;
+      if (e.target === textVerticalOffset) textVerticalOffsetValue = e.target.value;
+      if (e.target === progressBarOffset) progressBarOffsetValue = e.target.value;
+      if (e.target === imagePaddingSlider) imagePaddingValue = e.target.value;
+      applyPreview();
+    });
   });
+
+// Font selector change handler
+fontFamily.addEventListener('change', (e) => {
+  fontFamilyValue = e.target.value;
+  applyPreview();
 });
 
     applyPreview();
 
-    // Initialize header with F1-specific configuration
-    initializeHeader({
-      pageTitle: "Frame 1 - Simple Horizontal",
-      onSave: () => {
-        applyPreview();
-        downloadCSS("01-NowPlaying-F1-Styles.css", generateCSS());
-      }
-    });
-
-    /**
-     * Initialize the header with custom configuration
-     * @param {Object} config - Configuration object
-     * @param {string} config.pageTitle - Title to display in the header
-     * @param {Function} config.onSave - Callback function when Save button is clicked
-     * @param {Function} config.onBack - Optional callback for Back button (defaults to history.back())
-     * @param {boolean} config.showCopyUrl - Whether to show Copy URL button (default: true)
-     */
-    function initializeHeader(config = {}) {
-      const {
-        pageTitle = "Frame Editor",
-        onSave = null,
-        onBack = null,
-        showCopyUrl = true
-      } = config;
-
-      // Set page title
-      const pageTitleEl = document.getElementById("page-title");
-      if (pageTitleEl) {
-        pageTitleEl.textContent = pageTitle;
-      }
-
-      // Set up Save button callback
-      const saveBtn = document.getElementById("save-btn");
-      if (saveBtn && onSave) {
-        saveBtn.addEventListener("click", onSave);
-      }
-
-      // Set up Back button callback if provided
-      const backBtn = document.getElementById("back-btn");
-      if (backBtn && onBack) {
-        backBtn.onclick = onBack;
-      }
-
-      // Set up Copy Link button
-      const copyUrlBtn = document.getElementById("copy-url-btn");
-      if (copyUrlBtn) {
-        if (!showCopyUrl) {
-          copyUrlBtn.style.display = "none";
-        } else {
-          copyUrlBtn.addEventListener("click", () => {
-            const url = window.location.href;
-            navigator.clipboard.writeText(url).then(() => {
-              // Visual feedback
-              const originalText = copyUrlBtn.innerHTML;
-              copyUrlBtn.innerHTML = '<span class="btn-icon">✓</span> Copied!';
-              setTimeout(() => {
-                copyUrlBtn.innerHTML = originalText;
-              }, 2000);
-            }).catch(err => {
-              console.error("Failed to copy Link:", err);
-              alert("Failed to copy Link to clipboard");
-            });
-          });
-        }
-      }
-    }
+    // Provide page-specific header callbacks for the dynamic header loader
+    window.onSave = function() {
+      applyPreview();
+      downloadCSS("01-NowPlaying-F1-Styles.css", generateCSS());
+    };
+    window.onBack = function() { history.back(); };
+    window.onCopy = function() { navigator.clipboard.writeText(window.location.href).catch(()=>{}); };
 
   </script>
+
+  <script src="../js/editor-header-loader.js"></script>
 
 </body>
 </html>

@@ -4,37 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EditorV2-Frame10</title>
-  <link rel="stylesheet" href="../css/editor_pages/header.css" />
+  <link rel="stylesheet" href="../css/editor_pages/editor-header.css" />
   <link rel="stylesheet" href="../css/editor_pages/F10-Editor.css" />
+  <link rel="stylesheet" href="../css/editor_pages/editor-common.css" />
 </head>
 <body>
-    <!-- Header Module -->
-    <header id="editor-header">
-      <div class="header-content">
-        <!-- Left Section: Logo & Back Button -->
-        <div class="header-left">
-          <div class="logo">Angel's NowPlaying</div>
-          <button id="back-btn" class="header-btn" onclick="history.back()" title="Back to Editor Dashboard">
-            <span class="btn-icon">←</span> Back
-          </button>
-        </div>
-
-        <!-- Middle Section: Page Title -->
-        <div class="header-middle">
-          <h1 id="page-title">Frame 10 - Color Bar Visualizer</h1>
-        </div>
-
-        <!-- Right Section: Action Buttons -->
-        <div class="header-right">
-          <button id="copy-url-btn" class="header-btn" title="Copy URL to Clipboard">
-            <span class="btn-icon">📋</span> Copy URL
-          </button>
-          <button id="save-btn" class="header-btn primary" title="Save Configuration">
-            <span class="btn-icon">💾</span> Save
-          </button>
-        </div>
-      </div>
-    </header>
+    <!-- Dynamic header placeholder -->
+    <div id="header-root" data-src="../editor_pages/editor-header.html" data-page-title="Frame 10 - Color Bar Visualizer"></div>
 
     <main id="site">
     <section id="controls">
@@ -59,7 +35,7 @@
       <label for="track_title" class="info">Track Title Size</label>
       <input type="range" min="8" max="32" value="24" class="slider" id="track_title">  
 
-      <label for="spacing" class="info">Spacing Horizontal</label>
+      <label for="spacing" class="info">Text Vertical Spacing</label>
       <input type="range" min="-8" max="20" value="1" class="slider" id="spacing">
 
       <label for="textVerticalOffset" class="info">Text Vertical Position</label>
@@ -540,74 +516,17 @@ autoRotateHue.addEventListener("change", (e) => {
 
     applyPreview();
 
-    // Initialize header with F1-specific configuration
-    initializeHeader({
-      pageTitle: "Frame 10 - Color Bar Visualizer",
-      onSave: () => {
-        applyPreview();
-        downloadCSS("01-NowPlaying-F10-Styles.css", generateCSS());
-      }
-    });
-
-    /**
-     * Initialize the header with custom configuration
-     * @param {Object} config - Configuration object
-     * @param {string} config.pageTitle - Title to display in the header
-     * @param {Function} config.onSave - Callback function when Save button is clicked
-     * @param {Function} config.onBack - Optional callback for Back button (defaults to history.back())
-     * @param {boolean} config.showCopyUrl - Whether to show Copy URL button (default: true)
-     */
-    function initializeHeader(config = {}) {
-      const {
-        pageTitle = "Frame Editor",
-        onSave = null,
-        onBack = null,
-        showCopyUrl = true
-      } = config;
-
-      // Set page title
-      const pageTitleEl = document.getElementById("page-title");
-      if (pageTitleEl) {
-        pageTitleEl.textContent = pageTitle;
-      }
-
-      // Set up Save button callback
-      const saveBtn = document.getElementById("save-btn");
-      if (saveBtn && onSave) {
-        saveBtn.addEventListener("click", onSave);
-      }
-
-      // Set up Back button callback if provided
-      const backBtn = document.getElementById("back-btn");
-      if (backBtn && onBack) {
-        backBtn.onclick = onBack;
-      }
-
-      // Set up Copy Link button
-      const copyUrlBtn = document.getElementById("copy-url-btn");
-      if (copyUrlBtn) {
-        if (!showCopyUrl) {
-          copyUrlBtn.style.display = "none";
-        } else {
-          copyUrlBtn.addEventListener("click", () => {
-            const url = window.location.href;
-            navigator.clipboard.writeText(url).then(() => {
-              // Visual feedback
-              const originalText = copyUrlBtn.innerHTML;
-              copyUrlBtn.innerHTML = '<span class="btn-icon">✓</span> Copied!';
-              setTimeout(() => {
-                copyUrlBtn.innerHTML = originalText;
-              }, 2000);
-            }).catch(err => {
-              console.error("Failed to copy Link:", err);
-              alert("Failed to copy Link to clipboard");
-            });
-          });
-        }
-      }
-    }
+    // Expose page-specific header callbacks for dynamic header
+    window.onSave = function() {
+      applyPreview();
+      downloadCSS("01-NowPlaying-F10-Styles.css", generateCSS());
+    };
+    window.onBack = function() { history.back(); };
+    window.onCopy = function() { navigator.clipboard.writeText(window.location.href).catch(()=>{}); };
 
   </script>
+
+  <script src="../js/editor-header-loader.js"></script>
 
 </body>
 </html>

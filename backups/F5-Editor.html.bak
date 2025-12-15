@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EditorV2-Frame5</title>
+  <link rel="stylesheet" href="../css/editor_pages/header.css" />
+  <link rel="stylesheet" href="../css/editor_pages/F5-Editor.css" />
+</head>
+<body>
+    <!-- Header Module -->
+    <header id="editor-header">
+      <div class="header-content">
+        <!-- Left Section: Logo & Back Button -->
+        <div class="header-left">
+          <div class="logo">Angel's NowPlaying</div>
+          <button id="back-btn" class="header-btn" onclick="history.back()" title="Back to Editor Dashboard">
+            <span class="btn-icon">←</span> Back
+          </button>
+        </div>
+
+        <!-- Middle Section: Page Title -->
+        <div class="header-middle">
+          <h1 id="page-title">Frame 5 - Glassmorphism</h1>
+        </div>
+
+        <!-- Right Section: Action Buttons -->
+        <div class="header-right">
+          <button id="copy-url-btn" class="header-btn" title="Copy URL to Clipboard">
+            <span class="btn-icon">📋</span> Copy URL
+          </button>
+          <button id="save-btn" class="header-btn primary" title="Save Configuration">
+            <span class="btn-icon">💾</span> Save
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="site">
+    <section id="controls">
+      <label for="fontFamily" class="info">Font Family</label>
+      <select id="fontFamily" class="dropdown">
+        <option value="proxima-nova, sans-serif" selected>Proxima Nova</option>
+        <option value="Comic Sans MS, cursive">Comic Sans MS</option>
+        <option value="Brush Script MT, cursive">Brush Script MT</option>
+        <option value="Georgia, serif">Georgia</option>
+        <option value="Times New Roman, serif">Times New Roman</option>
+        <option value="Courier New, monospace">Courier New</option>
+        <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
+        <option value="Verdana, sans-serif">Verdana</option>
+      </select>
+
+      <label for="artistFontSize" class="info">Artist Font Size</label>
+      <input type="range" min="8" max="24" value="17" class="slider" id="artistFontSize">
+
+      <label for="trackFontSize" class="info">Track Font Size</label>
+      <input type="range" min="12" max="32" value="24" class="slider" id="trackFontSize">
+
+      <label for="textColor" class="info">Text Color</label>
+      <div class="color-picker-container">
+        <input type="color" id="textColor" class="color-picker" value="#ffffff">
+        <div id="textColorDisplay" class="color-code-overlay">
+          <code id="textColorCode">#FFFFFF</code>
+        </div>
+      </div>
+
+      <label for="spacing" class="info">Text Spacing</label>
+      <input type="range" min="-8" max="20" value="4" class="slider" id="spacing">
+
+      <label for="textVerticalOffset" class="info">Text Vertical Position</label>
+      <input type="range" min="-30" max="30" value="-10" class="slider" id="textVerticalOffset">
+    </section>
+
+    <section id="controls-middle">
+      <label for="albumArtSize" class="info">Album Art Size</label>
+      <input type="range" min="40" max="300" value="160" class="slider" id="albumArtSize">
+
+      <label for="imageLeftPadding" class="info">Image Left Padding</label>
+      <input type="range" min="-100" max="100" value="0" class="slider" id="imageLeftPadding">
+
+      <label for="textLeftPadding" class="info">Text Left Padding</label>
+      <input type="range" min="-100" max="100" value="-38" class="slider" id="textLeftPadding">
+
+      <label for="imageVerticalPosition" class="info">Image Vertical Position</label>
+      <input type="range" min="-50" max="50" value="0" class="slider" id="imageVerticalPosition">
+
+      <label for="progressBarColor" class="info">Progress Bar Color</label>
+      <div class="color-picker-container">
+        <input type="color" id="progressBarColor" class="color-picker" value="#ffffff">
+        <div id="progressBarColorDisplay" class="color-code-overlay">
+          <code id="progressBarColorCode">#FFFFFF</code>
+        </div>
+      </div>
+
+      <label for="progressBarOffset" class="info">Progress Bar Vertical Position</label>
+      <input type="range" min="-30" max="30" value="2" class="slider" id="progressBarOffset">
+    </section>
+
+    <section id="sample">
+      <div id="background">
+        <!-- Album art image as background -->
+        <img id="album-art" src="../assets/SampleAlbum.png" alt="Album Art" />
+        <!-- Frosted glass pill-shaped container -->
+        <div id="glass-container">
+          <!-- Square album art overlay -->
+          <img id="album-art-square" src="../assets/SampleAlbum.png" alt="Album Art" />
+          <!-- Text box -->
+          <div id="content">
+            <div id="text-box">
+              <p id="artist">Sample Artist That is Really Really Long</p>
+              <p id="song">Sample Song Title That is Really Really Long</p>
+            </div>
+          </div>
+          <!-- Progress bar -->
+          <div id="progress-container-preview">
+            <div id="progress-bar-preview"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const fontFamily = document.getElementById("fontFamily");
+    const albumArtSize = document.getElementById("albumArtSize");
+    const imageLeftPadding = document.getElementById("imageLeftPadding");
+    const textLeftPadding = document.getElementById("textLeftPadding");
+    const imageVerticalPosition = document.getElementById("imageVerticalPosition");
+    const textColor = document.getElementById("textColor");
+    const progressBarColor = document.getElementById("progressBarColor");
+    const spacing = document.getElementById("spacing");
+    const textVerticalOffset = document.getElementById("textVerticalOffset");
+    const progressBarOffset = document.getElementById("progressBarOffset");
+    const artistFontSize = document.getElementById("artistFontSize");
+    const trackFontSize = document.getElementById("trackFontSize");
+    
+    const artistEl = document.getElementById("artist");
+    const songEl = document.getElementById("song");
+    const content = document.getElementById('content');
+    const progressContainer = document.getElementById('progress-container-preview');
+
+    let fontFamilyValue = fontFamily.value;
+    let albumArtSizeValue = albumArtSize.value;
+    let imageLeftPaddingValue = imageLeftPadding.value;
+    let textLeftPaddingValue = textLeftPadding.value;
+    let imageVerticalPositionValue = imageVerticalPosition.value;
+    let textColorValue = textColor.value || "#ffffff";
+    let progressBarColorValue = progressBarColor.value || "#ffffff";
+    let spacingValue = spacing.value;
+    let textVerticalOffsetValue = textVerticalOffset.value;
+    let progressBarOffsetValue = progressBarOffset.value;
+    let artistFontSizeValue = artistFontSize.value;
+    let trackFontSizeValue = trackFontSize.value;
+
+    const scale = 2;
+
+    function applyPreview() {
+      // Apply album art size
+      const albumArtSquare = document.getElementById('album-art-square');
+      if (albumArtSquare) {
+        albumArtSquare.style.width = albumArtSizeValue + "px";
+        albumArtSquare.style.height = albumArtSizeValue + "px";
+        albumArtSquare.style.marginTop = imageVerticalPositionValue + "px";
+        // Update left position based on image left padding - add to the base calculation
+        albumArtSquare.style.left = `calc(50% - 180px + ${imageLeftPaddingValue}px)`;
+        
+        // Set CSS custom properties so text/progress/padding flow naturally with image size
+        document.documentElement.style.setProperty('--album-size', albumArtSizeValue + 'px');
+        document.documentElement.style.setProperty('--album-left-offset', imageLeftPaddingValue + 'px');
+      }
+
+      // Apply text left padding
+      const textBox = document.getElementById('text-box');
+      if (textBox) {
+        textBox.style.marginLeft = textLeftPaddingValue + "px";
+      }
+
+      // Apply font family
+      artistEl.style.fontFamily = fontFamilyValue;
+      songEl.style.fontFamily = fontFamilyValue;
+      
+      // Apply font sizes (constant, no scaling)
+      artistEl.style.fontSize = artistFontSizeValue + "px";
+      songEl.style.fontSize = trackFontSizeValue + "px";
+      
+      // Apply text color
+      artistEl.style.color = textColorValue;
+      songEl.style.color = textColorValue;
+      
+      // Apply spacing
+      artistEl.style.marginBottom = spacingValue + "px";
+      
+      // Display hex color code
+      document.getElementById("textColorCode").textContent = textColorValue.toUpperCase();
+      
+      // Apply progress bar color
+      const progressBar = document.getElementById('progress-bar-preview');
+      if (progressBar) {
+        progressBar.style.backgroundColor = progressBarColorValue;
+      }
+      document.getElementById("progressBarColorCode").textContent = progressBarColorValue.toUpperCase();
+      
+      // Apply text vertical offset
+      if (content) {
+        content.style.transform = `translateY(${textVerticalOffsetValue}px)`;
+      }
+      
+      // Apply progress bar offset
+      if (progressContainer) {
+        progressContainer.style.transform = `translateY(${progressBarOffsetValue}px)`;
+      }
+    }
+
+    function generateCSS() {
+      return `
+/* F5 - Glassmorphism Layout */
+
+:root {
+  --text-color: ${textColorValue};
+  --progress-bar-color: ${progressBarColorValue};
+  --font-main: ${fontFamilyValue};
+}
+
+/* Reset and base styles */
+body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: var(--font-main);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Main background container */
+#background {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Frosted glass pill-shaped container */
+#glass-container {
+  width: ${400 * scale}px;
+  padding: ${20 * scale}px ${30 * scale}px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: ${50 * scale}px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Text content container */
+#content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  transform: translateY(${textVerticalOffsetValue * scale}px);
+}
+
+/* Text box */
+#text-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+  width: 100%;
+}
+
+/* Artist name styling */
+#artist {
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: ${artistFontSizeValue * scale}px;
+  margin: 0 0 ${spacingValue * scale}px 0;
+  color: var(--text-color);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Song title styling */
+#song {
+  font-weight: bold;
+  font-size: ${trackFontSizeValue * scale}px;
+  margin: 0;
+  color: var(--text-color);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Progress bar container */
+#progress-container {
+  width: 100%;
+  height: ${8 * scale}px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: ${10 * scale}px;
+  transform: translateY(${progressBarOffsetValue * scale}px);
+}
+
+#progress-bar {
+  height: 100%;
+  width: 0%;
+  background-color: var(--progress-bar-color);
+  transition: width 0.3s linear;
+}
+      `.trim();
+    }
+
+    function downloadCSS(filename, content) {
+      const blob = new Blob([content], {type: "text/css"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 0);
+    }
+
+    // Event listeners for sliders
+    [spacing, textVerticalOffset, progressBarOffset, artistFontSize, trackFontSize, albumArtSize, imageLeftPadding, textLeftPadding, imageVerticalPosition].forEach((slider) => {
+      slider.addEventListener("input", (e) => {
+        if (e.target === spacing) spacingValue = e.target.value;
+        if (e.target === textVerticalOffset) textVerticalOffsetValue = e.target.value;
+        if (e.target === progressBarOffset) progressBarOffsetValue = e.target.value;
+        if (e.target === artistFontSize) artistFontSizeValue = e.target.value;
+        if (e.target === trackFontSize) trackFontSizeValue = e.target.value;
+        if (e.target === albumArtSize) albumArtSizeValue = e.target.value;
+        if (e.target === imageLeftPadding) imageLeftPaddingValue = e.target.value;
+        if (e.target === textLeftPadding) textLeftPaddingValue = e.target.value;
+        if (e.target === imageVerticalPosition) imageVerticalPositionValue = e.target.value;
+        applyPreview();
+      });
+    });
+
+    // Font family event listener
+    fontFamily.addEventListener("change", (e) => {
+      fontFamilyValue = e.target.value;
+      applyPreview();
+    });
+
+    // Text color event listener
+    textColor.addEventListener("input", (e) => {
+      textColorValue = e.target.value;
+      applyPreview();
+    });
+
+    // Progress bar color event listener
+    progressBarColor.addEventListener("input", (e) => {
+      progressBarColorValue = e.target.value;
+      applyPreview();
+    });
+
+    applyPreview();
+
+    // Initialize header with F5-specific configuration
+    initializeHeader({
+      pageTitle: "Frame 5 - Glassmorphism",
+      onSave: () => {
+        applyPreview();
+        downloadCSS("05-NowPlaying-F5-Styles.css", generateCSS());
+      }
+    });
+
+    /**
+     * Initialize the header with custom configuration
+     * @param {Object} config - Configuration object
+     * @param {string} config.pageTitle - Title to display in the header
+     * @param {Function} config.onSave - Callback function when Save button is clicked
+     * @param {Function} config.onBack - Optional callback for Back button (defaults to history.back())
+     * @param {boolean} config.showCopyUrl - Whether to show Copy URL button (default: true)
+     */
+    function initializeHeader(config = {}) {
+      const {
+        pageTitle = "Frame Editor",
+        onSave = null,
+        onBack = null,
+        showCopyUrl = true
+      } = config;
+
+      // Set page title
+      const pageTitleEl = document.getElementById("page-title");
+      if (pageTitleEl) {
+        pageTitleEl.textContent = pageTitle;
+      }
+
+      // Set up Save button callback
+      const saveBtn = document.getElementById("save-btn");
+      if (saveBtn && onSave) {
+        saveBtn.addEventListener("click", onSave);
+      }
+
+      // Set up Back button callback if provided
+      const backBtn = document.getElementById("back-btn");
+      if (backBtn && onBack) {
+        backBtn.onclick = onBack;
+      }
+
+      // Set up Copy Link button
+      const copyUrlBtn = document.getElementById("copy-url-btn");
+      if (copyUrlBtn) {
+        if (!showCopyUrl) {
+          copyUrlBtn.style.display = "none";
+        } else {
+          copyUrlBtn.addEventListener("click", () => {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+              // Visual feedback
+              const originalText = copyUrlBtn.innerHTML;
+              copyUrlBtn.innerHTML = '<span class="btn-icon">✓</span> Copied!';
+              setTimeout(() => {
+                copyUrlBtn.innerHTML = originalText;
+              }, 2000);
+            }).catch(err => {
+              console.error("Failed to copy Link:", err);
+              alert("Failed to copy Link to clipboard");
+            });
+          });
+        }
+      }
+    }
+
+  </script>
+
+</body>
+</html>

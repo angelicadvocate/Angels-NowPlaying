@@ -1,0 +1,182 @@
+/* Shared editor controls chrome — borders and sizing for sliders, dropdowns, color inputs */
+:root {
+  /* fallback if not defined in page */
+  --editor-highlight: var(--highlight, #3b82f6);
+  --highlight: #3b82f6;
+  --font-main: "proxima-nova", sans-serif;
+  --text-color: #ffffff;
+}
+
+body {
+  background: #424242;
+  margin: 0;
+  padding: 0.5rem 2rem 1rem 2rem;
+  overflow: hidden;
+  font-family: var(--font-main);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Utility */
+p {
+  white-space: nowrap;
+}
+
+/* Controls common styling */
+.slider,
+.dropdown,
+.color-picker {
+  box-sizing: border-box;
+  border: 2px solid var(--editor-highlight);
+  border-radius: 5px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  line-height: normal;
+  padding: 0 10px;
+}
+
+.slider {
+  padding: 0;
+  margin: 0; 
+}
+
+/* ensure color-picker container width matches controls */
+.color-picker-container {
+  position: relative;
+  width: 350px;
+  margin-bottom: 0;
+}
+
+/* Shared label styling for editor controls */
+.info {
+  font-family: var(--font-main);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--editor-highlight);
+  margin-bottom: 0;
+  display: block;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.74);
+}
+
+/* Make control labels pop on the page */
+.info, .button-row-label, label {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.74);
+}
+
+/* Base slider appearance (thumbs intentionally NOT altered here) */
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 350px;
+  height: 32px;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.9;
+  transition: opacity 0.15s;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.6);
+}
+
+/* Make dropdowns and color-pickers match the slider track color for visual parity */
+.dropdown {
+  width: 350px;
+  height: 32px;
+  line-height: 32px;
+  padding: 0 10px;
+  font-size: 16px;
+  border: 2px solid var(--highlight);
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: var(--font-main);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.74);
+  background: #d3d3d3;
+  /* ensure a visible right-edge chevron for dropdowns across platforms */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%23333' d='M6 8L0 0h12z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 36px; /* room for the custom arrow */
+  /* hide native browser arrow so only the custom SVG is visible */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.74);
+}
+
+/* Remove IE/Edge default dropdown arrow */
+.dropdown::-ms-expand {
+  display: none;
+}
+
+.color-picker {
+  width: 350px;
+  height: 32px;
+  line-height: 32px;
+  /* make the native swatch fill the control */
+  padding: 0;
+  background: #d3d3d3;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.74);
+}
+
+.slider:hover { opacity: 1; }
+
+/* small hex badge */
+.color-code-overlay {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.7);
+  padding: 5px 10px;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.color-code-overlay code { color: #fff; font-size: 12px; font-weight: bold; }
+
+/* Slider thumb rules copied from F8 to enforce consistent sizing
+across all editor pages. Thumbs intentionally match F8 — do not
+modify these values unless you confirm with the user. */
+.slider::-webkit-slider-thumb {
+appearance: none;
+width: 25px;
+height: 25px;
+background: var(--editor-highlight);
+cursor: pointer;
+border-radius: 50%;
+border: none;
+box-shadow: 0 2px 4px rgba(0,0,0,0.74);
+  transform: translateY(-1px);
+}
+
+.slider::-moz-range-thumb {
+width: 25px;
+height: 25px;
+background: var(--editor-highlight);
+cursor: pointer;
+border-radius: 50%;
+border: none;
+box-shadow: 0 2px 4px rgba(0,0,0,0.74);
+  transform: translateY(-1px);
+}
+
+/* Enlarge native color input swatch (where supported) */
+.color-picker::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+.color-picker::-webkit-color-swatch {
+  border: none;
+  border-radius: 4px;
+  width: 100%;
+  height: 100%;
+}
+.color-picker::-moz-color-swatch {
+  border: none;
+  border-radius: 4px;
+  width: 100%;
+  height: 100%;
+}
+

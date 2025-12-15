@@ -4,8 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EditorV2-Frame11-ProgramWindow</title>
-  <link rel="stylesheet" href="../css/editor_pages/header.css" />
+  <link rel="stylesheet" href="../css/editor_pages/editor-header.css" />
   <link rel="stylesheet" href="../css/editor_pages/F11-Editor.css" />
+  <link rel="stylesheet" href="../css/editor_pages/editor-common.css" />
   <style>
     #sample {
       display: flex;
@@ -18,33 +19,8 @@
   </style>
 </head>
 <body>
-    <!-- Header Template -->
-    <header id="editor-header">
-      <div class="header-content">
-        <!-- Left Section: Logo & Back Button -->
-        <div class="header-left">
-          <div class="logo">Angel's NowPlaying</div>
-          <button id="back-btn" class="header-btn" onclick="history.back()" title="Back to Editor Dashboard">
-            <span class="btn-icon">←</span> Back
-          </button>
-        </div>
-
-        <!-- Middle Section: Page Title -->
-        <div class="header-middle">
-          <h1 id="page-title">Frame 11 - Program Window</h1>
-        </div>
-
-        <!-- Right Section: Action Buttons -->
-        <div class="header-right">
-          <button id="copy-url-btn" class="header-btn" title="Copy URL to Clipboard">
-            <span class="btn-icon">📋</span> Copy URL
-          </button>
-          <button id="save-btn" class="header-btn primary" title="Save Configuration">
-            <span class="btn-icon">💾</span> Save
-          </button>
-        </div>
-      </div>
-    </header>
+    <!-- Dynamic header placeholder -->
+    <div id="header-root" data-src="../editor_pages/editor-header.html" data-page-title="Frame 11 - Program Window"></div>
 
     <main id="site">
     <section id="controls">
@@ -82,7 +58,7 @@
       <label for="track_title" class="info">Track Title Size</label>
       <input type="range" min="18" max="40" value="28" class="slider" id="track_title">  
 
-      <label for="spacing" class="info">Spacing Horizontal</label>
+      <label for="spacing" class="info">Text Vertical Spacing</label>
       <input type="range" min="5" max="25" value="15" class="slider" id="spacing">  
 
       <label for="contentPadding" class="info">Text Left Padding</label>
@@ -108,7 +84,7 @@
       <input type="range" min="10" max="24" value="17" class="slider" id="nowPlayingFontSize">
 
       <label for="nowPlayingTopMargin" class="info">Custom Text Top Margin</label>
-      <input type="range" min="-25" max="25" value="3" class="slider" id="nowPlayingTopMargin">
+      <input type="range" min="-25" max="25" value="-2" class="slider" id="nowPlayingTopMargin">
 
       <label for="nowPlayingLeftPadding" class="info">Custom Text Left Padding</label>
       <input type="range" min="-15" max="30" value="0" class="slider" id="nowPlayingLeftPadding">
@@ -133,7 +109,7 @@
       </div>
 
       <label for="frameSaturation" class="info">Frame Saturation</label>
-      <input type="range" min="60" max="200" value="100" class="slider" id="frameSaturation">
+      <input type="range" min="0" max="200" value="100" class="slider" id="frameSaturation">
       
       <label for="frameHue" class="info">Frame Hue</label>
       <input type="range" min="-180" max="180" value="0" class="slider" id="frameHue">
@@ -144,7 +120,9 @@
       <label for="autoRotateHue" class="info">Auto Rotate Hue</label>
       <select id="autoRotateHue" class="dropdown">
         <option value="no" selected>No</option>
-        <option value="yes">Yes</option>
+        <option value="yes-frame">Yes - Frame Only</option>
+        <option value="yes-all">Yes - Everything
+        </option>
       </select>
 
       <section id="sample">
@@ -162,8 +140,8 @@
               <p id="song">Sample Song Title</p>
             </div>
           </div>
-          <div id="progress-container-preview">
-            <div id="progress-bar-preview"></div>
+          <div id="progress-container">
+            <div id="progress-bar"></div>
           </div>
         </div>
       </section>
@@ -218,6 +196,7 @@
     let frameHueValue = frameHue.value;
     let frameSaturationValue = frameSaturation.value;
     let autoRotateInterval = null;
+    let autoRotateHueMode = 'no';
 
     const scale = 2;
 
@@ -235,12 +214,14 @@
       artistEl.style.color = artistColorValue;
       songEl.style.color = trackColorValue;
       document.getElementById("now-playing-text").style.color = nowPlayingColorValue;
-      document.getElementById("progress-bar-preview").style.backgroundColor = progressBarColorValue;
-      document.getElementById("progress-bar-preview").style.setProperty('--indicator-color', nowPlayingColorValue);
+      document.getElementById("progress-bar").style.backgroundColor = progressBarColorValue;
+      document.getElementById("progress-bar").style.setProperty('--indicator-color', nowPlayingColorValue);
       
       // Apply spacing and padding
       artistEl.style.marginBottom = spacingValue + "px";
       image.style.width = imageSizeValue + "px";
+      image.style.border = "2px solid #522D05";
+      image.style.boxSizing = "border-box";
       document.getElementById("content").style.paddingLeft = contentPaddingValue + "px";
       document.getElementById("image-wrapper").style.marginLeft = imagePaddingValue + "px";
       document.getElementById("image-wrapper").style.marginTop = imageTopPaddingValue + "px";
@@ -260,24 +241,43 @@
       document.getElementById("nowPlayingColorCode").textContent = nowPlayingColorValue.toUpperCase();
       document.getElementById("progressBarColorCode").textContent = progressBarColorValue.toUpperCase();
       
-      // Apply frame hue rotation to frame image only
-      document.getElementById("frame-image").style.filter = `hue-rotate(${frameHueValue}deg) saturate(${frameSaturationValue}%)`;
+      // Apply frame hue rotation according to auto-rotate mode (simpler approach like F9)
+      const filterValue = `hue-rotate(${frameHueValue}deg) saturate(${frameSaturationValue}%)`;
+      const frameImage = document.getElementById('frame-image');
+      const background = document.getElementById('background');
+      const albumArt = document.getElementById('image');
+
+      // Apply filters based on selected mode. Avoid double-filtering the frame image
+      if (autoRotateHueMode === 'yes-all') {
+        // Apply to entire preview container; cancel on album art so it appears unchanged
+        if (background) background.style.filter = filterValue;
+        if (frameImage) frameImage.style.filter = '';
+        if (albumArt) albumArt.style.filter = `hue-rotate(-${frameHueValue}deg)`;
+      } else if (autoRotateHueMode === 'yes-frame') {
+        // Frame-only: apply filter to the frame image only
+        if (background) background.style.filter = '';
+        if (frameImage) frameImage.style.filter = filterValue;
+        if (albumArt) albumArt.style.filter = '';
+      } else {
+        // No auto-rotate: use manual frame hue on frame image only
+        if (background) background.style.filter = '';
+        if (frameImage) frameImage.style.filter = `hue-rotate(${frameHueValue}deg) saturate(${frameSaturationValue}%)`;
+        if (albumArt) albumArt.style.filter = '';
+      }
     }
 
+    // (Removed complex per-element hue applier — simplified to match F9 approach)
+
     function startAutoRotateHue() {
+      // Follow F9 pattern: increment hue and call applyPreview()
+      stopAutoRotateHue();
       let currentHue = 0;
       autoRotateInterval = setInterval(() => {
         currentHue = (currentHue + 1) % 360;
         frameHueValue = currentHue;
         frameHue.value = currentHue;
-        document.getElementById("frame-image").style.filter = `hue-rotate(${frameHueValue}deg) saturate(${frameSaturationValue}%)`;
-        
-        // Also rotate the progress bar color
-        const hslColor = rgbToHsl(parseInt(progressBarColorValue.slice(1, 3), 16), parseInt(progressBarColorValue.slice(3, 5), 16), parseInt(progressBarColorValue.slice(5, 7), 16));
-        const rotatedHsl = [(hslColor[0] + currentHue) % 360, hslColor[1], hslColor[2]];
-        const rotatedRgb = hslToRgb(rotatedHsl[0], rotatedHsl[1], rotatedHsl[2]);
-        document.getElementById("progress-bar-preview").style.backgroundColor = `rgb(${rotatedRgb[0]}, ${rotatedRgb[1]}, ${rotatedRgb[2]})`;
-      }, 50);
+        applyPreview();
+      }, 60);
     }
 
     function rgbToHsl(r, g, b) {
@@ -345,6 +345,17 @@
         clearInterval(autoRotateInterval);
         autoRotateInterval = null;
       }
+      // Reset progress bar color to the configured value
+      const progBar = document.getElementById("progress-bar");
+      if (progBar) progBar.style.backgroundColor = progressBarColorValue;
+      // Reset background and album art filters so effects don't persist
+      const background = document.getElementById('background');
+      const albumArt = document.getElementById('image');
+      if (background) background.style.filter = '';
+      if (albumArt) albumArt.style.filter = '';
+      // Ensure frame image shows manual hue value
+      const frameImage = document.getElementById('frame-image');
+      if (frameImage) frameImage.style.filter = `hue-rotate(${frameHueValue}deg) saturate(${frameSaturationValue}%)`;
     }
 
     function generateCSS() {
@@ -495,7 +506,7 @@ body {
 }
 
 /* Progress bar - OVERLAID ON FRAME */
-#progress-container-preview {
+#progress-container {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -505,7 +516,7 @@ body {
   z-index: 4;
 }
 
-#progress-bar-preview {
+#progress-bar {
   width: 33%;
   background: #00d4ff;
   transition: width 0.1s ease;
@@ -602,34 +613,45 @@ body {
 
     frameHue.addEventListener("input", (e) => {
       frameHueValue = e.target.value;
-      if (autoRotateHue.value === "yes") {
+      // If auto-rotate is active, disable it when user manually changes the slider
+      if (autoRotateHueMode && autoRotateHueMode !== "no") {
         stopAutoRotateHue();
-        autoRotateHue.value = "no";
+        autoRotateHueMode = 'no';
+        if (autoRotateHue) autoRotateHue.value = 'no';
         document.getElementById("autoRotateMessage").style.display = "none";
       }
-      document.getElementById("frame-image").style.filter = `hue-rotate(${frameHueValue}deg) saturate(${frameSaturationValue}%)`;
+      // Apply manual hue to preview
+      applyPreview();
     });
 
     frameSaturation.addEventListener("input", (e) => {
       frameSaturationValue = e.target.value;
-      document.getElementById("frame-image").style.filter = `hue-rotate(${frameHueValue}deg) saturate(${frameSaturationValue}%)`;
+      applyPreview();
     });
 
     autoRotateHue.addEventListener("change", (e) => {
-      if (e.target.value === "yes") {
+      const val = e.target.value;
+      autoRotateHueMode = val;
+      stopAutoRotateHue();
+      if (val === "yes-frame" || val === "yes-all") {
         frameHue.style.display = "none";
         frameHue.disabled = true;
         document.getElementById("autoRotateMessage").style.display = "block";
+        frameHueValue = 0;
+        frameHue.value = 0;
         startAutoRotateHue();
       } else {
         frameHue.style.display = "block";
         frameHue.disabled = false;
         document.getElementById("autoRotateMessage").style.display = "none";
-        stopAutoRotateHue();
+        frameHueValue = 0;
+        frameHue.value = 0;
+        applyPreview();
       }
     });
 
-    document.getElementById("save-btn").addEventListener("click", () => {
+    // Expose page-specific header callbacks for dynamic header
+    window.onSave = function() {
       const css = generateCSS();
       const blob = new Blob([css], { type: "text/css" });
       const url = URL.createObjectURL(blob);
@@ -640,23 +662,15 @@ body {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-    });
-
-    document.getElementById("save").addEventListener("click", () => {
-      const css = generateCSS();
-      const blob = new Blob([css], { type: "text/css" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "11-NowPlaying-F11-Styles.css";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    });
+    };
+    window.onBack = function() { history.back(); };
+    window.onCopy = function() { navigator.clipboard.writeText(window.location.href).catch(()=>{}); };
 
     // Initial preview
     applyPreview();
+
   </script>
+
+  <script src="../js/editor-header-loader.js"></script>
 </body>
 </html>

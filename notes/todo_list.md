@@ -5,7 +5,7 @@ This document outlines suggested improvements, potential issues, and future deve
 ## 🟢 Current Development Status (October 2025)
 
 ### 🎯 **IMMEDIATE TOP PRIORITY**
-**Test editor `generateCSS()` end-to-end for frames F1–F4** (manual integration test):
+**Test editor `generateCSS()` end-to-end for frames** (manual integration test):
 - Open each editor (F1–F4), generate CSS, download the file
 - Replace the corresponding file in `css/` with the downloaded CSS  
 - Load the matching HTML frame in OBS (or a local static server + browser) and verify:
@@ -26,26 +26,6 @@ This document outlines suggested improvements, potential issues, and future deve
 
 ## �🔴 Critical Issues
 
-### Missing Template Files
-- **F4 (04-NowPlaying-F4.html)** - File is empty (0 bytes)
-- **F5 (05-NowPlaying-F5.html)** - File is empty (0 bytes)
-- **F6 (06-NowPlaying-F6.html)** - File is empty (0 bytes)
-- **F7 (07-NowPlaying-F7.html)** - File is empty (0 bytes)
-
-**Impact:** Users clicking on these frame editors will see coming soon pages, but the actual template files don't exist, which will cause broken browser sources in OBS.
-
-**Recommendation:** Either create placeholder templates or hide these frames from the main editor until they're ready.
-
-### Empty CSS Files
-- **03-NowPlaying-F3-Styles.css** - 0 bytes
-- **04-NowPlaying-F4-Styles.css** - 0 bytes
-- **05-NowPlaying-F5-Styles.css** - 0 bytes
-- **06-NowPlaying-F6-Styles.css** - 0 bytes
-- **07-NowPlaying-F7-Styles.css** - 0 bytes
-
-**Impact:** Frames 3-7 won't display properly even when the HTML files are created.
-
-**Recommendation:** Generate default CSS files for all frames, even if incomplete.
 
 ## 🟠 High Priority Issues
 
@@ -88,28 +68,6 @@ font-size: ${artistSizeValue * scale}px;
 1. Determine and document the correct OBS dimensions for each frame
 2. Update the main editor page with accurate dimensions
 3. Consider adding these dimensions as comments in each template file
-
-### Back Button Navigation Workaround
-
-**Current Implementation:** Uses `history.back()` which is a clever workaround for local files
-
-**Potential Issues:**
-- If user opens editor directly (not from dashboard), back button goes to previous browser page
-- No guarantee the dashboard is in browser history
-
-**Recommendations:**
-1. **Add a fallback:** Check if coming from dashboard, otherwise link to `../00-TemplateEditor.html`
-```javascript
-function goBack() {
-  if (document.referrer.includes('00-TemplateEditor.html')) {
-    history.back();
-  } else {
-    window.location.href = '../00-TemplateEditor.html';
-  }
-}
-```
-2. **Add visual breadcrumbs** so users know where they are in navigation
-3. **Consider using hash-based routing** as an alternative navigation method
 
 ## 🟡 Medium Priority Improvements
 
@@ -627,153 +585,3 @@ Based on recent development work, the recommended action plan is:
 **Version:** Based on repository version 0.3.4
 
 
-#########################################################################################
-BELOW THIS LINE FOR COMPLETED TASKS ONLY
-#########################################################################################
-Please be sure to add date, completed tag, `github:[username]`, and version number change if needed
-(see below for formatting example)
-
----------------------------------------------------------------------------------
-
-- [X] **Normalize F2 runtime HTML** ✨ *COMPLETED* `github:AngelicAdvocate` **v0.3.4**
-  - Updated F2 to use `.text-clip` class for consistency
-  - Ensures compatibility with shared JS scroller logic
----------------------------------------------------------------------------------
-
-- [X] **Fix F3 scroller slowdown** ✨ *COMPLETED* `github:AngelicAdvocate` **v0.3.4**
-  - Rewrote scroller to use transform + requestAnimationFrame
-  - Updated reveal logic to improve performance
-  - Eliminated sluggish animation behavior
----------------------------------------------------------------------------------
-
-- [X] **Revert temporary debug values** ✨ *COMPLETED* `github:AngelicAdvocate` **v0.3.4**
-  - Removed `data-debug-scroller` usage from production code
-  - Cleaned debug console output from `js/common.js`
-  - Backup `js/common.js.bak` retained for reference
----------------------------------------------------------------------------------
-
-- [X] **Polish js/common.js and clean debug logs** ✨ *COMPLETED* `github:AngelicAdvocate` **v0.3.4**
-  - Removed development debug statements
-  - Cleaned up code comments and formatting
-  - Finalized production-ready common JavaScript library
----------------------------------------------------------------------------------
-
-- [X] **Smoke-test F1–F4 frames** ✨ *COMPLETED* `github:AngelicAdvocate` **v0.3.4**
-  - User confirmed F1–F4 tested and working in OBS
-  - All frames display properly with current song data
-  - Text scrolling and progress bars functional
----------------------------------------------------------------------------------
-
-- [X] **Add version tracking and metadata** ✨ *COMPLETED* `github:AngelicAdvocate` **v0.3.4**
-  - Created VERSION file with current version 0.3.4
-  - Added project.json with comprehensive project metadata
-  - Added version comments to main files for tracking
----------------------------------------------------------------------------------
-
-- [X] **File naming standardization and workspace cleanup** ✨ *COMPLETED* `github:AngelicAdvocate` **v0.4.0**
-  - Renamed all editor files from `01-EditorV2-Frame1.html` format to clean `F1-Editor.html` format
-  - Renamed all CSS files from `01-EditorV2-F1-Styles.css` to `F1-Editor.css` format  
-  - Updated all references in dashboard (`00-TemplateEditor.html`) to use new file names
-  - Updated CSS links in all HTML editor files to match new naming convention
-  - Separated inline CSS from `instructions.html` into external `instructions.css` file
-  - Significantly improved workspace organization and maintainability
-
----------------------------------------------------------------------------------
-
-- [X] **Added more template cards to dashboard** ✨ *COMPLETED* `github:AngelicAdvocate` **v0.4.1**
-   - Added new card for templates for frames 8-11
-   - Added basic descriptions for future designs
-   - Fixed scrolling bug on main TemplateEditor dashboard page
----------------------------------------------------------------------------------
-
-- [X] **F8 Vinyl Editor Implementation & Refactor** ✨ *COMPLETED* `github:AngelicAdvocate` **v0.4.2** *(2025-10-26)*
-   - Created F8 vinyl editor structure with vinyl-only preview, removed cassette toggle and assets
-   - Added slider controls for font size, accent color, vertical offset, and drop shadow
-   - Refactored CSS generation to use a single scale variable for all elements (matches F1 approach)
-   - Ensured all generated CSS and runtime CSS use the scale variable for maintainability
-   - Improved centering, overflow handling, and visual accuracy in preview and output
-   - Finalized font-family and margin consistency between editor and OBS display page
-   - Added rotation effect to background image for vinyl preview
-   - Reset album art opacity to full, improved drop shadow prominence
----------------------------------------------------------------------------------
-
-- [X] **OBS Display Page & Data Fetch Fixes (F8)** ✨ *COMPLETED* `github:AngelicAdvocate` **v0.4.2** *(2025-10-26)*
-   - Created 08-NowPlaying-F8.html for OBS display, matching F8 editor output
-   - Fixed JSON fetch logic to correctly display artist name and track name
-   - Synced font-family, margin, and layout between editor and OBS page
-   - Ensured drop shadow and accent color match editor defaults
-   - Moved inline CSS to external file for maintainability
----------------------------------------------------------------------------------
-
-- [X] **Dashboard & Template Management Updates** ✨ *COMPLETED* `github:AngelicAdvocate` **v0.4.2** *(2025-10-26)*
-   - Added F8 preview image and updated description in 00-TemplateEditor.html
-   - Removed cassette tape option, updated glassmorphism/cassette template order and descriptions
-   - Ensured template cards and preview images reflect latest changes
-   - Updated OBS dimensions and template metadata where needed
-
----------------------------------------------------------------------------------
-
-- [X] **Settings Page UI Implementation & Header Standardization** ✨ *COMPLETED* `github:AngelicAdvocate` **v0.5.0** *(2025-12-07)*
-   - Built comprehensive settings.html page with dark mode toggle, template management, and about section
-   - Added GitHub avatar to About card with dynamic URL and responsive sizing (144px desktop → 81px mobile)
-   - Created reusable unified header template across settings, store, and instructions pages with support, share, and action buttons
-   - Standardized header layout across all main pages with consistent padding, margins, and button spacing (no layout shift on navigation)
-   - Integrated dynamic version loading from VERSION file to settings page for automatic version display updates
-   - Implemented template management UI components (upload modal, delete dropdown) ready for Tauri backend integration
-   - Added check for updates button and status display framework for future update notification system
-   - Created reusable header component for individual overlay template editors (F7 editor as reference implementation)
-   - Built F7 cassette tape overlay template with visual editor controls and generated CSS output
-   - Created store.html base page with unified header and "Coming Soon" placeholder ready for future store embedded iframe
-   - Standardized page formatting and styling across dashboard, editors, and main pages with responsive media queries
-   - Added welcome card to 00-TemplateEditor.html dashboard with instructions and project overview
-   - Removed scrollbars globally across all pages using CSS methods compatible with OBS embedded Chromium
-   - Made instructions page content-agnostic by removing conflicting global styles while preserving header design consistency
-   - Restructured project directory layout for Tauri migration: moved main display pages to `src/main_pages/`, editor pages to `src/editor_pages/`, consolidated styles to `src/css/main_pages/` and `src/css/editor_pages/`, moved all assets to `src/assets/`, and JavaScript utilities to `src/js/`
-   - Corrected all relative file paths after restructure: updated asset references from `static_assets/` to `../assets/`, editor links from `editor_assets/` to `../editor_pages/`, CSS links to point to new directory structure, and fixed HTML linking between pages
-
----------------------------------------------------------------------------------
-
-- [X] **Header Module Implementation & Editor Layout Fixes** ✨ *COMPLETED* `github:AngelicAdvocate` **v0.5.1** *(2025-12-08)*
-   - Created reusable header module with logo, back button, page title, copy URL, and save button (header.css)
-   - Integrated header into F1, F2, F3, and F4 editor pages with proper save button callback functionality
-   - Removed old bottom save buttons from F3 and F4 editors, moved save functionality to header save button
-   - Fixed save button event handling - ensured header save button calls applyPreview() and downloadCSS() for CSS generation
-   - Anchored header to top of page with flex-shrink: 0 to prevent layout collapse
-   - Fixed layout gaps by removing justify-content centering from body flexbox and setting proper flex alignment
-   - Removed excessive padding and margins from #site, #sample, #controls, and #editor-header elements
-   - Set --editor-preview-padding-top to 0 to eliminate 140px vertical gap in F3 editor
-   - Simplified body layout to use flex-direction: column with no centering to prevent space waste
-   - Added global margin/padding resets to header elements to eliminate cascading spacing issues
-   - Created F11 editor page with header module integrated
-   - Standardized all editor pages to use consistent header styling and save functionality across F1-F4
-
----------------------------------------------------------------------------------
-
-- [X] **Created F10 Editor Base** ✨ *COMPLETED* `github:AngelicAdvocate` **v0.5.1** *(2025-12-09)*
-   - Created base for F10 Editor page
-   - Still needs to be implemented:
-       - Font picker
-       - Rearrange sliders to balance columns
-       - Text position up/down
-       - Progress bar position up down
-   - Awaiting further testing
-
----------------------------------------------------------------------------------
-
-- [X] **Created F9 Editor Base** ✨ *COMPLETED* `github:AngelicAdvocate` **v0.5.1** *(2025-12-12)*
-   - Created base for F9 Editor page
-   - Still needs to be implemented:
-       - Thumbnail image correction for transparency (or)
-       - Thumbnail image generation for light mode switch
-   - Awaiting further testing
-   - Future general editor page enhancement:
-       - All pages need to be updated to use the same height for the dropdowns, color pickers, and sliders for better alignment
-
----------------------------------------------------------------------------------
-
-- [X] **Finished F9 & F10 Editor / Created F5 & F6 Base** ✨ *COMPLETED* `github:AngelicAdvocate` **v0.5.2** *(2025-12-13)*
-   - Added the rest of the sliders to F10 Editor controls
-   - Corrected drop shaddows on text and album art for F10
-   - Generated new thumbnail for F10 Overlay
-   - Created base for F5 Editor page
-   - Created base for F6 Editor page

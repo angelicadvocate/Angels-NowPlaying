@@ -4,56 +4,51 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EditorV2-Frame3</title>
-  <link rel="stylesheet" href="../css/editor_pages/header.css" />
+  <link rel="stylesheet" href="../css/editor_pages/editor-header.css" />
   <link rel="stylesheet" href="../css/editor_pages/F3-Editor.css" />
+  <link rel="stylesheet" href="../css/editor_pages/editor-common.css" />
 </head>
 <body>
     <!-- Header Module -->
-    <header id="editor-header">
-      <div class="header-content">
-        <!-- Left Section: Logo & Back Button -->
-        <div class="header-left">
-          <div class="logo">Angel's NowPlaying</div>
-          <button id="back-btn" class="header-btn" onclick="history.back()" title="Back to Editor Dashboard">
-            <span class="btn-icon">←</span> Back
-          </button>
-        </div>
-
-        <!-- Middle Section: Page Title -->
-        <div class="header-middle">
-          <h1 id="page-title">Frame Editor</h1>
-        </div>
-
-        <!-- Right Section: Action Buttons -->
-        <div class="header-right">
-          <button id="copy-url-btn" class="header-btn" title="Copy URL to Clipboard">
-            <span class="btn-icon">📋</span> Copy URL
-          </button>
-          <button id="save-btn" class="header-btn primary" title="Save Configuration">
-            <span class="btn-icon">💾</span> Save
-          </button>
-        </div>
-      </div>
-    </header>
+    <!-- Dynamic header placeholder -->
+    <div id="header-root" data-src="../editor_pages/editor-header.html" data-page-title="Frame 3 - Vertical Panel"></div>
 
   <main id="site">
     <!-- Column 1: Left Controls -->
     <section id="col-1">
       <div class="controls-column">
+        <label for="fontFamily" class="info">Font Family</label>
+        <select id="fontFamily" class="dropdown">
+          <option value="proxima-nova, sans-serif" selected>Proxima Nova</option>
+          <option value="Comic Sans MS, cursive">Comic Sans MS</option>
+          <option value="Brush Script MT, cursive">Brush Script MT</option>
+          <option value="Georgia, serif">Georgia</option>
+          <option value="Times New Roman, serif">Times New Roman</option>
+          <option value="Courier New, monospace">Courier New</option>
+          <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
+          <option value="Verdana, sans-serif">Verdana</option>
+        </select>
+
         <label for="artist_name" class="info">Artist Name Size</label>
         <input type="range" min="8" max="30" value="19" class="slider" id="artist_name"> 
 
         <label for="track_title" class="info">Track Title Size</label>
         <input type="range" min="8" max="30" value="26" class="slider" id="track_title">  
 
-        <label for="spacing" class="info">Spacing Horizontal</label>
+        <label for="spacing" class="info">Text Vertical Spacing</label>
         <input type="range" min="-8" max="20" value="8" class="slider" id="spacing">  
 
         <label for="color" class="info">Accent Color</label>
-        <input type="range" min="0" max="355" value="355" class="slider" id="color">
-          <div id="colorDisplay" class="info" style="margin-top: 5px;">
-            Color Code: <code id="colorCode">#ff66aa</code>
-          </div>
+        <div class="color-picker-container">
+          <input type="color" id="color" class="color-picker" value="#3b82f6">
+          <div id="colorDisplay" class="color-code-overlay"><code id="colorCode">#3B82F6</code></div>
+        </div>
+
+        <label for="trackColor" class="info">Track Title Color</label>
+        <div class="color-picker-container">
+          <input type="color" id="trackColor" class="color-picker" value="#FFFFFF">
+          <div id="trackColorDisplay" class="color-code-overlay"><code id="trackColorCode">#FFFFFF</code></div>
+        </div>
       </div>
     </section>
 
@@ -64,13 +59,25 @@
         <input type="range" min="40" max="400" value="250" class="slider" id="imageSize">
 
         <label for="imageMarginTop" class="info">Image Top Margin</label>
-        <input type="range" min="-100" max="100" value="12" class="slider" id="imageMarginTop">
+        <input type="range" min="-140" max="100" value="10" class="slider" id="imageMarginTop">
 
-        <label for="textMarginTop" class="info">Text Top Margin</label>
+        <label for="textMarginTop" class="info">Text Vertical Position</label>
         <input type="range" min="-100" max="100" value="-15" class="slider" id="textMarginTop">
+
+        <label for="textAlignment" class="info">Text Alignment</label>
+        <select id="textAlignment" class="dropdown">
+          <option value="left">Left</option>
+          <option value="center" selected>Center</option>
+          <option value="right">Right</option>
+        </select>
 
         <label for="imagePadding" class="info">Image Left Padding</label>
         <input type="range" min="-50" max="50" value="0" class="slider" id="imagePadding">
+        
+        <label for="imageBorderRadius" class="info">Album Art Border Radius (%)</label>
+        <input type="range" min="0" max="50" value="6" class="slider" id="imageBorderRadius">
+
+        
       </div>
     </section>
 
@@ -101,6 +108,9 @@
     const songSize = document.getElementById("track_title");
     const spacing = document.getElementById("spacing");
     const color = document.getElementById("color");
+    const trackColor = document.getElementById("trackColor");
+    const textAlignment = document.getElementById("textAlignment");
+    const fontFamily = document.getElementById("fontFamily");
     const artistEl = document.getElementById("artist");
     const songEl = document.getElementById("song");
     const image = document.getElementById('image');
@@ -109,37 +119,60 @@
     const imageMarginTopSlider = document.getElementById('imageMarginTop');
     
   const textMarginTopSlider = document.getElementById('textMarginTop');
+  const imageBorderRadius = document.getElementById('imageBorderRadius');
   let textMarginTopValue = textMarginTopSlider.value;
     
-  let imageMarginTopValue = imageMarginTopSlider.value;
+    let imageMarginTopValue = imageMarginTopSlider.value;
   let imagePaddingValue = imagePaddingSlider.value;    
     let imageSizeValue = imageSizeSlider.value;
+    let imageBorderRadiusValue = imageBorderRadius ? imageBorderRadius.value : 16;
     let artistSizeValue = artistSize.value;
     let songSizeValue = songSize.value;
     let spacingValue = spacing.value;
     let colorValue = color.value;
+    let trackColorValue = trackColor ? trackColor.value : '#ffffff';
+    let textAlignmentValue = textAlignment ? textAlignment.value : 'center';
+    let fontFamilyValue = fontFamily.value;
+
+    function hexToHsl(hex) {
+      const r = parseInt(hex.slice(1,3),16)/255;
+      const g = parseInt(hex.slice(3,5),16)/255;
+      const b = parseInt(hex.slice(5,7),16)/255;
+      const max = Math.max(r,g,b), min = Math.min(r,g,b);
+      let h=0, s=0, l=(max+min)/2;
+      if(max!==min){
+        const d = max-min;
+        s = l>0.5? d/(2-max-min) : d/(max+min);
+        switch(max){
+          case r: h = (g-b)/d + (g<b?6:0); break;
+          case g: h = (b-r)/d + 2; break;
+          case b: h = (r-g)/d + 4; break;
+        }
+        h = Math.round(h*60);
+        s = Math.round(s*100);
+        l = Math.round(l*100);
+      } else { h = 0; s = 0; l = Math.round(l*100); }
+      return [h,s,l];
+    }
 
 function applyPreview() {
   artistEl.style.fontSize = artistSizeValue + "px";
   songEl.style.fontSize = songSizeValue + "px";
   artistEl.style.marginBottom = spacingValue + "px";
-  artistEl.style.color = `hsl(${colorValue}, 100%, 68%)`;
-  
-    // Convert HSL to hex for OBS
-      function hslToHex(h, s, l) {
-        s /= 100;
-        l /= 100;
-        const k = n => (n + h / 30) % 12;
-        const a = s * Math.min(l, 1 - l);
-        const f = n =>
-          Math.round(255 * (l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))));
-        return "#" + [f(0), f(8), f(4)].map(x => x.toString(16).padStart(2, '0')).join('');
-      }
-      const hex = hslToHex(colorValue, 100, 68);
-      document.getElementById("colorCode").textContent = hex;
+  artistEl.style.color = colorValue;
+  // track title has its own picker
+  songEl.style.color = trackColorValue;
+  // apply text alignment
+  const textBoxEl = document.getElementById('text-box');
+  if (textBoxEl) textBoxEl.style.textAlign = textAlignmentValue;
+  document.getElementById("colorCode").textContent = (colorValue||'').toUpperCase();
+  const trackCodeEl = document.getElementById("trackColorCode");
+  if (trackCodeEl) trackCodeEl.textContent = (trackColorValue||'').toUpperCase();
 
   image.style.width = imageSizeValue + "px";
   image.style.height = imageSizeValue + "px";
+  // apply border radius percent (0-50 makes circle at 50%)
+  image.style.borderRadius = (imageBorderRadiusValue || 0) + "%";
   const content = document.getElementById('content');
   // editor preview centers text for F3; content padding control removed
   const imageWrapper = document.getElementById('image-wrapper');
@@ -151,10 +184,18 @@ function applyPreview() {
   // Update progress bar color (F3 uses static width based on default image size)
   const progressBar = document.getElementById('progress-bar-preview');
   if (progressBar) {
-    // Update progress bar color to match accent color (same as artist)
-    progressBar.style.backgroundColor = `hsl(${colorValue}, 100%, 68%)`;
+    // Update progress bar color to match accent color (use hex value)
+    progressBar.style.backgroundColor = colorValue;
   }
 }
+
+// Font selector change handler
+fontFamily.addEventListener('change', (e) => {
+  fontFamilyValue = e.target.value;
+  artistEl.style.fontFamily = fontFamilyValue;
+  songEl.style.fontFamily = fontFamilyValue;
+  applyPreview();
+});
 
 
     function generateCSS() {
@@ -163,7 +204,7 @@ function applyPreview() {
 /* /static css placeholder/ */
 
 :root {
-  --highlight: hsl(${colorValue}, 90%, 60%);
+  --highlight: hsl(${Math.min(360, Math.max(0, hexToHsl(colorValue)[0] || 221))}, 90%, 60%);
   --font-main: "proxima-nova", sans-serif;
   --f3-image-margin-left: ${imagePaddingValue};
   --f3-image-margin-bottom: ${8};
@@ -218,7 +259,7 @@ body {
   margin-left: calc(var(--f3-image-margin-left) * 1px);
   margin-bottom: calc(var(--f3-image-margin-bottom) * 1px);
   padding-top: 0px;
-  border-radius: 16px;
+  border-radius: ${imageBorderRadiusValue}%;
   display: block;
 }
 
@@ -271,90 +312,43 @@ p { white-space: nowrap; }
       }, 0);
     }
 
-[artistSize, songSize, spacing, color, imageSizeSlider, imagePaddingSlider, imageMarginTopSlider, textMarginTopSlider].forEach((slider) => {
+[artistSize, songSize, spacing, color, trackColor, imageSizeSlider, imagePaddingSlider, imageMarginTopSlider, textMarginTopSlider, imageBorderRadius].forEach((slider) => {
   slider.addEventListener("input", (e) => {
     if (e.target === artistSize) artistSizeValue = e.target.value;
     if (e.target === songSize) songSizeValue = e.target.value;
     if (e.target === spacing) spacingValue = e.target.value;
     if (e.target === color) colorValue = e.target.value;
+    if (e.target === trackColor) trackColorValue = e.target.value;
   if (e.target === imageSizeSlider) imageSizeValue = e.target.value;
   if (e.target === imagePaddingSlider) imagePaddingValue = e.target.value;
     if (e.target === imageMarginTopSlider) imageMarginTopValue = e.target.value;
     if (e.target === textMarginTopSlider) textMarginTopValue = e.target.value;
+    if (e.target === imageBorderRadius) imageBorderRadiusValue = e.target.value;
     applyPreview();
   });
 });
 
+// text alignment change handler
+if (textAlignment) {
+  textAlignment.addEventListener('change', (e) => {
+    textAlignmentValue = e.target.value;
+    applyPreview();
+  });
+}
+
 
     applyPreview();
 
-    // Initialize header with F3-specific configuration
-    initializeHeader({
-      pageTitle: "Frame 3 - Album Focus",
-      onSave: () => {
-        applyPreview();
-        downloadCSS("03-NowPlaying-F3-Styles.css", generateCSS());
-      }
-    });
-
-    /**
-     * Initialize the header with custom configuration
-     * @param {Object} config - Configuration object
-     * @param {string} config.pageTitle - Title to display in the header
-     * @param {Function} config.onSave - Callback function when Save button is clicked
-     * @param {Function} config.onBack - Optional callback for Back button (defaults to history.back())
-     * @param {boolean} config.showCopyUrl - Whether to show Copy URL button (default: true)
-     */
-    function initializeHeader(config = {}) {
-      const {
-        pageTitle = "Frame Editor",
-        onSave = null,
-        onBack = null,
-        showCopyUrl = true
-      } = config;
-
-      // Set page title
-      const pageTitleEl = document.getElementById("page-title");
-      if (pageTitleEl) {
-        pageTitleEl.textContent = pageTitle;
-      }
-
-      // Set up Save button callback
-      const saveBtn = document.getElementById("save-btn");
-      if (saveBtn && onSave) {
-        saveBtn.addEventListener("click", onSave);
-      }
-
-      // Set up Back button callback if provided
-      const backBtn = document.getElementById("back-btn");
-      if (backBtn && onBack) {
-        backBtn.onclick = onBack;
-      }
-
-      // Set up Copy Link button
-      const copyUrlBtn = document.getElementById("copy-url-btn");
-      if (copyUrlBtn) {
-        if (!showCopyUrl) {
-          copyUrlBtn.style.display = "none";
-        } else {
-          copyUrlBtn.addEventListener("click", () => {
-            const url = window.location.href;
-            navigator.clipboard.writeText(url).then(() => {
-              // Visual feedback
-              const originalText = copyUrlBtn.innerHTML;
-              copyUrlBtn.innerHTML = '<span class="btn-icon">✓</span> Copied!';
-              setTimeout(() => {
-                copyUrlBtn.innerHTML = originalText;
-              }, 2000);
-            }).catch(err => {
-              console.error("Failed to copy Link:", err);
-              alert("Failed to copy Link to clipboard");
-            });
-          });
-        }
-      }
-    }
+    // Expose page-specific header callbacks for dynamic header
+    window.onSave = function() {
+      applyPreview();
+      downloadCSS("03-NowPlaying-F3-Styles.css", generateCSS());
+    };
+    window.onBack = function() { history.back(); };
+    window.onCopy = function() { navigator.clipboard.writeText(window.location.href).catch(()=>{}); };
 
   </script>
+
+  <script src="../js/editor-header-loader.js"></script>
 </body>
 </html>

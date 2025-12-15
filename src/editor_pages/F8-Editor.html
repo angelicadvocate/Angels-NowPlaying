@@ -4,40 +4,28 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EditorV2-Frame8-Vinyl</title>
-  <link rel="stylesheet" href="../css/editor_pages/header.css" />
+  <link rel="stylesheet" href="../css/editor_pages/editor-header.css" />
   <link rel="stylesheet" href="../css/editor_pages/F8-Editor.css" />
+  <link rel="stylesheet" href="../css/editor_pages/editor-common.css" />
 </head>
 <body>
-    <!-- Header Module -->
-    <header id="editor-header">
-      <div class="header-content">
-        <!-- Left Section: Logo & Back Button -->
-        <div class="header-left">
-          <div class="logo">Angel's NowPlaying</div>
-          <button id="back-btn" class="header-btn" onclick="history.back()" title="Back to Editor Dashboard">
-            <span class="btn-icon">←</span> Back
-          </button>
-        </div>
-
-        <!-- Middle Section: Page Title -->
-        <div class="header-middle">
-          <h1 id="page-title">Frame 8 - Retro Vinyl</h1>
-        </div>
-
-        <!-- Right Section: Action Buttons -->
-        <div class="header-right">
-          <button id="copy-url-btn" class="header-btn" title="Copy URL to Clipboard">
-            <span class="btn-icon">📋</span> Copy URL
-          </button>
-          <button id="save-btn" class="header-btn primary" title="Save Configuration">
-            <span class="btn-icon">💾</span> Save
-          </button>
-        </div>
-      </div>
-    </header>
+    <!-- Dynamic header placeholder -->
+    <div id="header-root" data-src="../editor_pages/editor-header.html" data-page-title="Frame 8 - Retro Vinyl"></div>
 
     <main id="site">
     <section id="controls">
+      <label for="fontFamily" class="info">Font Family</label>
+      <select id="fontFamily" class="dropdown">
+        <option value="proxima-nova, sans-serif" selected>Proxima Nova</option>
+        <option value="Comic Sans MS, cursive">Comic Sans MS</option>
+        <option value="Brush Script MT, cursive">Brush Script MT</option>
+        <option value="Georgia, serif">Georgia</option>
+        <option value="Times New Roman, serif">Times New Roman</option>
+        <option value="Courier New, monospace">Courier New</option>
+        <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
+        <option value="Verdana, sans-serif">Verdana</option>
+      </select>
+
       <label for="artist_name" class="info">Artist Name Size</label>
       <input type="range" min="12" max="48" value="24" class="slider" id="artist_name"> 
 
@@ -45,13 +33,22 @@
       <input type="range" min="16" max="50" value="30" class="slider" id="track_title">  
 
       <label for="textColor" class="info">Text Color</label>
-      <input type="color" id="textColor" class="color-picker" value="#ffffff">
-      
+      <div class="color-picker-container">
+        <input type="color" id="textColor" class="color-picker" value="#ffffff">
+        <div id="textColorDisplay" class="color-code-overlay"><code id="textColorCode">#FFFFFF</code></div>
+      </div>
+
       <label for="accentColor" class="info">Accent Color</label>
-      <input type="color" id="accentColor" class="color-picker" value="#ff2a2a">
+      <div class="color-picker-container">
+        <input type="color" id="accentColor" class="color-picker" value="#ff2a2a">
+        <div id="accentColorDisplay" class="color-code-overlay"><code id="accentColorCode">#FF2A2A</code></div>
+      </div>
 
       <label for="contentOffset" class="info">Text Vertical Offset</label>
       <input type="range" min="-290" max="290" value="136" class="slider" id="contentOffset">
+
+      <label for="spacing" class="info">Text Vertical Spacing</label>
+      <input type="range" min="-8" max="20" value="0" class="slider" id="spacing">
     </section>
 
     <section id="sample">
@@ -83,6 +80,8 @@
     const textColor = document.getElementById("textColor");
     const accentColor = document.getElementById("accentColor");
     const contentOffset = document.getElementById("contentOffset");
+    const fontFamily = document.getElementById("fontFamily");
+    const spacing = document.getElementById("spacing");
     
     // Storage keys
     const STORAGE_KEY = 'F8EditorSettings';
@@ -97,6 +96,8 @@
         textColor.value = settings.textColor || "#ffffff";
         accentColor.value = settings.accentColor || "#ff2a2a";
         contentOffset.value = settings.contentOffset || "136";
+        fontFamily.value = settings.fontFamily || "proxima-nova, sans-serif";
+        spacing.value = settings.spacing || "8";
         applyPreview();
       }
     }
@@ -108,7 +109,9 @@
         songSize: songSize.value,
         textColor: textColor.value,
         accentColor: accentColor.value,
-        contentOffset: contentOffset.value
+        contentOffset: contentOffset.value,
+        fontFamily: fontFamily.value,
+        spacing: spacing.value
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
     }
@@ -121,38 +124,54 @@
       
       artist.style.fontSize = artistSize.value + 'px';
       artist.style.color = accentColor.value;
+      artist.style.fontFamily = fontFamily.value;
+      // Horizontal spacing between artist and song (applies as bottom margin on artist)
+      artist.style.marginBottom = (spacing ? spacing.value : 8) + 'px';
       song.style.fontSize = songSize.value + 'px';
       song.style.color = textColor.value;
+      song.style.fontFamily = fontFamily.value;
       content.style.transform = `translateY(${contentOffset.value}px)`;
+
+        // update badges
+        updateColorBadges();
     }
+
+      // Update hex badges when preview updates
+      function updateColorBadges() {
+        const t = document.getElementById('textColorCode');
+        const a = document.getElementById('accentColorCode');
+        if (t) t.textContent = (textColor.value || '').toUpperCase();
+        if (a) a.textContent = (accentColor.value || '').toUpperCase();
+      }
     
     // Event listeners for live preview
-    [artistSize, songSize, textColor, accentColor, contentOffset].forEach(input => {
+    [artistSize, songSize, textColor, accentColor, contentOffset, fontFamily, spacing].forEach(input => {
       input.addEventListener('input', () => {
         applyPreview();
       });
     });
     
-    // Save button handler
-    document.getElementById("save-btn").addEventListener("click", () => {
+    // Expose page-specific header callbacks for dynamic header
+    window.onSave = function() {
       saveSettings();
       alert("Settings saved!");
-    });
-    
-    // Copy URL button handler
-    document.getElementById("copy-url-btn").addEventListener("click", () => {
+    };
+    window.onBack = function() { history.back(); };
+    window.onCopy = function() {
       const params = new URLSearchParams({
         artistSize: artistSize.value,
         songSize: songSize.value,
         textColor: textColor.value.replace('#', ''),
         accentColor: accentColor.value.replace('#', ''),
-        contentOffset: contentOffset.value
+        contentOffset: contentOffset.value,
+        fontFamily: fontFamily.value,
+        spacing: spacing.value
       });
       const url = window.location.pathname + '?' + params.toString();
       navigator.clipboard.writeText(window.location.origin + url).then(() => {
         alert("URL copied to clipboard!");
       });
-    });
+    };
     
     // Load URL parameters if present
     function loadFromURL() {
@@ -173,7 +192,11 @@
       if (!window.location.search) {
         loadSettings();
       }
+      // Ensure preview is applied on load even when no saved settings or URL params
+      applyPreview();
     });
   </script>
+
+  <script src="../js/editor-header-loader.js"></script>
 </body>
 </html>

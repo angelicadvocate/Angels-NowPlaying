@@ -4,37 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EditorV2-Frame7-CassetteTape</title>
-  <link rel="stylesheet" href="../css/editor_pages/header.css" />
+  <link rel="stylesheet" href="../css/editor_pages/editor-header.css" />
   <link rel="stylesheet" href="../css/editor_pages/F7-Editor.css" />
+  <link rel="stylesheet" href="../css/editor_pages/editor-common.css" />
 </head>
 <body>
-    <!-- Header Template -->
-    <header id="editor-header">
-      <div class="header-content">
-        <!-- Left Section: Logo & Back Button -->
-        <div class="header-left">
-          <div class="logo">Angel's NowPlaying</div>
-          <button id="back-btn" class="header-btn" onclick="history.back()" title="Back to Editor Dashboard">
-            <span class="btn-icon">←</span> Back
-          </button>
-        </div>
-
-        <!-- Middle Section: Page Title -->
-        <div class="header-middle">
-          <h1 id="page-title">Frame 7 - Cassette Tape</h1>
-        </div>
-
-        <!-- Right Section: Action Buttons -->
-        <div class="header-right">
-          <button id="copy-url-btn" class="header-btn" title="Copy Link to Clipboard">
-            <span class="btn-icon">📋</span> Copy Link
-          </button>
-          <button id="save-btn" class="header-btn primary" title="Save Configuration">
-            <span class="btn-icon">💾</span> Save
-          </button>
-        </div>
-      </div>
-    </header>
+    <!-- Dynamic header placeholder -->
+    <div id="header-root" data-src="../editor_pages/editor-header.html" data-page-title="Frame 7 - Cassette Tape"></div>
 
     <main id="site">
     <section id="controls">
@@ -73,13 +49,13 @@
         <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
         <option value="Verdana, sans-serif">Verdana</option>
       </select>
+      
+      <label for="artistFontSize" class="info">Artist Font Size</label>
+      <input type="range" min="8" max="32" value="22" class="slider" id="artistFontSize">
 
     </section>
 
     <section id="controls-middle">
-      <label for="artistFontSize" class="info">Artist Font Size</label>
-      <input type="range" min="8" max="32" value="22" class="slider" id="artistFontSize">
-
       <label for="artistPosition" class="info">Artist Position</label>
       <input type="range" min="-50" max="150" value="0" class="slider" id="artistPosition">
 
@@ -95,7 +71,7 @@
       <input type="range" min="8" max="32" value="22" class="slider" id="songFontSize">
 
       <label for="songPosition" class="info">Song Position</label>
-      <input type="range" min="-50" max="150" value="0" class="slider" id="songPosition">
+      <input type="range" min="-150" max="150" value="0" class="slider" id="songPosition">
 
       <label for="trackColor" class="info">Song Color</label>
       <div class="color-picker-container">
@@ -464,32 +440,17 @@ body {
       }
     });
 
-    // Set up header buttons
-    document.getElementById("save-btn").addEventListener("click", () => {
+    // Expose page-specific header callbacks for dynamic header
+    window.onSave = function() {
       applyPreview();
       downloadCSS("07-NowPlaying-F7-Styles.css", generateCSS());
-    });
-
-    // Copy URL button functionality
-    const copyUrlBtn = document.getElementById("copy-url-btn");
-    if (copyUrlBtn) {
-      copyUrlBtn.addEventListener("click", () => {
-        const url = window.location.href;
-        navigator.clipboard.writeText(url).then(() => {
-          // Visual feedback
-          const originalText = copyUrlBtn.innerHTML;
-          copyUrlBtn.innerHTML = '<span class="btn-icon">✓</span> Copied!';
-          setTimeout(() => {
-            copyUrlBtn.innerHTML = originalText;
-          }, 2000);
-        }).catch(err => {
-          console.error("Failed to copy URL:", err);
-          alert("Failed to copy URL to clipboard");
-        });
-      });
-    }
+    };
+    window.onBack = function() { history.back(); };
+    window.onCopy = function() { navigator.clipboard.writeText(window.location.href).catch(()=>{}); };
 
     applyPreview();
 
   </script>
+
+  <script src="../js/editor-header-loader.js"></script>
 </html>

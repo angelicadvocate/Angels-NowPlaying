@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WebM Test</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #000000;
+    }
+    
+    video {
+      width: 600px;
+      height: auto;
+      border: 2px solid red;
+    }
+  </style>
+</head>
+<body>
+  <video autoplay loop muted playsinline crossorigin="anonymous" preload="auto">
+    <source src="../assets/neon-album-art-frame.webm" type="video/webm">
+  </video>
+</body>
+</html>
+
+<!--
+  WHY THIS FILE EXISTS (READ THIS FIRST):
+
+  This test page exists because video files CAN HAVE ALPHA BUT NO RGB.
+  Many video players automatically composite alpha on black,
+  which makes broken files look normal until used on a webpage.
+
+  Result: video appears fully clear or wrong on the web even though it "plays fine" elsewhere.
+
+---------------------------------------------------------------------------------------------------------
+
+  Test WebP/WebM Video Instructions
+
+  To test whether a WebP/WebM video works (including transparency with a border):
+  - Edit the <source> `src` attribute above to point to your video file location (relative or absolute).
+    Example: <source src="../assets/your-test-file.webm" type="video/webm">
+  - Save the file and open this page in a browser or load it as a Local File in an OBS Browser Source.
+  - The player will autoplay, loop, and show transparency if the video contains an alpha channel.
+  - The red border around the `video` element lets you confirm the element's bounds and any transparent regions.
+
+  Notes:
+  - Use `crossorigin="anonymous"` when testing files served from a local webserver.
+  - If testing `file://` in a regular browser, some browsers may block local media - consider using a local webserver / live server entension.
+  - Ensure your browser supports WebM with alpha channel (most modern browsers do).
+  - For files that still do not play or appear fully transparent, verify the encoding settings used during creation.
+  - EVEN IF YOU CHECKED THE ENCODING SETTINGS, CHECK THEM AGAIN! MUST HAVE ALPHS CHANNEL FOR TRANSPARENCY!
+  - MAKE SURE RBG IS NOT MISSING FROM THE FILE! YOU NEED RGBA OR YUVA FOR ALPHA CHANNELS!
+  - VIDEO THAT HAS ONLY A LUMA/ALPHA CHANNEL WILL APPEAR BLACK OR CLEAR! CHECK TO MAKE SURE YOU DIDNT TURN OFF RGB WHEN EXPORTING ALPHA!
+  - IF YOU ARE MISSING RGB CHANNELS, RE-EXPORT THE VIDEO WITH RGB + ALPHA CHANNELS! OTHERWISE VIDEOS WILL WORK EVERYWHERE EXCEPT ON THE WEBPAGE.
+  - For animated WebP specifically, ensure the `type` is appropriate (`image/webp`) only when embedding as an <img>; for video-like WebM with alpha use `video/webm`.
+
+  CRITICAL ALPHA EXPORT CHECKLIST:
+  - Alpha channel alone is NOT enough.
+  - File MUST contain RGB + Alpha (RGBA / YUVA).
+  - Missing RGB = video looks fine in players, breaks on web.
+  - Luma/Alpha-only exports WILL FAIL on webpages.
+
+  -->

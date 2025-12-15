@@ -1,0 +1,40 @@
+<!-- Header fragment injected into editor pages. Includes icons via Font Awesome to match index. -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<header id="editor-header">
+  <div class="header-container">
+    <!-- Center Mascot/Title (copied from index header) -->
+    <div class="header-center">
+      <img src="../assets/mascot.png" alt="Mascot" class="floating-mascot" />
+      <img src="../assets/header-text.png" alt="Header Text" class="header-text" />
+    </div>
+
+    <!-- Page title (editor pages may set this via header-loader or page script) -->
+    <div class="header-middle">
+      <h1 id="page-title"></h1>
+    </div>
+
+    <!-- Right Action Buttons (copied from index header) -->
+    <div class="header-actions">
+      <!-- Support Development Row -->
+      <div class="button-row">
+        <p class="button-row-label">Support Development:</p>
+        <a href="https://streamelements.com/angelicadvocate/tip" target="_blank"><button class="action-button tip-button" title="Buy Me a Coffee"><i class="fas fa-heart"></i> Buy Me a Coffee</button></a>
+      </div>
+
+      <!-- Share this Widget Row -->
+      <div class="button-row">
+        <p class="button-row-label">Share this widget:</p>
+        <a href="#" onclick="return false;"><button class="action-button social-button" title="Share on Twitter"><i class="fab fa-twitter"></i></button></a>
+        <a href="#" onclick="return false;"><button class="action-button social-button" title="Share on Facebook"><i class="fab fa-facebook"></i></button></a>
+        <a href="#" onclick="return false;"><button class="action-button social-button" title="Share on Reddit"><i class="fab fa-reddit"></i></button></a>
+        <a href="#" onclick="return false;"><button class="action-button social-button" title="Share on Discord"><i class="fab fa-discord"></i></button></a>
+      </div>
+
+      <div class="button-row">
+        <a href="../main_pages/index.html"><button class="action-button" title="Home"><i class="fas fa-home"></i> Home</button></a>
+        <button id="copy-url-btn" class="action-button" title="Copy URL to Clipboard"><i class="fas fa-clipboard"></i> Copy URL</button>
+        <button id="save-btn" class="action-button primary" title="Save Configuration"><i class="fas fa-save"></i> Save</button>
+      </div>
+    </div>
+  </div>
+</header>

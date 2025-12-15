@@ -4,40 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EditorV2-Frame9</title>
-  <link rel="stylesheet" href="../css/editor_pages/header.css" />
+  <link rel="stylesheet" href="../css/editor_pages/editor-header.css" />
   <link rel="stylesheet" href="../css/editor_pages/F9-Editor.css" />
+  <link rel="stylesheet" href="../css/editor_pages/editor-common.css" />
 </head>
 <body>
-    <!-- Header Module -->
-    <header id="editor-header">
-      <div class="header-content">
-        <!-- Left Section: Logo & Back Button -->
-        <div class="header-left">
-          <div class="logo">Angel's NowPlaying</div>
-          <button id="back-btn" class="header-btn" onclick="history.back()" title="Back to Editor Dashboard">
-            <span class="btn-icon">←</span> Back
-          </button>
-        </div>
-
-        <!-- Middle Section: Page Title -->
-        <div class="header-middle">
-          <h1 id="page-title">Frame Editor</h1>
-        </div>
-
-        <!-- Right Section: Action Buttons -->
-        <div class="header-right">
-          <button id="copy-url-btn" class="header-btn" title="Copy URL to Clipboard">
-            <span class="btn-icon">📋</span> Copy URL
-          </button>
-          <button id="save-btn" class="header-btn primary" title="Save Configuration">
-            <span class="btn-icon">💾</span> Save
-          </button>
-        </div>
-      </div>
-    </header>
+    <!-- Dynamic header placeholder -->
+    <div id="header-root" data-src="../editor_pages/editor-header.html" data-page-title="Frame 9 - Neon Lights"></div>
 
     <main id="site">
-    <section id="controls">
       <!-- Two-column layout for all sliders -->
       <div class="controls-grid">
         <!-- Left Column -->
@@ -60,7 +35,7 @@
           <label for="track_title" class="info">Track Title Size</label>
           <input type="range" min="8" max="32" value="26" class="slider" id="track_title">  
 
-          <label for="spacing" class="info">Spacing Horizontal</label>
+          <label for="spacing" class="info">Text Vertical Spacing</label>
           <input type="range" min="-8" max="20" value="1" class="slider" id="spacing">
 
           <label for="frameHue" class="info">Frame Hue</label>
@@ -104,7 +79,6 @@
           </div>
         </div>
       </div>
-    </section>
 
     <section id="sample">
       <div id="background">
@@ -123,8 +97,8 @@
             <p id="song">Sample Song Title</p>
           </div>
         </div>
-        <div id="progress-container-preview">
-          <div id="progress-bar-preview"></div>
+        <div id="progress-container">
+          <div id="progress-bar"></div>
         </div>
       </div>
     </section>
@@ -142,6 +116,7 @@
     const artistEl = document.getElementById("artist");
     const songEl = document.getElementById("song");
     const image = document.getElementById('image');
+    const neonAlbumFrame = document.getElementById('neon-album-art-frame');
     const imageSizeSlider = document.getElementById('imageSize');
     const contentPaddingSlider = document.getElementById('contentPadding');
     const imagePaddingSlider = document.getElementById('imagePadding');
@@ -161,6 +136,11 @@
     let colorValue = color.value;
     let autoRotateFrameHue = false;
     let autoRotateFrameHueInterval = null;
+
+    // Remember initial sizes so we can scale the frame proportionally
+    const initialImageSize = parseInt(imageSizeSlider.value, 10) || 72;
+    const computedInitialFrameSize = neonAlbumFrame ? (parseFloat(getComputedStyle(neonAlbumFrame).width) || (initialImageSize + 16)) : (initialImageSize + 16);
+    const baselineRatio = computedInitialFrameSize / initialImageSize;
 
     const scale = 2;
 
@@ -185,22 +165,30 @@ function applyPreview() {
   // Apply hue rotation to frame elements
   const neonFrame = document.getElementById('neon-frame');
   const neonAlbumFrame = document.getElementById('neon-album-art-frame');
-  if (neonFrame) {
-    neonFrame.style.filter = `hue-rotate(${frameHueValue}deg)`;
-  }
-  if (neonAlbumFrame) {
-    neonAlbumFrame.style.filter = `hue-rotate(${frameHueValue}deg)`;
-  }
-  
-  // Apply hue rotation to entire preview container when in frame-accent mode
   const background = document.getElementById('background');
+  const image = document.getElementById('image');
+  const filterValue = `hue-rotate(${frameHueValue}deg)`;
+
   if (autoRotateFrameHue === "frame-accent") {
-    background.style.filter = `hue-rotate(${frameHueValue}deg)`;
-    // Exclude album art from hue rotation
-    image.style.filter = `hue-rotate(-${frameHueValue}deg)`;
+    // Apply single parent filter so text/progress and frame render through same color shift
+    if (background) background.style.filter = filterValue;
+    // Avoid double-filtering the frame video element
+    if (neonFrame) neonFrame.style.filter = '';
+    if (neonAlbumFrame) neonAlbumFrame.style.filter = '';
+    // Visually cancel the filter on album art so it appears unchanged
+    if (image) image.style.filter = `hue-rotate(-${frameHueValue}deg)`;
+  } else if (autoRotateFrameHue === "frame-only") {
+    // Apply filter only to the frame video elements
+    if (background) background.style.filter = '';
+    if (neonFrame) neonFrame.style.filter = filterValue;
+    if (neonAlbumFrame) neonAlbumFrame.style.filter = filterValue;
+    if (image) image.style.filter = '';
   } else {
-    background.style.filter = '';
-    image.style.filter = '';
+    // No auto-rotate: manual hue applies to frame elements only
+    if (background) background.style.filter = '';
+    if (neonFrame) neonFrame.style.filter = filterValue;
+    if (neonAlbumFrame) neonAlbumFrame.style.filter = filterValue;
+    if (image) image.style.filter = '';
   }
   
   artistEl.style.fontSize = artistSizeValue + "px";
@@ -217,6 +205,13 @@ function applyPreview() {
 
   image.style.width = imageSizeValue + "px";
   image.style.height = imageSizeValue + "px";
+  // Scale the neon album-art frame proportionally based on initial measurements
+  if (neonAlbumFrame) {
+    const imgSizeNum = parseInt(imageSizeValue, 10) || 0;
+    const frameSize = Math.max(1, Math.round(imgSizeNum * baselineRatio));
+    neonAlbumFrame.style.width = frameSize + "px";
+    neonAlbumFrame.style.height = frameSize + "px";
+  }
   const content = document.getElementById('content');
   content.style.padding = `0 20px 0 ${contentPaddingValue}px`;
   content.style.marginTop = textVerticalOffsetValue + "px";
@@ -224,8 +219,8 @@ function applyPreview() {
   imageWrapper.style.marginLeft = imagePaddingValue + "px";
   
   // Update progress bar positioning and color dynamically
-  const progressContainer = document.getElementById('progress-container-preview');
-  const progressBar = document.getElementById('progress-bar-preview');
+  const progressContainer = document.getElementById('progress-container');
+  const progressBar = document.getElementById('progress-bar');
   if (progressContainer && progressBar) {
     // Calculate dynamic positioning based on image position and size
     const imageLeftPos = parseInt(imagePaddingValue) + 5; // Base padding + image padding
@@ -533,74 +528,17 @@ autoRotateFrameHueSelect.addEventListener("change", (e) => {
 
     applyPreview();
 
-    // Initialize header with F9-specific configuration
-    initializeHeader({
-      pageTitle: "Frame 9 - Simple Horizontal",
-      onSave: () => {
-        applyPreview();
-        downloadCSS("09-NowPlaying-F9-Styles.css", generateCSS());
-      }
-    });
-
-    /**
-     * Initialize the header with custom configuration
-     * @param {Object} config - Configuration object
-     * @param {string} config.pageTitle - Title to display in the header
-     * @param {Function} config.onSave - Callback function when Save button is clicked
-     * @param {Function} config.onBack - Optional callback for Back button (defaults to history.back())
-     * @param {boolean} config.showCopyUrl - Whether to show Copy URL button (default: true)
-     */
-    function initializeHeader(config = {}) {
-      const {
-        pageTitle = "Frame Editor",
-        onSave = null,
-        onBack = null,
-        showCopyUrl = true
-      } = config;
-
-      // Set page title
-      const pageTitleEl = document.getElementById("page-title");
-      if (pageTitleEl) {
-        pageTitleEl.textContent = pageTitle;
-      }
-
-      // Set up Save button callback
-      const saveBtn = document.getElementById("save-btn");
-      if (saveBtn && onSave) {
-        saveBtn.addEventListener("click", onSave);
-      }
-
-      // Set up Back button callback if provided
-      const backBtn = document.getElementById("back-btn");
-      if (backBtn && onBack) {
-        backBtn.onclick = onBack;
-      }
-
-      // Set up Copy Link button
-      const copyUrlBtn = document.getElementById("copy-url-btn");
-      if (copyUrlBtn) {
-        if (!showCopyUrl) {
-          copyUrlBtn.style.display = "none";
-        } else {
-          copyUrlBtn.addEventListener("click", () => {
-            const url = window.location.href;
-            navigator.clipboard.writeText(url).then(() => {
-              // Visual feedback
-              const originalText = copyUrlBtn.innerHTML;
-              copyUrlBtn.innerHTML = '<span class="btn-icon">✓</span> Copied!';
-              setTimeout(() => {
-                copyUrlBtn.innerHTML = originalText;
-              }, 2000);
-            }).catch(err => {
-              console.error("Failed to copy Link:", err);
-              alert("Failed to copy Link to clipboard");
-            });
-          });
-        }
-      }
-    }
+    // Expose page-specific header callbacks for dynamic header
+    window.onSave = function() {
+      applyPreview();
+      downloadCSS("09-NowPlaying-F9-Styles.css", generateCSS());
+    };
+    window.onBack = function() { history.back(); };
+    window.onCopy = function() { navigator.clipboard.writeText(window.location.href).catch(()=>{}); };
 
   </script>
+
+  <script src="../js/editor-header-loader.js"></script>
 
 </body>
 </html>

@@ -1,6 +1,18 @@
 # 🎵 Angels-NowPlaying (Work in Progress)
-### ⚠️ This project is still in development and not production-ready.
-**Current version:** 0.5.0
+
+## ⚠️ Development Status
+
+This project is **under active development** and is **not production-ready**.
+
+The current iteration does **not work** due to a major ongoing overhaul. As a result:
+- The instructions in this README are **out of date**
+- Some features may be broken or missing
+
+You’re welcome to use the HTML templates directly in OBS for frames, but this will require **manual CSS editing**.
+
+Check back soon for the next release.
+
+**Current version:** 0.5.3
 ---
 
 **Angels-NowPlaying** is a browser-based widget for OBS that displays now playing information from local audio sources using Tuna for OBS. It includes multiple visual templates (overlay frames), all of which update in real time from the same data source.
