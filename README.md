@@ -33,6 +33,16 @@ You can use each template as a separate browser source in OBS, allowing for flex
 
 ## 🚀 Getting Started
 
+### Dependencies for Offline Use
+
+Before packaging or running the editor in an offline environment, download the following assets and place them under `src/vendor/`:
+
+- **jQuery 3.5.1** → `src/js/vendor/jquery-3.5.1.min.js` (overwrite the placeholder)
+- **Font Awesome 6.4.0** web files → extract into `src/vendor/fontawesome/` (CSS + fonts)
+
+These libraries are currently referenced from a CDN in the source files; local copies ensure the app works without network access.
+
+
 ### 1. Download the Widget
 
 1. Download the entire repo as a ZIP or clone it via Git.
@@ -110,6 +120,22 @@ The widget includes a built-in configuration editor:
 - [ ] Add more overlay styles
 - [ ] Support additional media sources (Spotify, YouTube Music, Apple Music, etc.)
 - [ ] Improved documentation inside the built-in editor (with images and step-by-step instructions)
+
+---
+
+## 🖥 Desktop Configuration Manager (future)
+
+Version 0.5.0 is planned to introduce a cross‑platform desktop application built using [Tauri](https://tauri.app). The app will provide a GUI for managing widget styles, exporting HTML, and optionally serving the widget files via HTTP so OBS can point at a URL instead of a local file.
+
+A migration plan and instructions live in `notes/tauri-migration-plan.md`.
+
+To start working on the app you’ll need the following installed:
+
+1. Rust (via [rustup](https://rustup.rs))
+2. `cargo install tauri-cli`
+3. (Optional) Node.js/npm if you plan to add build tooling.
+
+Once ready, run `cargo tauri init` in the repo root and follow the guidance in the notes file.
 
 ---
 

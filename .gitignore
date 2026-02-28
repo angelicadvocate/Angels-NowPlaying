@@ -1,0 +1,16 @@
+# ignore Tuna output and other user-specific data
+Song.json
+Artwork.png
+
+# backups folder contains personal edits / old versions
+/backups/
+
+# Tauri build artifacts (added later)
+/src-tauri/target/
+/dist/
+
+# OS and editor files
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
