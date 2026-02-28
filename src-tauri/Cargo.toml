@@ -1,0 +1,12 @@
+[package]
+name = "angels_nowplaying"
+version = "0.1.0"\nedition = "2021"\nauthors = ["angelicadvocate"]
+
+[dependencies]
+# use a specific tauri version suitable for your environment
+# when you run `cargo tauri init` it will choose the appropriate version.
+# `api-all` grants access to all Tauri APIs; you can narrow this later if desired.
+tauri = { version = "1.2", features = ["api-all"] }
+
+[build-dependencies]
+# any build-time dependencies (e.g. tauri-build) will be added by the CLI
