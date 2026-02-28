@@ -1,12 +1,32 @@
 [package]
-name = "angels_nowplaying"
-version = "0.1.0"\nedition = "2021"\nauthors = ["angelicadvocate"]
+name = "app"
+version = "0.1.0"
+description = "A Tauri App"
+authors = ["you"]
+license = ""
+repository = ""
+edition = "2021"
+rust-version = "1.77.2"
 
-[dependencies]
-# use a specific tauri version suitable for your environment
-# when you run `cargo tauri init` it will choose the appropriate version.
-# `api-all` grants access to all Tauri APIs; you can narrow this later if desired.
-tauri = { version = "1.2", features = ["api-all"] }
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-# any build-time dependencies (e.g. tauri-build) will be added by the CLI
+tauri-build = { version = "2.5.4", features = [] }
+
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+log = "0.4"
+
+# HTTP server for optional network serving
+tiny_http = "0.12"
+mime_guess = "2.0"
+lazy_static = "1.4"
+dirs = "5"
+
+tauri = { version = "2.10.0", features = [] }
+tauri-plugin-log = "2"

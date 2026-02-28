@@ -60,6 +60,20 @@
         <p id="update-status" style="font-size: 0.85rem; margin-top: 0.8rem; display: none; width: 100%; color: var(--text-color);"></p>
       </div>
 
+      <!-- Network / Tuna settings -->
+      <div class="settings-card">
+        <h2><i class="fas fa-network-wired"></i> Network & Tuna</h2>
+        <div class="settings-item" style="flex-direction: column; align-items: flex-start;">
+          <label>Server port <input type="number" id="serverPort" min="1024" max="65535"></label>
+          <label><input type="checkbox" id="allowRemote"> Allow remote access (listen on all interfaces)</label>
+          <label>Tuna path <input type="text" id="tunaPath" style="width:100%;"></label>
+          <label>Export root <input type="text" id="exportRoot" style="width:100%;"></label>
+          <button class="settings-button" onclick="saveNetworkSettings()" style="width: 100%; margin-top:0.8rem;"><i class="fas fa-save"></i> Save Settings</button>
+          <button class="settings-button" id="startServerBtn" onclick="toggleServer()" style="width: 100%; margin-top:0.5rem;"><i class="fas fa-play"></i> Start Server</button>
+          <p id="serverStatus" style="font-size:0.85rem; margin-top:0.5rem; display:none;"></p>
+        </div>
+      </div>
+
       <div class="template-management">
         <div class="template-section">
           <p class="template-section-title"><i class="fas fa-upload"></i> Upload Template</p>
@@ -344,6 +358,68 @@
         alert('Please fill in all required fields');
         return;
       }
+    }
+
+    // --- network settings helpers (Tauri) ---
+    async function loadNetworkSettings() {
+      try {
+        const settings = await window.__TAURI__.invoke('get_settings');
+        document.getElementById('serverPort').value = settings.serve_port;
+        document.getElementById('allowRemote').checked = settings.allow_remote;
+        document.getElementById('tunaPath').value = settings.tuna_path || '';
+        document.getElementById('exportRoot').value = settings.export_root || '';
+      } catch (e) {
+        console.error('Failed to load settings', e);
+      }
+    }
+
+    async function saveNetworkSettings() {
+      const settings = {
+        serve_port: Number(document.getElementById('serverPort').value) || 8253,
+        allow_remote: document.getElementById('allowRemote').checked,
+        tuna_path: document.getElementById('tunaPath').value,
+        export_root: document.getElementById('exportRoot').value,
+      };
+      try {
+        await window.__TAURI__.invoke('save_settings', settings);
+        alert('Settings saved');
+      } catch (e) {
+        console.error('Failed to save settings', e);
+        alert('Error saving settings');
+      }
+    }
+
+    let serverRunning = false;
+    async function toggleServer() {
+      if (!serverRunning) {
+        const settings = {
+          serve_port: Number(document.getElementById('serverPort').value) || 8253,
+          allow_remote: document.getElementById('allowRemote').checked,
+          tuna_path: document.getElementById('tunaPath').value,
+          export_root: document.getElementById('exportRoot').value,
+        };
+        try {
+          await window.__TAURI__.invoke('start_server', settings);
+          serverRunning = true;
+          document.getElementById('startServerBtn').textContent = 'Stop Server';
+          document.getElementById('serverStatus').style.display = 'block';
+          document.getElementById('serverStatus').textContent = `Server running on port ${settings.serve_port}`;
+        } catch (e) {
+          console.error('Failed to start server', e);
+          alert('Failed to start server');
+        }
+      } else {
+        await window.__TAURI__.invoke('stop_server');
+        serverRunning = false;
+        document.getElementById('startServerBtn').textContent = 'Start Server';
+        document.getElementById('serverStatus').textContent = 'Server stopped';
+      }
+    }
+
+    // ensure network settings are loaded when page is ready
+    window.addEventListener('DOMContentLoaded', () => {
+      loadNetworkSettings();
+    });
 
       // Validate main images count
       if (mainImages.length > 10) {
