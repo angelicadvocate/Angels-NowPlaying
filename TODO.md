@@ -1,6 +1,11 @@
 
 # TODOs for Angels-NowPlaying
 
+This file tracks planned and in-progress work.
+Completed items are moved to CHANGELOG.md at the end of a work session.
+
+---------------------------------------------------------------------------------
+
 # PRIORITY: Switch to Vite as a bundler to fix the Tauri JS API issue
 - [ ] Set up Vite in a new frontend directory (npm create vite@latest, choose Vanilla JS)
 - [ ] Move HTML, CSS, JS, and assets into the Vite project (frontend/)
