@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../css/editor_pages/editor-header.css" />
   <link rel="stylesheet" href="../css/editor_pages/F1-Editor.css" />
   <link rel="stylesheet" href="../css/editor_pages/editor-common.css" />
+  <script src="https://unpkg.com/@tauri-apps/api@latest/dist/index.umd.js"></script>
 </head>
 <body>
     <!-- Dynamic header placeholder. Loaded at runtime by header-loader.js -->
@@ -404,9 +405,21 @@ fontFamily.addEventListener('change', (e) => {
     applyPreview();
 
     // Provide page-specific header callbacks for the dynamic header loader
-    window.onSave = function() {
+    window.onSave = async function() {
       applyPreview();
-      downloadCSS("01-NowPlaying-F1-Styles.css", generateCSS());
+      const cssContent = generateCSS();
+      // Path relative to project root for Tauri backend
+      const cssPath = "src/css/main_pages/01-NowPlaying-F1-Styles.css";
+        if (window.tauri && window.tauri.invoke) {
+          try {
+            await window.tauri.invoke("save_css_file", { path: cssPath, content: cssContent });
+            alert("CSS saved successfully!");
+          } catch (e) {
+            alert("Failed to save CSS: " + e);
+          }
+        } else {
+          alert("Tauri API not available. Please run inside the Tauri app.");
+      }
     };
     window.onBack = function() { history.back(); };
     window.onCopy = function() { navigator.clipboard.writeText(window.location.href).catch(()=>{}); };

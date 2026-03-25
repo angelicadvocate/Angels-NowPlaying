@@ -98,3 +98,14 @@ pub fn stop_server() -> Result<(), String> {
     // TODO: implement graceful shutdown by dropping server or sending interrupt
     Ok(())
 }
+
+#[tauri::command]
+pub fn save_css_file(path: String, content: String) -> Result<(), String> {
+    use std::fs;
+    use std::path::Path;
+    let path = Path::new(&path);
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    fs::write(path, content).map_err(|e| e.to_string())
+}

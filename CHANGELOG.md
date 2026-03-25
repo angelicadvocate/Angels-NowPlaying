@@ -177,3 +177,14 @@ Please be sure to add date, completed tag, `github:[username]`, and version numb
   - Applied various styling refinements across all editor pages
   - Planned potential restructure for src. (see restructure-src-plan.md)
   ---------------------------------------------------------------------------------
+
+- [X] **Initial Tauri app skeleton added** ✨ *COMPLETED* `github:AngelicAdvocate` **v0.6.0** *(2026-02-27)*
+  - Added initial `src-tauri/` with `Cargo.toml`, `tauri.conf.json`, and `src/main.rs`
+  - Added basic app settings UI / network server settings command footing
+  - Not yet fully tested; initial migration step completed
+  ---------------------------------------------------------------------------------
+
+- [X] **Minor Tauri patch applied** ✨ *COMPLETED* `github:AngelicAdvocate` **v0.6.1** *(2026-02-27)*
+  - Fixed issue (that I created) where tauri would fail to load in pages by default leading in a 404
+  - Pages now load, but editor interface is still incomplete/ has bugs. see TODO.md for planned resolution.
+  ---------------------------------------------------------------------------------

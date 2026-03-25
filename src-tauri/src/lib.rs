@@ -4,10 +4,11 @@ mod backend;
 pub fn run() {
   tauri::Builder::default()
     .invoke_handler(tauri::generate_handler![
-        backend::get_settings,
-        backend::save_settings,
-        backend::start_server,
-        backend::stop_server,
+      backend::get_settings,
+      backend::save_settings,
+      backend::start_server,
+      backend::stop_server,
+      backend::save_css_file,
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {
