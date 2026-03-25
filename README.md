@@ -135,7 +135,25 @@ To start working on the app you’ll need the following installed:
 2. `cargo install tauri-cli`
 3. (Optional) Node.js/npm if you plan to add build tooling.
 
-Once ready, run `cargo tauri init` in the repo root and follow the guidance in the notes file.
+Once ready, run `cargo tauri init` in the repo root (or let the scaffold already added) and follow the guidance in the notes file.
+
+### Development with Tauri
+
+You can launch the desktop app in development mode by executing:
+
+```powershell
+cd C:\Users\dalto\Documents\VS-Code\Angels-NowPlaying\src-tauri
+cargo tauri dev
+```
+
+A window will open showing the existing editor UI. Use the **Settings** button to open the configuration page, where you can:
+
+- toggle dark mode and check for updates
+- upload or delete custom templates
+- configure the network server port, Tuna path, and export directory
+- start/stop the embedded HTTP server (OBS can then point at `http://localhost:<port>/widget-F1.html`)
+
+Changes are saved automatically to `%APPDATA%/AngelsNowPlaying/settings.json` (or the equivalent config path on macOS/Linux).
 
 ---
 
