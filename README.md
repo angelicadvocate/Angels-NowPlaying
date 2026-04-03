@@ -2,7 +2,7 @@
 
 A cross-platform desktop app for managing and displaying **Now Playing** overlays in OBS. Built with [Tauri](https://tauri.app) (Rust backend) and plain HTML/CSS/JS overlays that run as OBS Browser Sources.
 
-> **Status:** Active development — v0.5.3. Core overlay playback and the in-app editor are working. Not all bundled overlay styles are complete. See [TODO.md](TODO.md) for what's in progress.
+> **Status:** Active development — v0.8.0. Core overlay playback and the in-app editor are working. Not all bundled overlay styles are complete. See [TODO.md](TODO.md) for what's in progress.
 
 ---
 
@@ -33,6 +33,8 @@ No Node.js or Rust installation is needed to **run** the app. See [DEVELOPMENT.m
 1. Download the latest release from [GitHub Releases](https://github.com/angelicadvocate/Angels-NowPlaying/releases).
 2. Run the installer (`.msi` on Windows) or extract the archive.
 3. Launch **Angels-NowPlaying**.
+
+**Note: Releases are coming soon. Currently you must build from source.**
 
 ---
 
