@@ -29,7 +29,7 @@ The dark mode toggle in Settings saves to `settings.json` (via `save_overlay_set
 
 ## Other To-Do Items
 - [ ] (Optional) Add onboarding or tooltips for first-time users to make the app even more user-friendly.
-- [ ] (Optional) Since the folder structure has changed for the overlays it is no longer needed to split the html and css files so granularly here. Consider flattening the main_pages and editor_pages in src and also in src/css for better navigation. If flattened properly in src, we would no longer need the duplicate index.html used as an entry point here.
+- [ ] (Optional) Since the folder structure has changed for the overlays it is no longer needed to split the html and css files so granularly here. Consider flattening the main_pages and editor_pages in src and also in src/css for better navigation. If flattened properly in src, we would no longer need the duplicate index.html used as an entry point here. Dont forget to update the project structure in DEVELOPMENT.md after changes are made.
 
 ## Pre-Ship QA — OBS + Editor Testing
 

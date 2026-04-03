@@ -108,7 +108,9 @@ These are the commands available to frontend JS via `window.__TAURI__.invoke(...
 ```json
 {
   "tuna_port": 1608,
-  "dark_mode": true
+  "dark_mode": true,
+  "show_user_overlays": true,
+  "show_template_starter": false
 }
 ```
 
