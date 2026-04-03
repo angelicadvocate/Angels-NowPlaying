@@ -41,6 +41,7 @@ The starter lives at `src/overlays/frame-template-starter/` inside the cloned re
 ---
 
 The `frame-template-starter` folder structure:
+```
   main.html        ← OBS browser source entry point
   main.css         ← All tunable values declared as CSS custom properties in :root
   editor.html      ← Customisation UI rendered inside the app
