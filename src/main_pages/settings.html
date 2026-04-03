@@ -6,8 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Settings - Angel's-NowPlaying</title>
   <!-- Font Awesome (local copy required) -->
-  <link rel="stylesheet" href="../vendor/fontawesome/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="../css/main_pages/settings.css" />
+  <script type="module" src="../js/tauri.js"></script>
 </head>
 <body>
 
@@ -60,42 +61,19 @@
         <p id="update-status" style="font-size: 0.85rem; margin-top: 0.8rem; display: none; width: 100%; color: var(--text-color);"></p>
       </div>
 
-      <!-- Network / Tuna settings -->
-      <div class="settings-card">
-        <h2><i class="fas fa-network-wired"></i> Network & Tuna</h2>
-        <div class="settings-item" style="flex-direction: column; align-items: flex-start;">
-          <label>Server port <input type="number" id="serverPort" min="1024" max="65535"></label>
-          <label><input type="checkbox" id="allowRemote"> Allow remote access (listen on all interfaces)</label>
-          <label>Tuna path <input type="text" id="tunaPath" style="width:100%;"></label>
-          <label>Export root <input type="text" id="exportRoot" style="width:100%;"></label>
-          <button class="settings-button" onclick="saveNetworkSettings()" style="width: 100%; margin-top:0.8rem;"><i class="fas fa-save"></i> Save Settings</button>
-          <button class="settings-button" id="startServerBtn" onclick="toggleServer()" style="width: 100%; margin-top:0.5rem;"><i class="fas fa-play"></i> Start Server</button>
-          <p id="serverStatus" style="font-size:0.85rem; margin-top:0.5rem; display:none;"></p>
+      <!-- Tuna Configuration -->
+      <div class="settings-item" style="margin-top: 1.5rem; border-top: 1px solid #333; padding-top: 1rem; flex-direction: column; align-items: flex-start;">
+        <p class="template-section-title"><i class="fas fa-music"></i> Tuna Configuration</p>
+        <p style="font-size:0.85rem; opacity:0.75; margin: 0 0 0.75rem;">Set the port Tuna is broadcasting on. Default is 1608.</p>
+        <label style="font-size:0.85rem; font-weight:600;">Tuna Port</label>
+        <div style="display:flex; gap:0.5rem; width:100%; margin-top:0.25rem;">
+          <input type="number" id="tunaPort" min="1" max="65535" value="1608" placeholder="1608"
+            style="width:120px; background:#2a2a2a; border:1px solid #444; color:#f0f0f0; padding:0.4rem 0.6rem; border-radius:4px; font-size:0.8rem;">
         </div>
+        <button class="settings-button" onclick="saveOverlaySettings()" style="width:100%; margin-top:0.75rem;"><i class="fas fa-save"></i> Save Settings</button>
+        <p id="tunaStatus" style="font-size:0.85rem; margin:0.25rem 0 0; display:none;"></p>
       </div>
 
-      <div class="template-management">
-        <div class="template-section">
-          <p class="template-section-title"><i class="fas fa-upload"></i> Upload Template</p>
-          <div class="template-section-content">
-            <button class="upload-button" onclick="openUploadModal()">
-              <i class="fas fa-plus"></i> Upload New Template
-            </button>
-          </div>
-        </div>
-
-        <div class="template-section">
-          <p class="template-section-title"><i class="fas fa-trash"></i> Delete Template</p>
-          <div class="template-section-content">
-            <select class="template-dropdown" id="template-select">
-              <option value="">Select a template to delete...</option>
-            </select>
-            <button class="delete-button" onclick="deleteTemplate()">
-              <i class="fas fa-trash-alt"></i> Delete
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Instructions Card -->
@@ -130,6 +108,58 @@
 
       <img src="https://avatars.githubusercontent.com/u/202484976?v=4" alt="angelicadvocate" class="about-avatar" />
     </div>
+
+    <!-- Overlay Management Card (spans full grid width) -->
+    <div class="settings-card settings-card--wide">
+      <h2><i class="fas fa-layer-group"></i> Overlay Management</h2>
+
+      <div class="overlay-sections">
+
+        <!-- Col 1: Visibility toggles -->
+        <div class="overlay-section">
+          <div class="settings-item">
+            <p class="template-section-title"><i class="fas fa-eye"></i> User-installed overlays</p>
+            <button class="toggle-switch active" id="show-user-overlays-toggle" title="Show/hide user-installed overlays on the home page"></button>
+          </div>
+          <div class="settings-item" style="margin-top:0.75rem;">
+            <p class="template-section-title"><i class="fas fa-code"></i> Show Developer Overlay</p>
+            <button class="toggle-switch" id="show-template-starter-toggle" title="Show/hide the frame-template-starter overlay on the home page"></button>
+          </div>
+        </div>
+
+        <!-- Vertical divider -->
+        <div class="overlay-sections__divider"></div>
+
+        <!-- Col 2: Download starter -->
+        <div class="overlay-section">
+          <p class="template-section-title"><i class="fas fa-file-archive"></i> Developer Overlay Template</p>
+          <p style="font-size:0.85rem; opacity:0.75; margin:0.25rem 0 0.75rem;">Download <code>frame-template-starter</code> as a zip — the recommended starting point for building a custom overlay.</p>
+          <button class="settings-button" onclick="downloadTemplateStarter()" style="width:100%; margin-top:auto;"><i class="fas fa-download"></i> Download Starter Template</button>
+          <p id="downloadStatus" style="font-size:0.85rem; margin:0.25rem 0 0; display:none;"></p>
+        </div>
+
+        <!-- Col 3: Install overlay -->
+        <div class="overlay-section">
+          <p class="template-section-title"><i class="fas fa-upload"></i> Install Overlay from Zip</p>
+          <p style="font-size:0.85rem; opacity:0.75; margin:0.25rem 0 0.75rem;">Choose a zip file containing a packaged overlay folder (must include <code>manifest.json</code> and the required overlay assets).</p>
+          <button class="settings-button" onclick="installOverlay()" style="width:100%; margin-top:auto;"><i class="fas fa-folder-open"></i> Browse and Install</button>
+          <p id="installStatus" style="font-size:0.85rem; margin:0.25rem 0 0; display:none;"></p>
+        </div>
+
+        <!-- Col 4: Delete overlay -->
+        <div class="overlay-section">
+          <p class="template-section-title"><i class="fas fa-trash-alt"></i> Remove Installed Overlay</p>
+          <p style="font-size:0.85rem; opacity:0.75; margin:0.25rem 0 0.5rem;">Permanently removes an overlay you installed. Bundled overlays cannot be deleted.</p>
+          <select id="user-overlay-select" style="width:100%; background:#2a2a2a; border:1px solid #444; color:#f0f0f0; padding:0.4rem 0.6rem; border-radius:4px; font-size:0.85rem; margin-bottom:0.5rem; margin-top:auto;">
+            <option value="" disabled selected>Loading...</option>
+          </select>
+          <button class="settings-button" onclick="deleteUserOverlay()" style="width:100%; background:#b91c1c;"><i class="fas fa-trash"></i> Delete Selected Overlay</button>
+          <p id="deleteStatus" style="font-size:0.85rem; margin:0.25rem 0 0; display:none;"></p>
+        </div>
+
+      </div>
+    </div>
+
   </div>
 
   <!-- Upload Template Modal -->
@@ -229,10 +259,7 @@
     darkModeToggle.addEventListener('click', function() {
       this.classList.toggle('active');
       const isDarkMode = this.classList.contains('active');
-      localStorage.setItem('darkMode', isDarkMode);
       applyDarkMode(isDarkMode);
-      
-      // Toggle icon between moon and sun
       if (isDarkMode) {
         darkModeIcon.classList.remove('fa-sun');
         darkModeIcon.classList.add('fa-moon');
@@ -240,19 +267,23 @@
         darkModeIcon.classList.remove('fa-moon');
         darkModeIcon.classList.add('fa-sun');
       }
+      // Persist immediately so the setting survives a restart
+      saveOverlaySettings();
     });
 
-    // Load version from VERSION file
+    // Load version from Tauri backend
     function loadVersion() {
-      fetch('../../VERSION')
-        .then(response => response.text())
-        .then(version => {
-          document.getElementById('version-number').textContent = version.trim();
-        })
-        .catch(error => {
-          console.error('Error loading version:', error);
-          document.getElementById('version-number').textContent = 'Unknown';
-        });
+      if (window.__TAURI__) {
+        window.__TAURI__.invoke('get_version')
+          .then(version => {
+            document.getElementById('version-number').textContent = version;
+          })
+          .catch(() => {
+            document.getElementById('version-number').textContent = 'Unknown';
+          });
+      } else {
+        document.getElementById('version-number').textContent = 'dev';
+      }
     }
 
     // Check for updates
@@ -277,21 +308,11 @@
       }
     }
 
-    // Load dark mode preference on page load
+    // Load settings and version on page load
     window.addEventListener('DOMContentLoaded', () => {
-      const isDarkMode = localStorage.getItem('darkMode') !== 'false';
-      if (!isDarkMode) {
-        darkModeToggle.classList.remove('active');
-        darkModeIcon.classList.remove('fa-moon');
-        darkModeIcon.classList.add('fa-sun');
-      }
-      applyDarkMode(isDarkMode);
-      
-      // Populate template dropdown
-      populateTemplateDropdown();
-
-      // Load version from VERSION file
       loadVersion();
+      populateTemplateDropdown();
+      // loadOverlaySettings() is called by the second DOMContentLoaded listener below
     });
 
     // Template Management Functions
@@ -313,6 +334,7 @@
 
     function populateTemplateDropdown() {
       const select = document.getElementById('template-select');
+      if (!select) return;
       // Only show templates that are deletable (user-uploaded)
       const deletableTemplates = templates.filter(t => t.isDeletable);
       
@@ -360,101 +382,189 @@
       }
     }
 
-    // --- network settings helpers (Tauri) ---
-    async function loadNetworkSettings() {
+    // --- Overlay settings (tuna port + dark mode, persisted to src/overlays/settings.json) ---
+    async function loadOverlaySettings() {
+      if (!window.__TAURI__) return;
       try {
-        const settings = await window.__TAURI__.invoke('get_settings');
-        document.getElementById('serverPort').value = settings.serve_port;
-        document.getElementById('allowRemote').checked = settings.allow_remote;
-        document.getElementById('tunaPath').value = settings.tuna_path || '';
-        document.getElementById('exportRoot').value = settings.export_root || '';
-      } catch (e) {
-        console.error('Failed to load settings', e);
-      }
-    }
-
-    async function saveNetworkSettings() {
-      const settings = {
-        serve_port: Number(document.getElementById('serverPort').value) || 8253,
-        allow_remote: document.getElementById('allowRemote').checked,
-        tuna_path: document.getElementById('tunaPath').value,
-        export_root: document.getElementById('exportRoot').value,
-      };
-      try {
-        await window.__TAURI__.invoke('save_settings', settings);
-        alert('Settings saved');
-      } catch (e) {
-        console.error('Failed to save settings', e);
-        alert('Error saving settings');
-      }
-    }
-
-    let serverRunning = false;
-    async function toggleServer() {
-      if (!serverRunning) {
-        const settings = {
-          serve_port: Number(document.getElementById('serverPort').value) || 8253,
-          allow_remote: document.getElementById('allowRemote').checked,
-          tuna_path: document.getElementById('tunaPath').value,
-          export_root: document.getElementById('exportRoot').value,
-        };
-        try {
-          await window.__TAURI__.invoke('start_server', settings);
-          serverRunning = true;
-          document.getElementById('startServerBtn').textContent = 'Stop Server';
-          document.getElementById('serverStatus').style.display = 'block';
-          document.getElementById('serverStatus').textContent = `Server running on port ${settings.serve_port}`;
-        } catch (e) {
-          console.error('Failed to start server', e);
-          alert('Failed to start server');
+        const s = await window.__TAURI__.invoke('get_overlay_settings');
+        if (s) {
+          document.getElementById('tunaPort').value = s.tuna_port ?? 1608;
+          const isDark = s.dark_mode !== false; // default true
+          darkModeToggle.classList.toggle('active', isDark);
+          darkModeIcon.classList.toggle('fa-moon', isDark);
+          darkModeIcon.classList.toggle('fa-sun', !isDark);
+          applyDarkMode(isDark);
+          document.getElementById('show-user-overlays-toggle')
+            .classList.toggle('active', s.show_user_overlays !== false);
+          document.getElementById('show-template-starter-toggle')
+            .classList.toggle('active', s.show_template_starter === true);
         }
-      } else {
-        await window.__TAURI__.invoke('stop_server');
-        serverRunning = false;
-        document.getElementById('startServerBtn').textContent = 'Start Server';
-        document.getElementById('serverStatus').textContent = 'Server stopped';
+      } catch (e) {
+        console.error('Failed to load overlay settings', e);
       }
     }
 
-    // ensure network settings are loaded when page is ready
+    async function saveOverlaySettings() {
+      const port = parseInt(document.getElementById('tunaPort').value, 10);
+      const status = document.getElementById('tunaStatus');
+      if (!port || port < 1 || port > 65535) {
+        status.style.display = 'block';
+        status.style.color = '#f87171';
+        status.textContent = 'Enter a valid port number (1–65535).';
+        return;
+      }
+      const isDark = darkModeToggle.classList.contains('active');
+      const showUserOverlays = document.getElementById('show-user-overlays-toggle').classList.contains('active');
+      const showTemplateStarter = document.getElementById('show-template-starter-toggle').classList.contains('active');
+      try {
+        await window.__TAURI__.invoke('save_overlay_settings', {
+          tunaPort: port,
+          darkMode: isDark,
+          showUserOverlays,
+          showTemplateStarter
+        });
+        status.style.display = 'block';
+        status.style.color = '#4ade80';
+        status.textContent = 'Settings saved!';
+        setTimeout(() => { status.style.display = 'none'; }, 3000);
+      } catch (e) {
+        console.error('Failed to save overlay settings', e);
+        status.style.display = 'block';
+        status.style.color = '#f87171';
+        status.textContent = 'Error saving settings.';
+      }
+    }
+
+    // ensure overlay settings are loaded when page is ready
     window.addEventListener('DOMContentLoaded', () => {
-      loadNetworkSettings();
+      loadOverlaySettings();
+      populateUserOverlayDropdown();
     });
 
-      // Validate main images count
-      if (mainImages.length > 10) {
-        alert('Maximum 10 images allowed');
-        return;
+    // ── Overlay visibility toggles (auto-save on click) ──────────────────────
+    document.getElementById('show-user-overlays-toggle')?.addEventListener('click', function() {
+      this.classList.toggle('active');
+      saveOverlaySettings();
+    });
+    document.getElementById('show-template-starter-toggle')?.addEventListener('click', function() {
+      this.classList.toggle('active');
+      saveOverlaySettings();
+    });
+
+    // ── Download frame-template-starter as zip ───────────────────────────────
+    async function downloadTemplateStarter() {
+      const status = document.getElementById('downloadStatus');
+      status.style.display = 'block';
+      status.style.color = '#f0f0f0';
+      status.textContent = 'Preparing zip...';
+      try {
+        const tmpPath = await window.__TAURI__.invoke('zip_overlay', { overlayId: 'frame-template-starter' });
+        // Show a save dialog so the user picks where to save it
+        const savePath = await window.__TAURI__.invoke('pick_save_file', {
+          title: 'Save Starter Template',
+          defaultName: 'frame-template-starter.zip',
+          filterName: 'Zip Archive',
+          extensions: ['zip']
+        });
+        if (savePath) {
+          await window.__TAURI__.invoke('move_file', { src: tmpPath, dest: savePath });
+          status.style.color = '#4ade80';
+          status.textContent = 'Saved!';
+        } else {
+          status.style.color = '#f0f0f0';
+          status.textContent = 'Cancelled.';
+        }
+      } catch (e) {
+        console.error('Download failed', e);
+        status.style.color = '#f87171';
+        status.textContent = 'Error: ' + e;
       }
-
-      // TODO: Add actual upload logic when backend is ready
-      console.log('Upload form data:', {
-        obsWidth,
-        obsHeight,
-        buttonName,
-        pageName,
-        description,
-        htmlFile: htmlFile.name,
-        previewImage: previewImage.name,
-        mainImagesCount: mainImages.length
-      });
-
-      alert('Template upload ready! Actual upload functionality will be added in Tauri integration.');
-      closeUploadModal();
+      setTimeout(() => { status.style.display = 'none'; }, 4000);
     }
 
-    function deleteTemplate() {
-      const selected = document.getElementById('template-select').value;
-      if (!selected) {
-        alert('Please select a template to delete');
+    // ── Install overlay from zip ─────────────────────────────────────────────
+    async function installOverlay() {
+      const status = document.getElementById('installStatus');
+      if (!window.__TAURI__) return;
+      try {
+        const zipPath = await window.__TAURI__.invoke('pick_file', {
+          title: 'Select Overlay Zip',
+          filterName: 'Zip Archive',
+          extensions: ['zip']
+        });
+        if (!zipPath) return;
+        status.style.display = 'block';
+        status.style.color = '#f0f0f0';
+        status.textContent = 'Installing...';
+        const overlayId = await window.__TAURI__.invoke('install_overlay', { zipPath });
+        status.style.color = '#4ade80';
+        status.textContent = `Installed '${overlayId}' successfully!`;
+        await populateUserOverlayDropdown();
+      } catch (e) {
+        console.error('Install failed', e);
+        status.style.color = '#f87171';
+        status.textContent = 'Error: ' + e;
+      }
+      setTimeout(() => { status.style.display = 'none'; }, 5000);
+    }
+
+    // ── Delete user overlay ──────────────────────────────────────────────────
+    async function populateUserOverlayDropdown() {
+      const select = document.getElementById('user-overlay-select');
+      select.innerHTML = '';
+      try {
+        const overlays = await window.__TAURI__.invoke('list_user_overlays');
+        if (!overlays || overlays.length === 0) {
+          const opt = document.createElement('option');
+          opt.value = '';
+          opt.textContent = 'No user-installed overlays';
+          opt.disabled = true;
+          opt.selected = true;
+          select.appendChild(opt);
+          return;
+        }
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Select an overlay to delete...';
+        placeholder.disabled = true;
+        placeholder.selected = true;
+        select.appendChild(placeholder);
+        overlays.forEach(o => {
+          const opt = document.createElement('option');
+          opt.value = o._id;
+          opt.textContent = o.name ? `${o.name} (${o._id})` : o._id;
+          select.appendChild(opt);
+        });
+      } catch (e) {
+        console.error('Failed to list user overlays', e);
+      }
+    }
+
+    async function deleteUserOverlay() {
+      const select = document.getElementById('user-overlay-select');
+      const status = document.getElementById('deleteStatus');
+      const overlayId = select.value;
+      if (!overlayId) {
+        status.style.display = 'block';
+        status.style.color = '#f87171';
+        status.textContent = 'Select an overlay to delete first.';
+        setTimeout(() => { status.style.display = 'none'; }, 3000);
         return;
       }
-
-      if (confirm('Are you sure you want to delete this template? This action cannot be undone.')) {
-        // TODO: Add actual deletion logic when backend is ready
-        console.log('Deleting template:', selected);
-        alert('Template deletion ready! Actual deletion functionality will be added in Tauri integration.');
+      if (!confirm(`Delete '${overlayId}'? This cannot be undone.`)) return;
+      try {
+        await window.__TAURI__.invoke('delete_user_overlay', { overlayId });
+        status.style.display = 'block';
+        status.style.color = '#4ade80';
+        status.textContent = `'${overlayId}' deleted.`;
+        await populateUserOverlayDropdown();
+      } catch (e) {
+        console.error('Delete failed', e);
+        status.style.display = 'block';
+        status.style.color = '#f87171';
+        status.textContent = 'Error: ' + e;
       }
+      setTimeout(() => { status.style.display = 'none'; }, 4000);
     }
 
     // File count display for main images

@@ -1,0 +1,14 @@
+{
+  "id": "frame-retro-vinyl",
+  "name": "Retro Vinyl",
+  "version": "1.0.0",
+  "created": "2026-04-01",
+  "updated": "2026-04-01",
+  "author": "angelicadvocate",
+  "entry": "main.html",
+  "editor": "editor.html",
+  "preview": "preview.png",
+  "description": "A retro vinyl record design with animated spinning effects and album art. Perfect for that nostalgic feel.",
+  "obsSize": { "width": 900, "height": 900 },
+  "tags": ["retro", "vinyl", "animated"]
+}

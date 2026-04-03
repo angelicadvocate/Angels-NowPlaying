@@ -1,0 +1,14 @@
+{
+  "id": "frame-cassette-tape",
+  "name": "Cassette Tape",
+  "version": "1.0.0",
+  "created": "2026-04-01",
+  "updated": "2026-04-01",
+  "author": "angelicadvocate",
+  "entry": "main.html",
+  "editor": "editor.html",
+  "preview": "preview.png",
+  "description": "A retro cassette tape layout with animated winding reels and classic tape styling. Great for retro and synthwave streams.",
+  "obsSize": null,
+  "tags": ["retro", "cassette", "animated"]
+}

@@ -5,9 +5,18 @@ Artwork.png
 # backups folder contains personal edits / old versions
 /backups/
 
+# Node dependencies
+node_modules/
+
 # Tauri build artifacts (added later)
 /src-tauri/target/
 /dist/
+
+# Vendor libraries — keep placeholders, ignore real downloaded files
+src/js/vendor/jquery-3.5.1.min.js
+
+# Overlay settings — written at runtime by the app, not checked in
+src/overlays/settings.json
 
 # OS and editor files
 *.log

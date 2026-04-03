@@ -1,0 +1,14 @@
+{
+  "id": "frame-horizontal-classic",
+  "name": "Horizontal Classic",
+  "version": "1.0.0",
+  "created": "2026-04-01",
+  "updated": "2026-04-01",
+  "author": "angelicadvocate",
+  "entry": "main.html",
+  "editor": "editor.html",
+  "preview": "preview.png",
+  "description": "A sleek horizontal layout with smaller album artwork and a progress bar. Great for minimal, unobtrusive overlays.",
+  "obsSize": { "width": 810, "height": 240 },
+  "tags": ["horizontal", "progress-bar"]
+}

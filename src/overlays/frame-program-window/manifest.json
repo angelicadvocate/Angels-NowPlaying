@@ -1,0 +1,14 @@
+{
+  "id": "frame-program-window",
+  "name": "Program Window",
+  "version": "1.0.0",
+  "created": "2026-04-01",
+  "updated": "2026-04-01",
+  "author": "angelicadvocate",
+  "entry": "main.html",
+  "editor": "editor.html",
+  "preview": "preview.png",
+  "description": "A desktop interface theme inspired by UI elements, window frames, and system fonts. Perfect for retro PC gaming.",
+  "obsSize": null,
+  "tags": ["retro", "desktop", "windows"]
+}

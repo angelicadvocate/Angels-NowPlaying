@@ -5,9 +5,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Angel's-NowPlaying Editor</title>
-  <!-- Font Awesome (local copy required) -->
-  <link rel="stylesheet" href="../vendor/fontawesome/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="../css/main_pages/index.css" />
+  <script type="module" src="../js/index-page.js"></script>
 </head>
 <body>
 
@@ -42,84 +42,8 @@
     </div>
   </div>
 
+  <!-- Overlay cards are injected dynamically by js/index-page.js -->
   <div class="grid">
-    <div class="card">
-      <img src="../assets/f1preview.png" alt="Template 1 Thumbnail" />
-      <p>A sleek horizontal layout with smaller album artwork and a progress bar. Great for minimal, unobtrusive overlays.</p>
-      <p>OBS: Width 728, Height 180</p>
-      <a href="../editor_pages/F1-Editor.html"><button>Edit Overlay 1</button></a>
-    </div>
-
-    <div class="card">
-      <img src="../assets/f2preview.png" alt="Template 2 Thumbnail" />
-      <p>A bold horizontal layout featuring larger album artwork and a longer playback progress bar.</p>
-      <p>OBS: Width xxx, Height xxx</p>
-      <a href="../editor_pages/F2-Editor.html"><button>Edit Overlay 2</button></a>
-    </div>
-
-    <div class="card">
-      <img src="../assets/f3preview.png" alt="Template 3 Thumbnail" />
-      <p>A vertically stacked layout with large album art. Perfect for side panel placement or portrait scenes.</p>
-      <p>OBS: Width xxx, Height xxx</p>
-      <a href="../editor_pages/F3-Editor.html"><button>Edit Overlay 3</button></a>
-    </div>
-
-    <div class="card">
-      <img src="../assets/f4preview.png" alt="Template 4 Thumbnail" />
-      <p>A fullscreen banner-style layout that includes a pseudo-music visualizer. Ideal for high impact overlays.</p>
-      <p>OBS: Width xxx, Height xxx</p>
-      <a href="../editor_pages/F4-Editor.html"><button>Edit Overlay 4</button></a>
-    </div>
-
-    <div class="card">
-      <img src="../assets/f5preview.png" alt="Template 5 Thumbnail" />
-      <p>A frosted glass style layout with large album artwork, a subtle blurred background effect, and a progress bar.</p>
-      <p>OBS: Width xxx, Height xxx</p>
-      <a href="../editor_pages/F5-Editor.html"><button>Edit Overlay 5</button></a>
-    </div>
-
-    <div class="card">
-  <img src="../assets/f6preview.png" alt="Template 6 Thumbnail" />
-  <p>A frosted glass design with dimmed album art. Clean, minimal artist and track display with progress bar.</p>
-  <p>OBS: Width xxx, Height xxx</p>
-  <a href="../editor_pages/F6-Editor.html"><button>Edit Overlay 6</button></a>
-    </div>
-
-    <div class="card">
-  <img src="../assets/f7preview.png" alt="Template 7 Thumbnail" />
-  <p>A retro cassette tape layout with animated winding reels and classic tape styling. Great for retro and synthwave streams.</p>
-  <p>OBS: Width xxx, Height xxx</p>
-  <a href="../editor_pages/F7-Editor.html"><button>Edit Overlay 7</button></a>
-    </div>
-
-    <div class="card">
-  <img src="../assets/f8preview.png" alt="Template 8 Thumbnail" />
-  <p>A retro vinyl record design with animated spinning effects and album art. Perfect for that nostalgic feel.</p>
-      <p>OBS: Width xxx, Height xxx</p>
-      <a href="../editor_pages/F8-Editor.html"><button>Edit Overlay 8</button></a>
-    </div>
-
-    <div class="card">
-      <img src="../assets/f9preview.png" alt="Template 9 Thumbnail" />
-      <p>A neon theme with bright glowing borders, animated effects, and vibrant accents on dark backgrounds.</p>
-      <p>OBS: Width xxx, Height xxx</p>
-      <a href="../editor_pages/F9-Editor.html"><button>Edit Overlay 9</button></a>
-    </div>
-
-    <div class="card">
-      <img src="../assets/f10preview.png" alt="Template 10 Thumbnail" />
-      <p>An animated equalizer bars visualizer with colorful spectrum display and dynamic moving bars.</p>
-      <p>OBS: Width xxx, Height xxx</p>
-      <a href="../editor_pages/F10-Editor.html"><button>Edit Overlay 10</button></a>
-    </div>
-
-    <div class="card">
-      <img src="../assets/f11preview.png" alt="Template 11 Thumbnail" />
-      <p>A desktop interface theme inspired by UI elements, window frames, and system fonts. Perfect for retro PC gaming.</p>
-      <p>OBS: Width xxx, Height xxx</p>
-      <a href="../editor_pages/F11-Editor.html"><button>Edit Overlay 11</button></a>
-    </div>
-
     <div class="welcome-card">
       <div class="welcome-section">
         <img src="../assets/instructions.png" alt="Getting Started" />
@@ -143,11 +67,11 @@
     const shareText = encodeURIComponent("Check out this awesome customizable Angel's-NowPlaying overlay!");
 
     function shareToTwitter() {
-      window.open(`https://twitter.com/intent/tweet?text=${shareText}&url=${shareURL}`, '_blank');
+      window.openExternalUrl(`https://twitter.com/intent/tweet?text=${shareText}&url=${shareURL}`);
     }
 
     function shareToReddit() {
-      window.open(`https://www.reddit.com/submit?url=${shareURL}&title=${shareText}`, '_blank');
+      window.openExternalUrl(`https://www.reddit.com/submit?url=${shareURL}&title=${shareText}`);
     }
 
     function shareToDiscord() {
@@ -156,7 +80,7 @@
     }
     
     function shareOnFacebook() {
-      window.open(`https://www.facebook.com/sharer/sharer.php?u=${shareURL}`, "_blank");
+      window.openExternalUrl(`https://www.facebook.com/sharer/sharer.php?u=${shareURL}`);
     }
 
     function openStore() {
@@ -166,6 +90,16 @@
     function openSettings() {
       alert("Settings functionality coming soon!");
     }
+
+    // Route all target="_blank" links through the system browser (Tauri context)
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('a[target="_blank"]').forEach(a => {
+        a.addEventListener('click', e => {
+          e.preventDefault();
+          window.openExternalUrl(a.href);
+        });
+      });
+    });
   </script>
 
 </body>

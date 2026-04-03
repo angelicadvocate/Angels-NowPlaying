@@ -8,7 +8,21 @@ pub fn run() {
       backend::save_settings,
       backend::start_server,
       backend::stop_server,
+      backend::read_text_file,
       backend::save_css_file,
+      backend::get_version,
+      backend::list_user_overlays,
+      backend::open_url,
+      backend::resolve_path,
+      backend::get_overlay_main_path,
+      backend::get_overlay_settings,
+      backend::save_overlay_settings,
+      backend::pick_file,
+      backend::pick_save_file,
+      backend::move_file,
+      backend::install_overlay,
+      backend::delete_user_overlay,
+      backend::zip_overlay,
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {

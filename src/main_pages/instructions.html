@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Angels-NowPlaying - Instructions</title>
   <!-- Font Awesome (local copy required) -->
-  <link rel="stylesheet" href="../vendor/fontawesome/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="../css/main_pages/instructions.css" />
 </head>
 
@@ -46,84 +46,98 @@
   <div class="page-container">
     <div class="card" id="left-column">
       <h1>Editor Instructions</h1>
-      <h3>How to use the visual editor</h3>
-      <p>Quick steps to customize a frame using the editor:</p>
+      <h3>Customising an overlay</h3>
       <ol>
-        <li>Open the editor for the frame you want to customize.</li>
-        <li>Use the sliders to tweak values such as accent color, artist and track font sizes, image size, and spacing.
-          The preview updates live.</li>
-        <li>When you're happy with the look, click the <strong>Save</strong> button to generate the CSS for that frame.
-        </li>
+        <li>From the home page, click <strong>Edit</strong> on any overlay card to open its editor.</li>
+        <li>Use the sliders and colour pickers to adjust colours, font sizes, spacing, and layout. The preview on the
+          right shows the actual overlay running live — what you see there is exactly what OBS will render.</li>
+        <li>When you're happy, click <strong>Save</strong>. The changes are written directly to the overlay's CSS file
+          on disk — there is no download step.</li>
+        <li>In OBS, right-click the Browser Source for that overlay and choose <strong>Refresh</strong> (or toggle the
+          source off and back on) to pick up the new styles.</li>
       </ol>
 
-      <h3>Applying Editor CSS (Download & Replace)</h3>
-      <p>The editor generates a CSS file when you click the <strong>Save</strong> button. Because the editor runs in
-        your browser (no backend), the generated file is downloaded to your computer.</p>
-      <ol>
-        <li>Download the generated CSS (it will be named like <code>01-NowPlaying-F1-Styles.css</code>).</li>
-        <li>Move or copy the downloaded file into the project's <code>css/</code> directory, replacing the existing file
-          for that frame.</li>
-        <li>In OBS, open the Browser Source properties for the HTML frame and click <strong>Refresh</strong> (or toggle
-          the source) so OBS picks up the updated CSS.</li>
-      </ol>
+      <h3>Copying the OBS source URL</h3>
+      <p>Each editor has a <strong>Copy URL</strong> button that puts the full path to that overlay's
+        <code>main.html</code> on your clipboard, ready to paste into OBS as a local file Browser Source.</p>
 
       <h3>Going back to edit later</h3>
-      <p>You can return to the editor at any time to adjust layout and styling. Repeat the steps above: tweak sliders,
-        click <strong>Save</strong>, download the generated CSS, and replace the file in the <code>css/</code> folder.
-      </p>
+      <p>You can return to any overlay's editor at any time. Just open Angels-NowPlaying, click <strong>Edit</strong> on
+        the overlay, make your changes, and click <strong>Save</strong>. Your previous customisations are always loaded
+        from the saved CSS file.</p>
 
-      <h3>Feedback & Support</h3>
-      <p>Thanks for trying Angels-NowPlaying! If you find bugs, have feature requests, or want to contribute,
-        please open an issue or pull request on <a href="https://github.com/angelicadvocate/Angels-NowPlaying"
-          target="_blank" rel="noopener">GitHub</a>. Reporting the OBS version, Tuna version, and a short description of
-        how to reproduce the problem (screenshots or a copy of your <code>Song.json</code> can help) makes it much
-        easier to diagnose issues.</p>
+      <h3>Installing custom overlays</h3>
+      <p>Go to <strong>Settings &rarr; Overlay Management &rarr; Install Overlay from Zip</strong> to install a custom
+        overlay packaged as a zip file. Installed overlays appear on the home page alongside the built-in ones and can
+        be removed from the same settings card.</p>
+
+      <h3>Feedback &amp; support</h3>
+      <p>If you find a bug, have a feature request, or want to contribute, please open an issue or pull request on
+        <a href="https://github.com/angelicadvocate/Angels-NowPlaying" target="_blank" rel="noopener">GitHub</a>.
+        Include your OBS version, Tuna version, and a short description of how to reproduce the problem.</p>
+
+      <hr class="section-divider" />
+
+      <h3><i class="fas fa-code" style="color: var(--highlight); margin-right: 0.4rem;"></i> For Developers</h3>
+      <p style="font-size:0.95rem;">Want to build a custom overlay or contribute to the app itself? Use the <strong>GitHub</strong> button in the top right to view the full source, or jump straight to the relevant guide:</p>
+      <ul style="font-size:0.95rem;">
+        <li>Go to <strong>Settings &rarr; Overlay Management</strong> to enable the developer template starter and download it as a zip — it’s a fully working, heavily commented overlay you can use as a starting point.</li>
+        <li>See <a href="https://github.com/angelicadvocate/Angels-NowPlaying/blob/main/FRAME-DEVELOPMENT.md" target="_blank" rel="noopener">FRAME-DEVELOPMENT.md</a> for the overlay development workflow.</li>
+        <li>See <a href="https://github.com/angelicadvocate/Angels-NowPlaying/blob/main/DEVELOPMENT.md" target="_blank" rel="noopener">DEVELOPMENT.md</a> for contributing to the app itself (Tauri + Rust + Vite).</li>
+      </ul>
     </div>
 
     <div class="card" id="right-column">
       <h1>Setup Instructions</h1>
 
-      <p>Welcome! This page will guide you through setting up and using the NowPlaying Widget with OBS and Tuna.</p>
+      <p>Welcome! Follow these steps to get Angels-NowPlaying running with OBS and Tuna.</p>
 
-      <h3>Setup Steps</h3>
+      <h3>1. Install Angels-NowPlaying</h3>
+      <p>Download the latest release from the
+        <a href="https://github.com/angelicadvocate/Angels-NowPlaying/releases" target="_blank"
+          rel="noopener">GitHub Releases page</a> and run the installer. Launch the app when installation is complete. (You should be here.)
+      </p>
+
+      <h3>2. Install and configure Tuna</h3>
       <ol>
-        <li>Download the repository from the <a href="https://github.com/angelicadvocate/Angels-NowPlaying"
-            target="_blank" rel="noopener">GitHub</a> and extract it if necessary. Place the
-          <code>Angels-NowPlaying</code> folder where you'd like to keep the widget files.</li>
-        <li>Install the Tuna plugin and enable it in OBS — available on the <a
-            href="https://github.com/univrsal/tuna/releases" target="_blank" rel="noopener">Tuna releases page</a>.
-          <strong><em>Special thanks to the Tuna project for their excellent work — this project wouldn't exist without
-              their plugin.</em></strong></li>
-        <li>Configure Tuna to write <code>Song.json</code> and <code>Artwork.png</code> into the root of the widget
-          folder. Some example files are included in the repo to help you locate the correct destination. In Tuna's
-          settings, set the <code>Song format</code> to <code>json_compact</code>.</li>
-        <li>Open the visual editor for a template by clicking its Edit button on the dashboard; use the sliders to build
-          the look you want (see left).</li>
-        <li>To add a widget to your OBS scene, create a new Browser Source, select the <em>Local File</em> option, and
-          point it to the corresponding HTML file for your chosen template. (They will be named like
-          <code>01-NowPlaying-F1.html</code> and <code>02-NowPlaying-F2.html</code> etc.).</li>
-        <li>You can adjust the resolution in OBS to match the dimensions shown on the editor page for the selected
-          template to reduce empty space around the browser source in OBS.</li>
-        <li>(Optional) Adjust the Browser Source settings as needed, such as enabling <em>Shutdown source when not
-            visible</em> to save resources. (Note: This may cause a delay in the widget appearing when you switch to the
-          scene.)</li>
-        <li>Ensure the widget is positioned correctly in your OBS scene, and test it by playing audio through a
-          <code>VLC video source</code> in OBS. (Note: You can add entire playlists by selecting a directory here
-          instead of individual files.)</li>
+        <li>Install the Tuna plugin for OBS from the
+          <a href="https://github.com/univrsal/tuna/releases" target="_blank" rel="noopener">Tuna releases page</a>.
+          <em>Special thanks to the Tuna project — this app wouldn't exist without their plugin.</em></li>
+        <li>In OBS, go to <strong>Tools &rarr; Tuna</strong> and open the <strong>Web server</strong> tab.</li>
+        <li>Enable the web server and note the port number (default is <strong>1608</strong>).</li>
+        <li>Connect Tuna to your music source — Spotify, YouTube Music Desktop App, Last.fm, a VLC Video Source in OBS,
+          Windows Media Player, MPD, and others are all supported. See the
+          <a href="https://github.com/univrsal/tuna/wiki" target="_blank" rel="noopener">Tuna documentation</a> for
+          source-specific setup steps.</li>
       </ol>
 
-      <h3>Important Notes</h3>
+      <h3>3. Set the Tuna port in Angels-NowPlaying</h3>
+      <p>Open <strong>Settings &rarr; Tuna Configuration</strong> in Angels-NowPlaying and confirm the port matches
+        what Tuna is broadcasting on. Click <strong>Save Settings</strong>.</p>
+
+      <h3>4. Pick and customise an overlay</h3>
+      <ol>
+        <li>(See the section titled "Customizing an overlay" in Editor Instructions.)</li>
+      </ol>
+
       <div class="note">
-        <strong>Local File Playback:</strong> This widget has been tested primarily with local audio files played via
-        VLC integration inside OBS with Tuna v1.9.9. To use local music, add your music directory as a VLC Video Source
-        in OBS (not a Media Source). Only VLC Video Sources currently work with Tuna for local playback.
+        <strong>OBS source size:</strong> The dimensions of the browser source for OBS listed in the editor next to the overlay name are suggested values for the default version of each overlay. If you have customised the overlay in the editor (resized elements, changed layout, etc.), you may need to adjust the browser source size in OBS to match your changes for the overlay to display correctly.
       </div>
 
-      <h3>Future Features</h3>
-      <ul>
-        <li>Support for additional media sources like Spotify, YouTube Music, and Apple Music (as Tuna compatibility
-          allows).</li>
-      </ul>
+      <h3>5. Add the overlay to OBS</h3>
+      <ol>
+        <li>In OBS, add a <strong>Browser Source</strong> to your scene.</li>
+        <li>Check <strong>Local File</strong> and paste the path you copied in step&nbsp;4.</li>
+        <li>Set the Width and Height to match the size shown in the editor (displayed next to the overlay name).</li>
+        <li>Click <strong>OK</strong>. Start playing music — track info, album art, and the progress bar should appear
+          within a few seconds.</li>
+      </ol>
+
+      <div class="note">
+        <strong>VLC Video Sources:</strong> If you use a VLC Video Source in OBS for local music playback, add it as a
+        <em>VLC Video Source</em> (not a Media Source) — Tuna can only read track data from VLC Video Sources, not
+        Media Sources. You can point it at an entire folder to play a playlist.
+      </div>
     </div>
   </div>
 

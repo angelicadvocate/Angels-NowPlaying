@@ -1,0 +1,14 @@
+{
+  "id": "frame-glassmorphism-2",
+  "name": "Glassmorphism 2",
+  "version": "1.0.0",
+  "created": "2026-04-01",
+  "updated": "2026-04-01",
+  "author": "angelicadvocate",
+  "entry": "main.html",
+  "editor": "editor.html",
+  "preview": "preview.png",
+  "description": "A second frosted glass variant with refined styling and layout adjustments.",
+  "obsSize": null,
+  "tags": ["glassmorphism", "frosted"]
+}

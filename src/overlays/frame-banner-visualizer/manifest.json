@@ -1,0 +1,14 @@
+{
+  "id": "frame-banner-visualizer",
+  "name": "Banner Visualizer",
+  "version": "1.0.0",
+  "created": "2026-04-01",
+  "updated": "2026-04-01",
+  "author": "angelicadvocate",
+  "entry": "main.html",
+  "editor": "editor.html",
+  "preview": "preview.png",
+  "description": "A fullscreen banner-style layout that includes a pseudo-music visualizer. Ideal for high impact overlays.",
+  "obsSize": { "width": 1800, "height": 150 },
+  "tags": ["banner", "visualizer", "animated"]
+}

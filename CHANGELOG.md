@@ -10,6 +10,83 @@ Please be sure to add date, completed tag, `github:[username]`, and version numb
 
 ---------------------------------------------------------------------------------
 
+## v0.8.0 – 2026-04-03
+
+* [x] **Overlay management, documentation overhaul, settings page, and editor improvements** ✨ *COMPLETED* `github:AngelicAdvocate`
+
+  **Overlay management (Settings page)**
+  * Added full-width **Overlay Management** card to Settings spanning all three grid columns with a horizontal sub-grid layout that reflows on narrow viewports
+  * Install overlay from zip: native file picker → validates zip structure (single top-level folder, `manifest.json` required, zip-slip guard) → extracts to `%APPDATA%/AngelsNowPlaying/overlays/`
+  * Delete user overlay: dropdown populated from `list_user_overlays`, confirmation before removal, AppData-only guard (bundled overlays cannot be deleted)
+  * Download starter template: zips `frame-template-starter` to a temp file, opens native save dialog, moves to user-chosen location
+  * Show/hide user-installed overlays toggle (default on) — persisted to `settings.json`
+  * Show/hide developer template starter toggle (default off) — persisted to `settings.json`; `frame-template-starter` hidden from home page by default
+  * `listAllOverlays()` in `src/js/overlays.js` now reads `get_overlay_settings` and filters `frame-template-starter` and user overlays based on the two new toggle values
+
+  **Rust backend additions (`backend.rs` / `lib.rs`)**
+  * `OverlaySettings` struct gains `show_user_overlays: bool` (default `true`) and `show_template_starter: bool` (default `false`); `get_overlay_settings` / `save_overlay_settings` updated accordingly
+  * New commands: `install_overlay`, `delete_user_overlay`, `zip_overlay`, `pick_save_file`, `move_file`
+  * Added `zip = "2"` (deflate feature) to `Cargo.toml`
+
+  **Overlay flash fix**
+  * Replaced DOM `.innerHTML` comparison in `common.js` with `lastDisplayedSong` / `lastDisplayedArtist` string variables — prevents overlay flashing every poll cycle when track titles contain HTML-special characters
+
+  **Settings migration: `tuna-config.json` → `settings.json`**
+  * Merged `tuna_port` and `dark_mode` into unified `src/overlays/settings.json`; removed file-based browse buttons for `Song.json` / `Artwork.png`
+  * All overlay `common.js` copies read `../settings.json` at startup; `settings.html` loads / saves via `get_overlay_settings` / `save_overlay_settings` Tauri commands
+  * Dark mode toggle auto-saves immediately on click; `.gitignore` updated from `tuna-config.json` → `settings.json`
+
+  **Developer template starter (`src/overlays/frame-template-starter`)**
+  * Full inline comment pass on `common.js`: all debug comments removed; section headers and developer-facing docs added for every DOM ID, the scroller, polling loop, progress bar, `loadTunaConfig()`, and `?edit=1` mode
+  * `editor.html` comment blocks added: comprehensive block at `#header-root` documenting all three required pieces and the three `window` hooks; warning at loader `<script>` explaining why it must stay at end of `<body>`
+  * `?edit=1` mode confirmed working inside Tauri WebView (Vite dev and OBS)
+
+  **Documentation**
+  * Rewrote root `README.md`: reflects current Tauri app architecture, removes all Song.json/Artwork.png file-based references, lists all Tuna-supported music sources (Spotify, Last.fm, YTMDA, VLC, WMP, MPD, etc.)
+  * Created `LICENSES.md`: GPL-3.0 scope, independent-work clause (user overlays are not derivative works of the app), third-party component table (jQuery)
+  * Renamed old `DEVELOPMENT.md` → `FRAME-DEVELOPMENT.md`; added easy in-app download method (Settings → Overlay Management → Download Starter Template) as the recommended first step for overlay developers
+  * Created new `DEVELOPMENT.md` for main project contributors: prerequisites, build-from-source, project structure, Tauri command conventions, overlay discovery, contribution guidelines
+  * Rewrote `instructions.html`: removed all file-based setup steps; new numbered sections cover app install, Tuna web server setup with all supported sources, port configuration, overlay customisation, and OBS Browser Source setup; added developer note section with GitHub link and links to both dev guides
+
+  **`TODO.md` housekeeping**
+  * Marked 6 previously completed items as done; added App UI — Light Mode section with full implementation breakdown; added Licensing section note
+
+---------------------------------------------------------------------------------
+
+## v0.7.1 – 2026-04-02
+
+* [x] **Settings fixes, overlay documentation, and repo cleanup** ✨ *COMPLETED* `github:AngelicAdvocate`
+
+  * Fixed settings page version display: replaced broken `fetch('../../VERSION')` with `invoke('get_version')` Tauri command; version now loads correctly
+  * Fixed `populateTemplateDropdown()` crash that was blocking the version display when `#template-select` element was absent from the DOM
+  * Removed Template Management card from settings page (moved to future store page; original HTML preserved in git history)
+  * Wrote `README.md` and `description.md` for all 11 bundled overlays (22 files total); `description.md` includes YAML frontmatter for future store page consumption
+  * Removed stale planning notes (`notes/todo_list.md`, `notes/restructure-src-plan.md`, `notes/tauri-migration-plan.md`, `notes/v0.5.0-planning-app.md`) — completed or superseded
+  * Removed empty `src/vendor/fontawesome/` folder (FontAwesome is CDN-loaded)
+  * Consolidated `TODO.md`: added Store Page, App Distribution & Updates, Editor Enhancements, and Long-term Stretch Goals sections; migrated open items from old notes
+
+---------------------------------------------------------------------------------
+
+## v0.7.0 – 2026-04-01
+
+* [x] **Vite integration, per-overlay restructure, Tuna configuration, and editor fixes** ✨ *COMPLETED* `github:AngelicAdvocate`
+
+  * Migrated frontend build to Vite 6 + `@tauri-apps/api` — resolves Tauri JS API availability issues under `file://`; all editor pages are now Vite entry points
+  * Restructured all 11 overlays into self-contained per-overlay folders under `src/overlays/[name]/`, each with `main.html`, `editor.html`, `main.css`, `editor.css`, `common.js`, `manifest.json`, `preview.png`, and assets
+  * Moved overlay-specific image/video assets from `src/assets/` into their respective overlay folders; shared assets (mascot, header-text, instructions image) remain in `src/assets/`
+  * Fixed all broken asset paths after the restructure: `../../assets/` and `../static_assets/` references in `editor.css` (4 files) and `main.css` (4 files) updated to `./`
+  * Copied `common.js` into all 11 overlay folders and removed the shared `src/js/common.js`; updated all `main.html` files to reference `./common.js`
+  * Updated `vite.config.js` `copyOverlayStaticAssets` plugin to copy per-overlay `common.js` instead of the former shared copy
+  * Fixed editor header across all 11 editors: mascot and header-text image paths, Home button routing, Share and Support button links, FontAwesome CDN loading on the main index page
+  * Wired up the Save button in all 11 editors to call `save_css_file` Tauri backend command — CSS changes now write directly to the overlay folder without any manual copy/paste
+  * Added Tuna Configuration section to settings page: Browse buttons (native file picker via `rfd`) for `Song.json` and `Artwork.png`, paths saved to `tuna-config.json` shared by all overlays
+  * Added Rust backend commands: `get_version`, `get_tuna_config`, `save_tuna_config`, `pick_file`; added `rfd = "0.15"` dependency to `Cargo.toml`
+  * Updated all 11 `common.js` copies to read `../tuna-config.json` at startup via `loadTunaConfig()` and use the configured paths for `Song.json` and `Artwork.png` polling
+  * Downloaded real jQuery 3.5.1 to replace stub placeholder; added `src/js/vendor/jquery-3.5.1.min.js` and `src/overlays/tuna-config.json` to `.gitignore`; added `node_modules/` to `.gitignore` (was missing)
+  * Added `manifest.json` for all 11 overlays describing metadata (id, name, version, author, tags, obsSize) consumed by the app index page
+
+---------------------------------------------------------------------------------
+
 ## v0.6.1 – 2026-02-27
 
 * [x] **Minor Tauri patch applied** ✨ *COMPLETED* `github:AngelicAdvocate`

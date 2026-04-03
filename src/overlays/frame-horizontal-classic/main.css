@@ -1,0 +1,186 @@
+/* /static css placeholder/ */
+
+:root {
+  --highlight: hsl(355, 82%, 58%);
+  --font-main: "proxima-nova", sans-serif;
+}
+
+/* Reset and base styles */
+body {
+  background: #ebebeb;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: var(--font-main);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Widget container */
+#background {
+  position: relative;
+  width: 800px;
+  min-width: 800px;
+  max-width: 800px;
+  height: 240px;
+  background-image: url('./Frame2.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  border-radius: 16px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: visible;
+  z-index: 1;
+}
+
+/* Album art image (main) */
+#image {
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  margin-left: 16px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  display: block;
+}
+
+/* Fading overlay image */
+#image-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  overflow: visible;
+  margin-left: 0px;
+  padding-left: 0;
+  z-index: 5;
+}
+
+/* Flex container for image + text */
+#content {
+  flex: 1;
+  overflow: hidden;
+  /*
+    The right padding here effectively shifts where text begins inside the
+    content area. Adjusting this value moves the visual entry point for
+    scrolling text to line up with the PNG frame edges. Useful to tune per
+    frame (e.g. F4 may need a different value).
+  */
+  padding: 0 0px 0 30px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+/* Text container */
+#text-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  flex-grow: 1;
+  overflow: hidden;
+  text-align: left;
+  /* Extra horizontal space to include for scrolling calculations (px) */
+  --scroll-extra: 0px;
+  /* How far off-screen the text starts before scrolling (px) */
+  --scroll-start-offset: 0px;
+}
+
+/* Ensure the new .text-clip structure is constrained like the old .text-box */
+.text-clip{
+  width:100%;
+  overflow:hidden;
+  white-space:nowrap;
+}
+
+.text-row{ display:block; }
+.text-inner{ display:inline-block; white-space:nowrap; }
+
+#artist,
+#song {
+  position: relative;
+  margin: 0;
+}
+
+.text-box {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+/* Artist name styling */
+#artist {
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 32px;
+  margin-bottom: 16px;
+  color: var(--highlight);
+}
+
+/* Song title styling */
+#song {
+  font-weight: bold;
+  font-size: 56px;
+  color: white;
+  margin: 0;
+}
+
+p {
+  white-space: nowrap;
+}
+
+/* Scrolling span */
+#text-box span {
+  display: inline-block;
+  white-space: nowrap;
+  will-change: transform;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  transform: translateX(var(--marquee-start, 0));
+}
+
+/* Marquee animation */
+.marquee {
+  animation-name: marqueeAnim;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: var(--marquee-duration, 10s);
+}
+
+@keyframes marqueeAnim {
+  0% {
+    transform: translateX(var(--marquee-start, 0));
+  }
+  100% {
+    transform: translateX(var(--marquee-end, 0));
+  }
+}
+
+/* Progress bar container */
+#progress-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 96%;
+  margin-left: 16px;
+  margin-bottom: 13px;
+  height: 14px;
+  background-color: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  border-radius: 6px;
+  z-index: 9999;
+}
+
+#progress-bar {
+  height: 100%;
+  width: 0%;
+  background-color: var(--highlight);
+  transition: width 0.3s linear;
+}

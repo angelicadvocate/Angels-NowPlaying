@@ -1,163 +1,101 @@
-# 🎵 Angels-NowPlaying (Work in Progress)
+﻿# Angels-NowPlaying
 
-## ⚠️ Development Status
+A cross-platform desktop app for managing and displaying **Now Playing** overlays in OBS. Built with [Tauri](https://tauri.app) (Rust backend) and plain HTML/CSS/JS overlays that run as OBS Browser Sources.
 
-This project is **under active development** and is **not production-ready**.
-
-The current iteration does **not work** due to a major ongoing overhaul. As a result:
-- The instructions in this README are **out of date**
-- Some features may be broken or missing
-
-You’re welcome to use the HTML templates directly in OBS for frames, but this will require **manual CSS editing**.
-
-Check back soon for the next release.
-
-**Current version:** 0.5.3
----
-
-**Angels-NowPlaying** is a browser-based widget for OBS that displays now playing information from local audio sources using Tuna for OBS. It includes multiple visual templates (overlay frames), all of which update in real time from the same data source.
-
-You can use each template as a separate browser source in OBS, allowing for flexible and customizable scene layouts.
+> **Status:** Active development — v0.5.3. Core overlay playback and the in-app editor are working. Not all bundled overlay styles are complete. See [TODO.md](TODO.md) for what's in progress.
 
 ---
 
-## ✨ Features
+## What it does
 
-- Displays artist and track name in real time
-- Supports album artwork
-- Includes multiple overlay frame templates
-- All frames update in sync
-- Built-in visual editor for customizing styles (with instructions)
-
----
-
-## 🚀 Getting Started
-
-### Dependencies for Offline Use
-
-Before packaging or running the editor in an offline environment, download the following assets and place them under `src/vendor/`:
-
-- **jQuery 3.5.1** → `src/js/vendor/jquery-3.5.1.min.js` (overwrite the placeholder)
-- **Font Awesome 6.4.0** web files → extract into `src/vendor/fontawesome/` (CSS + fonts)
-
-These libraries are currently referenced from a CDN in the source files; local copies ensure the app works without network access.
-
-
-### 1. Download the Widget
-
-1. Download the entire repo as a ZIP or clone it via Git.
-2. Place the `Angels-NowPlaying` directory wherever you want to use it from (e.g., a permanent location on your drive).
+- Reads the currently playing track from **Tuna** (OBS plugin) via its local HTTP endpoint — works with any source Tuna supports, including Spotify, Last.fm, YouTube Music Desktop App, Windows Media Player, MPD, local files via VLC, and more
+- Renders artist name, track title, album art, and a live progress bar in an OBS Browser Source
+- Ships with multiple overlay styles (horizontal bars, vertical panels, glassmorphism, cassette tape, vinyl, and more)
+- Includes a desktop app with a per-overlay visual editor — adjust colours, font sizes, and layout with sliders and see changes in a live preview without touching OBS
+- Saves customisations directly to each overlay's CSS file
 
 ---
 
-### 2. Install & Configure Tuna
+## Requirements
 
-1. Install the [Tuna](https://github.com/univrsal/tuna/releases) OBS plugin.
-2. Inside OBS, configure Tuna to output the following files:
-   - `Song.json` (Add this in the "Song Info Outputs" section in Tuna Settings. Song format is {json_compact})
-   - `Artwork.png` (Add this from the "Song Cover Path" section in Tuna Settings)
-3. These files **must be saved to the root of the `Angels-NowPlaying` directory**.
+| Dependency | Version | Notes |
+|---|---|---|
+| [OBS Studio](https://obsproject.com) | >=28.0 | |
+| [Tuna](https://github.com/univrsal/tuna/releases) | >=1.9.9 | OBS plugin; provides the HTTP track data endpoint |
+| Music source | — | Any source [Tuna supports](https://github.com/univrsal/tuna/wiki) — Spotify, Last.fm, YouTube Music Desktop App, VLC, Windows Media Player, MPD, and more |
 
-> ⚠️ Tested and developed using Tuna's VLC integration in Tuna v1.9.9. Other sources and versions may work but are not yet tested.
-
----
-
-### 3. Add Music via VLC Source in OBS
-
-To feed music into Tuna:
-
-- Use the **VLC Video Source** in OBS (not the Media Source).
-- Add the folder containing your music files to the VLC source.
-- Only VLC sources will work with Tuna for local playback — Media Sources are not supported.
+No Node.js or Rust installation is needed to **run** the app. See [DEVELOPMENT.md](DEVELOPMENT.md) if you want to build from source.
 
 ---
 
-### 4. Add the Widget to OBS
+## Installation
 
-1. In OBS, add a **Browser Source**.
-2. Enable **"Local File"** and browse to one of the overlay frame `.html` files inside the widget folder.
-3. Set the resolution to match the specific frame's recommended size (shown in the editor).
-4. You can add **one or multiple** frames to different browser sources — all will update simultaneously.
-
----
-
-### 5. Customize with the Built-in Editor
-
-The widget includes a built-in configuration editor:
-
-- Open the `index.html` file in a browser by double clicking on the file.
-- Follow the on-screen instructions to edit visual styles for each frame.
-- When you are finished with the changes, click the "save" button and replace the downloaded css file in the "css_files" folder for the widget.
-- If OBS was open when you changed the css file you will have to click the refresh button on the source in OBS.
-
-   How the editor save/download workflow works
-   -----------------------------------------
-   The editor runs purely client-side (no backend). When you click "Save" the editor generates a CSS file and triggers a browser download.
-
-   To apply the downloaded CSS to your running widget:
-   1. Download the generated CSS file (the editor names it like `01-NowPlaying-F1-Styles.css`).
-   2. Replace the existing CSS file in the project's `css/` directory with the downloaded file (for example, overwrite `css/01-NowPlaying-F1-Styles.css`).
-   3. In OBS, open the Browser Source properties for that frame and click the Reload/Refresh button (or disable/enable the source) so OBS picks up the new CSS.
-
-   Notes:
-   - This approach avoids requiring a local webserver; it's manual but reliable for local OBS workflows.
-   - If you'd rather test in a browser outside OBS, run a simple static server (for example `python -m http.server 8000`) and open the editor page from `http://localhost:8000/editor_assets/`.
-
-> 📌 *The editor includes built-in instructions, and future versions will offer improved visuals and installation steps.
+1. Download the latest release from [GitHub Releases](https://github.com/angelicadvocate/Angels-NowPlaying/releases).
+2. Run the installer (`.msi` on Windows) or extract the archive.
+3. Launch **Angels-NowPlaying**.
 
 ---
 
-## ⚠️ Known Issues
+## Setup
 
-- Some frame styles may not render correctly or are still under development.
-- Currently optimized only for local playback with VLC and Tuna.
+### 1. Configure Tuna
+
+1. Install Tuna from the [releases page](https://github.com/univrsal/tuna/releases).
+2. In OBS -> **Tools -> Tuna**, go to the **Web server** tab and note the port (default **1608**).
+3. Start the Tuna web server.
+4. In Angels-NowPlaying -> **Settings -> Tuna Configuration**, confirm or set the port to match.
+
+> If you change the port in Tuna you must fully restart OBS (not just stop/start Tuna) for the new port to take effect.
+
+### 2. Add an overlay to OBS
+
+1. Open Angels-NowPlaying and pick an overlay from the home page.
+2. Click **Copy URL** in the overlay editor to copy the path to `main.html`.
+3. In OBS, add a **Browser Source** -> Select local file -> paste the path -> set width/height to the size shown in the editor.
+4. Play music through any source Tuna is configured to read from — Spotify, Last.fm, YouTube Music Desktop App, a VLC Video Source in OBS, and so on. See [Tuna's source documentation](https://github.com/univrsal/tuna/wiki) for setup instructions per source.
+5. The overlay should appear with live track data within a couple of seconds.
+
+### 3. Customise
+
+1. Open the overlay's editor inside the app.
+2. Adjust sliders and colour pickers — the preview updates live.
+3. Click **Save** when done. The change is written directly to the overlay's `main.css`; reload the OBS Browser Source to pick it up.
 
 ---
 
-## 🛣 Roadmap / Planned Features
+## Building from source
 
-- [ ] Fix broken or incomplete frame templates
-- [ ] Add more overlay styles
-- [ ] Support additional media sources (Spotify, YouTube Music, Apple Music, etc.)
-- [ ] Improved documentation inside the built-in editor (with images and step-by-step instructions)
+See [DEVELOPMENT.md](DEVELOPMENT.md) for full instructions.
 
----
+Quick start:
 
-## 🖥 Desktop Configuration Manager (future)
-
-Version 0.5.0 is planned to introduce a cross‑platform desktop application built using [Tauri](https://tauri.app). The app will provide a GUI for managing widget styles, exporting HTML, and optionally serving the widget files via HTTP so OBS can point at a URL instead of a local file.
-
-A migration plan and instructions live in `notes/tauri-migration-plan.md`.
-
-To start working on the app you’ll need the following installed:
-
-1. Rust (via [rustup](https://rustup.rs))
-2. `cargo install tauri-cli`
-3. (Optional) Node.js/npm if you plan to add build tooling.
-
-Once ready, run `cargo tauri init` in the repo root (or let the scaffold already added) and follow the guidance in the notes file.
-
-### Development with Tauri
-
-You can launch the desktop app in development mode by executing:
-
-```powershell
-cd C:\Users\dalto\Documents\VS-Code\Angels-NowPlaying\src-tauri
+```bash
+git clone https://github.com/angelicadvocate/Angels-NowPlaying.git
+cd Angels-NowPlaying
+npm install
 cargo tauri dev
 ```
 
-A window will open showing the existing editor UI. Use the **Settings** button to open the configuration page, where you can:
-
-- toggle dark mode and check for updates
-- upload or delete custom templates
-- configure the network server port, Tuna path, and export directory
-- start/stop the embedded HTTP server (OBS can then point at `http://localhost:<port>/widget-F1.html`)
-
-Changes are saved automatically to `%APPDATA%/AngelsNowPlaying/settings.json` (or the equivalent config path on macOS/Linux).
+**Prerequisites:** [Node.js](https://nodejs.org), [Rust](https://rustup.rs), and the [Tauri v2 prerequisites](https://tauri.app/start/prerequisites/) for your platform.
 
 ---
 
-## 🧪 Status
+## Creating custom overlays
 
-This project is a personal experiment and is not yet intended for production use. Expect rough edges and ongoing changes.
+Overlays are self-contained folders under `src/overlays/`. Each one is a small HTML/CSS/JS app that runs in OBS and optionally exposes a visual editor inside the Angels-NowPlaying app.
 
+See [FRAME-DEVELOPMENT.md](FRAME-DEVELOPMENT.md) for the recommended workflow, file conventions, and the annotated `frame-template-starter` reference overlay.
+
+---
+
+## Contributing
+
+Contributions are welcome — see [DEVELOPMENT.md](DEVELOPMENT.md) for how to set up a development build, the project structure, and the conventions used throughout the codebase.
+
+For overlay contributions specifically, read [FRAME-DEVELOPMENT.md](FRAME-DEVELOPMENT.md) first.
+
+---
+
+## License
+
+[GPL-3.0](LICENSE) — see [LICENSES.md](LICENSES.md) for details, including overlay licensing and third-party components.

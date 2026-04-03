@@ -1,0 +1,190 @@
+/* =========================================================
+   frame-template-starter — main.css
+   All tunable values live in :root as CSS custom properties.
+   The editor reads this block on load, populates sliders,
+   and rewrites ONLY this block on save. Do not put values
+   that should be user-editable anywhere outside :root.
+   ========================================================= */
+
+:root {
+  /* --- Colors --- */
+  --highlight: hsl(217, 91%, 60%);
+  --artist-color: hsl(217, 91%, 60%);
+  --song-color: #ffffff;
+  --accent-hex: #3b82f6;
+
+  /* --- Typography --- */
+  --font-main: proxima-nova, sans-serif;
+  --artist-size: 32px;
+  --song-size: 48px;
+  --text-spacing: 16px;
+
+  /* --- Layout --- */
+  --image-size: 155px;
+  --image-padding: 56px;
+  --image-vertical: 0px;
+  --content-padding-left: 14px;
+  --text-vertical-offset: -10px;
+  --progress-bar-offset: 0px;
+
+  /* --- Scroller tuning (read by common.js) --- */
+  --scroll-extra: 0px;
+  --scroll-start-offset: 30px;
+}
+
+/* Reset and base styles */
+body {
+  background: transparent;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: var(--font-main);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Widget container */
+#background {
+  position: relative;
+  width: 800px;
+  min-width: 800px;
+  max-width: 800px;
+  height: 180px;
+  background-image: url('./background.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  border-radius: 16px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: visible;
+  z-index: 1;
+}
+
+/* Album art image */
+#image {
+  width: var(--image-size);
+  height: var(--image-size);
+  object-fit: cover;
+  margin-left: var(--image-padding);
+  margin-top: var(--image-vertical);
+  border-radius: 10px;
+  display: block;
+}
+
+/* Album art wrapper */
+#image-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  overflow: visible;
+  margin-left: 0px;
+  padding-left: 0;
+  z-index: 5;
+}
+
+/* Flex container for image + text */
+#content {
+  flex: 1;
+  overflow: hidden;
+  padding: 0 40px 0 var(--content-padding-left);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  transform: translateY(var(--text-vertical-offset));
+}
+
+/* Text container */
+#text-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  flex-grow: 1;
+  overflow: hidden;
+  text-align: left;
+}
+
+#artist,
+#song {
+  position: relative;
+  margin: 0;
+}
+
+.text-box {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+/* Artist name styling */
+#artist {
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: var(--artist-size);
+  margin-bottom: var(--text-spacing);
+  color: var(--artist-color);
+}
+
+/* Song title styling */
+#song {
+  font-weight: bold;
+  font-size: var(--song-size);
+  color: var(--song-color);
+  margin: 0;
+}
+
+p {
+  white-space: nowrap;
+}
+
+/* Scrolling span */
+#text-box span {
+  display: inline-block;
+  white-space: nowrap;
+  will-change: transform;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  transform: translateX(var(--marquee-start, 0));
+}
+
+/* Marquee animation */
+.marquee {
+  animation-name: marqueeAnim;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: var(--marquee-duration, 10s);
+}
+
+@keyframes marqueeAnim {
+  0%   { transform: translateX(var(--marquee-start, 0)); }
+  100% { transform: translateX(var(--marquee-end, 0)); }
+}
+
+/* Progress bar container */
+#progress-container {
+  position: absolute;
+  bottom: calc(12px + var(--progress-bar-offset));
+  left: 0;
+  width: 64%;
+  margin-left: 230px;
+  height: 15px;
+  background-color: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  border-radius: 10px;
+  z-index: 9999;
+}
+
+#progress-bar {
+  height: 100%;
+  width: 0%;
+  background-color: var(--highlight);
+  transition: width 0.3s linear;
+}
+

@@ -1,0 +1,14 @@
+{
+  "id": "frame-color-bar-visualizer",
+  "name": "Color Bar Visualizer",
+  "version": "1.0.0",
+  "created": "2026-04-01",
+  "updated": "2026-04-01",
+  "author": "angelicadvocate",
+  "entry": "main.html",
+  "editor": "editor.html",
+  "preview": "preview.png",
+  "description": "An animated equalizer bars visualizer with colorful spectrum display and dynamic moving bars.",
+  "obsSize": null,
+  "tags": ["visualizer", "animated", "equalizer"]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "frame-glassmorphism-1",
+  "name": "Glassmorphism 1",
+  "version": "1.0.0",
+  "created": "2026-04-01",
+  "updated": "2026-04-01",
+  "author": "angelicadvocate",
+  "entry": "main.html",
+  "editor": "editor.html",
+  "preview": "preview.png",
+  "description": "A frosted glass style layout with large album artwork, a subtle blurred background effect, and a progress bar.",
+  "obsSize": null,
+  "tags": ["glassmorphism", "frosted", "progress-bar"]
+}

@@ -54,6 +54,41 @@
       position: relative;
     }
 
+    /* Full-width variant — spans all grid columns */
+    .settings-card--wide {
+      grid-column: 1 / -1;
+    }
+
+    /* Horizontal section layout inside the wide card */
+    .overlay-sections {
+      display: grid;
+      grid-template-columns: auto 1px 1fr 1fr 1fr;
+      gap: 0 2rem;
+      align-items: start;
+      margin-top: 0.5rem;
+    }
+
+    .overlay-sections__divider {
+      background: #333;
+      align-self: stretch;
+    }
+
+    .overlay-section {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Stack everything vertically when the grid collapses */
+    @media (max-width: 1400px) {
+      .overlay-sections {
+        grid-template-columns: 1fr;
+      }
+      .overlay-sections__divider {
+        height: 1px;
+        width: 100%;
+      }
+    }
+
     .card {
       background-color: #1e1e1e;
       border-radius: 10px;
