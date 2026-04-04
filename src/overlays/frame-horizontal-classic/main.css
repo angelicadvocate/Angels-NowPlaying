@@ -1,13 +1,24 @@
 /* /static css placeholder/ */
 
 :root {
-  --highlight: hsl(355, 82%, 58%);
-  --font-main: "proxima-nova", sans-serif;
+  --highlight: hsl(0, 92%, 60%);
+  --accent-hex: #f73b3b;
+  --font-main: proxima-nova, sans-serif;
+  --artist-size: 36px;
+  --song-size: 60px;
+  --text-spacing: 19px;
+  --image-size: 181px;
+  --image-margin-left: 16px;
+  --image-vertical-offset: -4px;
+  --content-padding-left: 29px;
+  --text-vertical-offset: -11px;
+  --scroll-extra: 0px;
+  --scroll-start-offset: 30px;
 }
 
 /* Reset and base styles */
 body {
-  background: #ebebeb;
+  background: transparent;
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -41,22 +52,21 @@ body {
 
 /* Album art image (main) */
 #image {
-  width: 180px;
-  height: 180px;
+  width: var(--image-size);
+  height: var(--image-size);
   object-fit: cover;
-  margin-left: 16px;
   margin-bottom: 16px;
   border-radius: 8px;
   display: block;
 }
 
-/* Fading overlay image */
+/* Image wrapper */
 #image-wrapper {
   position: relative;
   flex-shrink: 0;
   overflow: visible;
-  margin-left: 0px;
-  padding-left: 0;
+  margin-left: var(--image-margin-left);
+  transform: translateY(var(--image-vertical-offset));
   z-index: 5;
 }
 
@@ -70,11 +80,12 @@ body {
     scrolling text to line up with the PNG frame edges. Useful to tune per
     frame (e.g. F4 may need a different value).
   */
-  padding: 0 0px 0 30px;
+  padding: 0 0 0 var(--content-padding-left);
   box-sizing: border-box;
   display: flex;
   flex-direction: row;
   align-items: center;
+  transform: translateY(var(--text-vertical-offset));
 }
 
 /* Text container */
@@ -86,10 +97,7 @@ body {
   flex-grow: 1;
   overflow: hidden;
   text-align: left;
-  /* Extra horizontal space to include for scrolling calculations (px) */
-  --scroll-extra: 0px;
-  /* How far off-screen the text starts before scrolling (px) */
-  --scroll-start-offset: 0px;
+  /* These are read from :root by the scrolling JS */
 }
 
 /* Ensure the new .text-clip structure is constrained like the old .text-box */
@@ -119,15 +127,15 @@ body {
 #artist {
   text-transform: uppercase;
   font-weight: 600;
-  font-size: 32px;
-  margin-bottom: 16px;
+  font-size: var(--artist-size);
+  margin-bottom: var(--text-spacing);
   color: var(--highlight);
 }
 
 /* Song title styling */
 #song {
   font-weight: bold;
-  font-size: 56px;
+  font-size: var(--song-size);
   color: white;
   margin: 0;
 }

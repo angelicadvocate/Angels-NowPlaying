@@ -1,39 +1,33 @@
+﻿
+/* Body: allow vertical scroll, zero out editor-common.css padding-bottom */
+body {
+  box-sizing: border-box;
+  height: auto;
+  min-height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 0;
+}
+
+/* Site wrapper: controls on left, preview iframe on right */
 #site {
   display: flex;
   flex-direction: row;
-  gap: 40px;
+  gap: 60px;
   align-items: flex-start;
-  justify-content: space-around;
-  flex: 1;
-  overflow-y: auto;
-  padding: 40px 300px;
+  justify-content: center;
+  padding: 40px 40px 0;
 }
 
-/* Controls container */
-#col-1, #col-2 {
+/* Two sub-columns of controls side by side */
+#controls {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 15px;
-  margin: 0;
-  padding: 50px; /* removed extra top gap under header */
-  overflow-y: hidden;
-  overflow-x: hidden;
-}
-
-#col-3 {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 15px;
-  margin: 0;
-  padding: 0;
-  /* push preview down away from header to avoid overlap when album art grows */
-  margin-top: 120px;
-  /* Allow the preview column to expand with larger preview content */
-  overflow: visible;
+  flex-direction: row;
+  gap: 60px;
+  align-items: flex-start;
+  flex: 0 0 auto;
+  padding-top: 10px;
+  margin-left: 150px;
 }
 
 .controls-column {
@@ -43,162 +37,28 @@
   gap: 15px;
 }
 
-/* Column alignment adjustments */
-.controls-column:first-child {
-  margin-top: 0;
-}
-
-.controls-column:last-child {
-  margin-top: 0;
-}
-
-/* Sample preview section */
+/* Preview section - width matches visual size of scaled iframe
+   (360px native x 0.8 scale = 288px) */
 #sample {
   display: flex;
   justify-content: center;
-  align-items: center;
-  width: 100%;
-  text-align: left;
-  padding: 0;
-  padding-left: 20px;
-  margin: 0;
-  margin-right: 60px;
-}
-
-/* (removed unused #sample-and-save - not present in F3 HTML) */
-
-
-/* Big container for album art + text */
-#background {
-  position: relative;
-  width: 300px;
-  min-width: 300px;
-  max-width: 300px;
-  min-height: 380px;
-  height: auto;
-  background-image: url('./Frame3.png');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  border-radius: 8px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  overflow: visible;
-}
-
-#image-wrapper {
-  position: relative;
-  flex-shrink: 0;
-  overflow: visible;
-  margin-left: 0;
-  padding-left: 0;
-  z-index: 5;
-}
-
-/* Flex container for image + text (centered text for F3 preview) */
-#content {
-  flex: 1;
-  overflow: hidden;
-  padding: 0 20px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-}
-
-/* Album art image */
-#image {
-  width: 70px;
-  height: 70px;
-  object-fit: cover;
-  border-radius: 4px;
-  display: block;
-  margin-top: var(--image-margin-top, 0px); /* Default to 0, will be set dynamically */
-}
-
-/* Text container under the album art (centered) */
-#text-box {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-width: 0;
-  flex-grow: 1;
-  overflow: hidden;
-  text-align: center;
-}
-
-#text-box p {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-#artist, #song {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin: 0;
-}
-
-/* Artist name styling */
-#artist {
-  text-transform: uppercase;
-  font-weight: 600;
-  font-size: 15px;
-  margin: 0 0 5px 0;
-  margin-left: 0;
-  margin-right: 0;
-  color: var(--highlight);
-}
-
-/* Song title styling */
-#song {
-  font-weight: bold;
-  font-size: 24px;
-  margin: 0;
-  margin-left: 0;
-  margin-right: 0;
-  color: white;
-}
-
-/* Progress bar container for preview */
-#progress-container-preview {
-  position: absolute;
-  bottom: 10px;
-  left: 50%; /* Center horizontally for vertical layout */
-  transform: translateX(-50%); /* Center alignment trick */
-  width: 250px; /* Match default image size */
-  height: 8px;
-  background-color: rgba(255, 255, 255, 0.1);
-  overflow: hidden;
-  border-radius: 5px;
-  z-index: 9999;
-}
-
-#progress-bar-preview {
-  height: 100%;
-  width: 50%; /* Static 50% progress for preview */
-  background-color: hsl(221, 100%, 68%); /* Default color, updated dynamically by JS */
-  transition: width 0.3s linear;
-}
-
-#layout {
-  display: flex;
-  gap: 30px;
   align-items: flex-start;
+  flex: 0 0 auto;
+  overflow: visible;
 }
 
-#bottom_back_button {
-  position: fixed;
-  bottom: 20px;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
-  z-index: 1000; /* optional, if overlapping needed */
+/* Native 360x640 iframe, scaled to 0.8.
+   transform-origin: top left aligns layout and visual left edges.
+   margin-right collapses excess layout width: 360 - 288 = 72px.
+   margin-bottom collapses excess layout height: 640 x 0.2 = 128px. */
+#preview-frame {
+  width: 680px;
+  height: 850px;
+  border: none;
+  display: block;
+  background: transparent;
+  transform: scale(0.8);
+  transform-origin: top left;
+  margin-right: -72px;
+  margin-bottom: -128px;
 }

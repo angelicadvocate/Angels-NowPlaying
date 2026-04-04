@@ -9,6 +9,6 @@
   "editor": "editor.html",
   "preview": "preview.png",
   "description": "A vertically stacked layout with large album art. Perfect for side panel placement or portrait scenes.",
-  "obsSize": null,
+  "obsSize": { "width": 360, "height": 510 },
   "tags": ["vertical"]
 }

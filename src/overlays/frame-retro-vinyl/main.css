@@ -1,7 +1,13 @@
 :root {
 	--text-color: #ffffff;
 	--accent-color: #377dff;
-	--font-main: "proxima-nova", sans-serif;
+	--font-main: proxima-nova, sans-serif;
+	--artist-size: 48px;
+	--song-size: 60px;
+	--text-spacing: 10px;
+	--text-vertical-offset: 272px;
+	--scroll-extra: 0px;
+	--scroll-start-offset: 30px;
 }
 
 #background {
@@ -20,10 +26,11 @@
 	z-index: 0;
 }
 
-#album-bg-img {
-	max-width: 320px;
-	height: auto;
+#image {
+	width: 320px;
+	height: 320px;
 	object-fit: cover;
+	object-position: center;
 	border-radius: 50%;
 	opacity: 1;
 	animation: spin 3s linear infinite;
@@ -46,18 +53,18 @@
 }
 
 #artist {
-	font-size: 48px;
+	font-size: var(--artist-size);
 	color: var(--accent-color);
 	font-weight: bold;
 	text-transform: uppercase;
-		margin: 0 0 10px 0;
+	margin: 0 0 var(--text-spacing) 0;
 	text-shadow: 0 8px 32px rgba(0,0,0,0.65), 0 4px 8px rgba(0,0,0,0.45);
 	font-family: var(--font-main);
 }
 
 #song {
 	margin: 0;
-	font-size: 60px;
+	font-size: var(--song-size);
 	color: var(--text-color);
 	font-weight: bold;
 	text-shadow: 0 8px 32px rgba(0,0,0,0.65), 0 4px 8px rgba(0,0,0,0.45);
@@ -76,7 +83,7 @@
 	align-items: center;
 	text-align: center;
 	z-index: 2;
-	transform: translateY(272px);
+	transform: translateY(var(--text-vertical-offset));
 }
 
 @keyframes spin {

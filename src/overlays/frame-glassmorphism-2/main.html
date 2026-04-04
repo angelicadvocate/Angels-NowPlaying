@@ -3,23 +3,31 @@
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>F6 Now Playing</title>
+	<title>F6 Glassmorphism 2</title>
 	<link rel="stylesheet" href="./main.css" />
 	<script src="../../js/vendor/jquery-3.5.1.min.js"></script>
 	<script src="./common.js"></script>
 </head>
 <body>
 	<div id="background">
-		<div id="progress-container">
-			<div id="progress-bar"></div>
-		</div>
-		<img id="image" />
-		<div id="content">
-			<div id="text-box">
-				<div class="text-box"><span id="artist"></span></div>
-				<div class="text-box"><span id="song"></span></div>
+		<img id="image" alt="Album Art" />
+		<div id="glass-container">
+			<div id="glass-backdrop"></div>
+			<div id="glass-content">
+				<div id="content">
+					<div id="text-box">
+						<div class="text-clip">
+							<div class="text-row"><span id="artist" class="text-inner"></span></div>
+							<div class="text-row"><span id="song" class="text-inner"></span></div>
+						</div>
+					</div>
+				</div>
+				<div id="progress-container">
+					<div id="progress-bar"></div>
+				</div>
 			</div>
 		</div>
 	</div>
 </body>
 </html>
+

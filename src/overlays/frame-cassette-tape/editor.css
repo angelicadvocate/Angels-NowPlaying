@@ -1,171 +1,66 @@
-
-/* Site wrapper - takes remaining space after header */
-#site {
-  display: flex;
-  flex-direction: row;
-  gap: 80px;
-  align-items: flex-start;
-  justify-content: center;
-  flex: 1;
-  overflow-y: auto;
-  padding: 40px 20px;
-}
-
-/* Controls container */
-#controls {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 0;
-  margin-top: 90px;
-}
-
-/* Middle controls container */
-#controls-middle {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 0;
-  margin-top: 90px;
-}
-
-/* Sample preview section */
-#sample {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: auto;
-  text-align: center;
-  padding-top: 90px;
-}
-
-/* Cassette wrapper in editor */
-#cassette-wrapper {
-  position: relative;
-  width: 400px;
-  height: 280px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 90px; /* nudge preview down */
-}
-
-/* Cassette main body */
-#cassette-main {
-  height: 280px;
-  display: block;
-  z-index: 5;
-  opacity: 1;
-  filter: hue-rotate(var(--label-hue, 0deg));
-}
-
-/* Cassette label layer */
-#cassette-label {
-  position: absolute;
-  top: 0;
-  left: -17px;
-  height: 280px;
-  display: block;
-  z-index: 6;
-  opacity: 1;
-}
-
-/* Tape layers container */
-#tape-wrapper {
-  position: absolute;
-  top: 21px;
-  left: 14px;
-  height: 180px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 4;
-}
-
-/* Left tape spool - spinning animation */
-#tape-left {
-  height: 185px;
-  animation: spinClockwise 3s linear infinite;
-}
-
-/* Right tape spool - spinning animation */
-#tape-right {
-  margin-left: 2px;
-  height: 185px;
-  animation: spinClockwise 3s linear infinite;
-}
-
-/* Clockwise spin animation */
-@keyframes spinClockwise {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* Text overlay on cassette */
-#text-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  z-index: 10;
-  padding: 0 40px;
+/* Override editor-common.css body lock so the page can scroll if needed */
+body {
   box-sizing: border-box;
-  padding-top: 35px;
+  height: auto;
+  min-height: 100vh;
+  overflow-y: auto;
+  padding-bottom: 0;
 }
 
-/* Artist name container */
-#artist {
-  text-transform: uppercase;
-  font-weight: 600;
-  font-size: 16px;
-  margin: 0;
-  color: #000000;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* Site wrapper - two-column layout: controls left/right, preview spans both below */
+#site {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+  justify-items: center;
+  flex: 1;
+  padding: 30px 20px 0;
+}
+
+/* Two-column grid for sliders */
+.controls-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
   width: 100%;
-  text-align: center;
+  max-width: 800px;
+  align-items: start;
+  grid-column: 1 / -1;
+  justify-items: center;
 }
 
-/* Song title container */
-#song {
-  font-weight: bold;
-  font-size: 24px;
-  margin: 110px 0 0 0;
-  color: #000000;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
-  text-align: center;
-}
-
-/* Text box wrapper */
-#text-box {
-  display: contents;
-}
-
-/* Button footer */
-#button-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+.controls-column {
   display: flex;
-  gap: 20px;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+  max-width: 560px;
+}
+
+.controls-column:first-child { margin-top: 0px; }
+.controls-column:last-child  { margin-top: 0px; }
+
+/* Preview section */
+#sample {
+  grid-column: 1 / -1;
+  display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
-  background: #ebebeb;
+  width: 100%;
+  margin-top: -30px;
+}
+
+/* cassette is 800×560 native. Scale to 0.5 = 400×280 visible.
+   margin-bottom = -(560 * 0.5) = -280px to reclaim layout space. */
+#preview-frame {
+  width: 900px;
+  height: 560px;
+  border: none;
+  display: block;
+  background: transparent;
+  transform: scale(0.5);
+  transform-origin: top center;
+  margin-bottom: -280px;
 }

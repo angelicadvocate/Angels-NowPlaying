@@ -10,16 +10,38 @@
 </head>
 <body>
 	<div id="background">
+		<img id="frame-image" src="./program-window-frame.png" alt="Frame" />
+		<div id="now-playing-container">
+			<p id="now-playing-text">Now Playing...</p>
+		</div>
+		<div id="image-wrapper">
+			<img id="image" alt="Album Art" />
+		</div>
+		<div id="content">
+			<div id="text-box">
+				<div class="text-clip"><span id="artist" class="text-inner"></span></div>
+				<div class="text-clip"><span id="song" class="text-inner"></span></div>
+			</div>
+		</div>
 		<div id="progress-container">
 			<div id="progress-bar"></div>
 		</div>
-		<img id="image" />
-		<div id="content">
-			<div id="text-box">
-				<div class="text-box"><span id="artist"></span></div>
-				<div class="text-box"><span id="song"></span></div>
-			</div>
-		</div>
 	</div>
+	<script>
+		window.addEventListener('message', function (e) {
+			if (e.data && e.data.type === 'setNowPlayingText') {
+				var el = document.getElementById('now-playing-text');
+				if (el) el.textContent = e.data.value;
+			}
+		});
+		// Read saved text from CSS var on load (strip surrounding quotes)
+		(function () {
+			var raw = getComputedStyle(document.documentElement).getPropertyValue('--now-playing-text').trim();
+			if (raw) {
+				var el = document.getElementById('now-playing-text');
+				if (el) el.textContent = raw.replace(/^"|"$/g, '');
+			}
+		})();
+	</script>
 </body>
 </html>

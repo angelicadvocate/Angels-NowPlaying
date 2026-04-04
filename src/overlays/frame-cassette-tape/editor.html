@@ -3,18 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EditorV2-Frame7-CassetteTape</title>
+  <title>Cassette Tape — Editor</title>
   <link rel="stylesheet" href="../../css/editor_pages/editor-header.css" />
-  <link rel="stylesheet" href="./editor.css" />
   <link rel="stylesheet" href="../../css/editor_pages/editor-common.css" />
+  <link rel="stylesheet" href="./editor.css" />
   <script type="module" src="../../js/tauri.js"></script>
 </head>
 <body>
     <!-- Dynamic header placeholder -->
-    <div id="header-root" data-src="../../editor_pages/editor-header.html" data-page-title="Frame 7 - Cassette Tape"></div>
+    <div id="header-root" data-src="../../editor_pages/editor-header.html" data-page-title="Cassette Tape"></div>
 
     <main id="site">
-    <section id="controls">
+    <div class="controls-grid">
+      <div class="controls-column">
       <label for="tapeStyle" class="info">Tape Style</label>
       <select id="tapeStyle" class="dropdown">
         <option value="black-black-dark">Black Tape, Black Text, Dark Label</option>
@@ -52,11 +53,11 @@
       </select>
       
       <label for="artistFontSize" class="info">Artist Font Size</label>
-      <input type="range" min="8" max="32" value="22" class="slider" id="artistFontSize">
+      <input type="range" min="8" max="64" value="44" class="slider" id="artistFontSize">
 
-    </section>
+      </div>
 
-    <section id="controls-middle">
+      <div class="controls-column">
       <label for="artistPosition" class="info">Artist Position</label>
       <input type="range" min="-50" max="150" value="0" class="slider" id="artistPosition">
 
@@ -69,7 +70,7 @@
       </div>
 
       <label for="songFontSize" class="info">Song Font Size</label>
-      <input type="range" min="8" max="32" value="22" class="slider" id="songFontSize">
+      <input type="range" min="8" max="64" value="44" class="slider" id="songFontSize">
 
       <label for="songPosition" class="info">Song Position</label>
       <input type="range" min="-150" max="150" value="0" class="slider" id="songPosition">
@@ -82,386 +83,197 @@
         </div>
       </div>
 
-    </section>
-
-<section id="sample">
-  <div id="cassette-wrapper">
-    <img id="cassette-main" src="./cassette-tape-dark-label-base.png" alt="Cassette Tape" />
-    <img id="cassette-label" src="./cassette-tape-black-tape-black-text.png" alt="Tape Overlay" />
-    <div id="tape-wrapper">
-      <img id="tape-left" src="./cassette-tape1-tape-layer-left.png" alt="Tape Left" />
-      <img id="tape-right" src="./cassette-tape1-tape-layer-right.png" alt="Tape Right" />
-    </div>
-    <div id="text-overlay">
-      <div id="text-box">
-        <p id="artist">Sample Artist</p>
-        <p id="song">Sample Song Title</p>
       </div>
     </div>
-  </div>
-</section>
 
+    <!-- Live preview: main.html loaded in ?edit=1 mode -->
+    <section id="sample">
+      <iframe id="preview-frame" src="./main.html?edit=1" scrolling="no" title="Overlay preview"></iframe>
+    </section>
   </main>
 
   <script>
-    const fontFamilySelect = document.getElementById("fontFamily");
-    const artistFontSizeSlider = document.getElementById("artistFontSize");
-    const songFontSizeSlider = document.getElementById("songFontSize");
-    const artistColorPicker = document.getElementById("artistColor");
-    const trackColorPicker = document.getElementById("trackColor");
-    const tapeStyleSelect = document.getElementById("tapeStyle");
-    const labelHueSlider = document.getElementById("labelHue");
-    const autoRotateMessageDiv = document.getElementById("autoRotateMessage");
-    const autoRotateHueSelect = document.getElementById("autoRotateHue");
-    const artistPositionSlider = document.getElementById("artistPosition");
-    const songPositionSlider = document.getElementById("songPosition");
-    
-    const artistEl = document.getElementById("artist");
-    const songEl = document.getElementById("song");
-    const cassettMain = document.getElementById("cassette-main");
-    const cassetteLabel = document.getElementById("cassette-label");
-    const tapeLeft = document.getElementById("tape-left");
-    const tapeRight = document.getElementById("tape-right");
+    // --- Control references ---
+    const sliderArtistSize  = document.getElementById('artistFontSize');
+    const sliderSongSize    = document.getElementById('songFontSize');
+    const sliderArtistPos   = document.getElementById('artistPosition');
+    const sliderSongPos     = document.getElementById('songPosition');
+    const sliderLabelHue    = document.getElementById('labelHue');
+    const pickerArtistColor = document.getElementById('artistColor');
+    const pickerSongColor   = document.getElementById('trackColor');
+    const selectFont        = document.getElementById('fontFamily');
+    const selectTapeStyle   = document.getElementById('tapeStyle');
+    const selectAutoRotate  = document.getElementById('autoRotateHue');
+    const codeArtist        = document.getElementById('artistColorCode');
+    const codeSong          = document.getElementById('trackColorCode');
+    const previewFrame      = document.getElementById('preview-frame');
 
-    let fontFamilyValue = fontFamilySelect.value;
-    let artistFontSizeValue = artistFontSizeSlider.value;
-    let songFontSizeValue = songFontSizeSlider.value;
-    let artistColorValue = artistColorPicker.value;
-    let trackColorValue = trackColorPicker.value;
-    let tapeStyleValue = tapeStyleSelect.value;
-    let labelHueValue = labelHueSlider.value;
-    let autoRotateHue = false;
-    let autoRotateInterval = null;
-    let artistPositionValue = artistPositionSlider.value;
-    let songPositionValue = songPositionSlider.value;
+    const CONTROLS = [
+      [sliderArtistSize,  '--artist-font-size', 'px'],
+      [sliderSongSize,    '--song-font-size',   'px'],
+      [sliderArtistPos,   '--artist-position',  'px'],
+      [sliderSongPos,     '--song-position',    'px'],
+      [sliderLabelHue,    '--label-hue',        'deg'],
+      [pickerArtistColor, '--artist-color',     ''],
+      [pickerSongColor,   '--track-color',      ''],
+    ];
 
-    const scale = 2;
-
-    function applyPreview() {
-      // Apply font family
-      artistEl.style.fontFamily = fontFamilyValue;
-      songEl.style.fontFamily = fontFamilyValue;
-      // Apply individual font sizes
-      artistEl.style.fontSize = artistFontSizeValue + "px";
-      songEl.style.fontSize = songFontSizeValue + "px";
-      
-      // Apply colors
-      artistEl.style.color = artistColorValue;
-      songEl.style.color = trackColorValue;
-      
-      // Apply position offsets
-      artistEl.style.marginTop = artistPositionValue + "px";
-      songEl.style.marginTop = (110 + parseInt(songPositionValue)) + "px";
-      
-      // Update color display codes
-      document.getElementById("artistColorCode").textContent = artistColorValue.toUpperCase();
-      document.getElementById("trackColorCode").textContent = trackColorValue.toUpperCase();
-      
-      // Parse tape style value (e.g., "black-black-dark" -> tape color, text color, label style)
-      const [tapeColor, textColor, labelStyle] = tapeStyleValue.split('-');
-      
-      // Update label base image (dark or light)
-      cassettMain.src = `./cassette-tape-${labelStyle}-label-base.png`;
-      
-      // Update tape+text overlay image
-      cassetteLabel.src = `./cassette-tape-${tapeColor}-tape-${textColor}-text.png`;
-      
-      // Tape layers stay the same
-      tapeLeft.src = `./cassette-tape1-tape-layer-left.png`;
-      tapeRight.src = `./cassette-tape1-tape-layer-right.png`;
-      
-      // Apply label hue filter to the base image
-      cassettMain.style.filter = `hue-rotate(${labelHueValue}deg)`;
+    function sendVar(name, value) {
+      if (previewFrame && previewFrame.contentWindow) {
+        previewFrame.contentWindow.postMessage({ type: 'setCSSVar', name, value }, '*');
+      }
     }
 
-    function startAutoRotateHue() {
-      let currentHue = 0;
+    // Auto-rotate hue
+    let autoRotateInterval = null;
+    let currentHue = 0;
+
+    function startAutoRotate() {
+      currentHue = parseInt(sliderLabelHue.value) || 0;
       autoRotateInterval = setInterval(() => {
         currentHue = (currentHue + 1) % 360;
-        labelHueValue = currentHue;
-        labelHueSlider.value = currentHue;
-        applyPreview();
+        sliderLabelHue.value = currentHue;
+        sendVar('--label-hue', currentHue + 'deg');
       }, 50);
     }
 
-    function stopAutoRotateHue() {
-      if (autoRotateInterval) {
-        clearInterval(autoRotateInterval);
-        autoRotateInterval = null;
-      }
+    function stopAutoRotate() {
+      if (autoRotateInterval) { clearInterval(autoRotateInterval); autoRotateInterval = null; }
     }
 
-    function generateCSS() {
-      return `
-/* Cassette Tape Now Playing Frame - F7 */
-
-:root {
-  --artist-color: ${artistColorValue};
-  --track-color: ${trackColorValue};
-  --font-family: ${fontFamilyValue};
-  --artist-font-size: ${artistFontSizeValue * 2}px;
-  --song-font-size: ${songFontSizeValue * 2}px;
-  --tape-style: ${tapeStyleValue};
-  --label-hue: ${labelHueValue}deg;
-  --artist-position: ${artistPositionValue * 2}px;
-  --song-position: ${songPositionValue * 2}px;
-}
-
-/* Reset and base styles */
-body {
-  background: transparent;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  font-family: var(--font-family);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
-/* Cassette wrapper - main container */
-#cassette-wrapper {
-  position: relative;
-  width: 600px;
-  height: 400px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Cassette main body */
-#cassette-main {
-  height: 560px;
-  display: block;
-  z-index: 5;
-  opacity: 1;
-}
-
-/* Cassette label layer */
-#cassette-label {
-  position: absolute;
-  top: 0;
-  left: -34px;
-  height: 560px;
-  display: none;
-  z-index: 6;
-  opacity: 1;
-  filter: hue-rotate(var(--label-hue, 0deg));
-}
-
-/* Tape layers container */
-#tape-layers {
-  position: absolute;
-  top: 42px;
-  left: 28px;
-  height: 360px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 4;
-}
-
-/* Left tape spool - spinning animation */
-#tape-left {
-  height: 370px;
-  animation: spinClockwise 3s linear infinite;
-}
-
-/* Right tape spool - spinning animation */
-#tape-right {
-  margin-left: 4px;
-  height: 370px;
-  animation: spinClockwise 3s linear infinite;
-}
-
-/* Clockwise spin animation */
-@keyframes spinClockwise {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* Text overlay on cassette */
-#text-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  z-index: 10;
-  padding: 0 40px;
-  box-sizing: border-box;
-  padding-top: 70px;
-}
-
-/* Artist name container */
-#artist {
-  text-transform: uppercase;
-  font-weight: 600;
-  color: var(--artist-color);
-  margin-top: var(--artist-position);
-  margin: 0;
-  font-family: var(--font-family);
-  font-size: var(--artist-font-size);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
-  text-align: center;
-}
-
-/* Song title container */
-#song {
-  font-weight: bold;
-  color: var(--track-color);
-  margin: calc(220px + var(--song-position)) 0 0 0;
-  font-family: var(--font-family);
-  font-size: var(--song-font-size);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
-  text-align: center;
-}
-
-/* Text box wrapper */
-#text-box {
-  display: contents;
-}
-
-/* Scrolling span */
-#text-box span {
-  display: inline-block;
-  white-space: nowrap;
-  will-change: transform;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  transform: translateX(var(--marquee-start, 0));
-}
-
-/* Marquee animation */
-.marquee {
-  animation-name: marqueeAnim;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-  animation-duration: var(--marquee-duration, 10s);
-}
-
-@keyframes marqueeAnim {
-  0% {
-    transform: translateX(var(--marquee-start, 0));
-  }
-  100% {
-    transform: translateX(var(--marquee-end, 0));
-  }
-}
-`.trim();
-    }
-
-    function downloadCSS(filename, content) {
-      const blob = new Blob([content], {type: "text/css"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }, 0);
-    }
-
-    // Event listeners for all controls
-    fontFamilySelect.addEventListener("change", (e) => {
-      fontFamilyValue = e.target.value;
-      applyPreview();
+    // Wire up controls
+    CONTROLS.forEach(([el, cssVar, unit]) => {
+      el.addEventListener('input', () => {
+        if (el === pickerArtistColor) codeArtist.textContent = el.value.toUpperCase();
+        if (el === pickerSongColor)   codeSong.textContent   = el.value.toUpperCase();
+        sendVar(cssVar, el.value + unit);
+      });
     });
 
-    artistFontSizeSlider.addEventListener("input", (e) => {
-      artistFontSizeValue = e.target.value;
-      applyPreview();
-    });
+    selectFont.addEventListener('change', () => sendVar('--font-family', selectFont.value));
+    selectTapeStyle.addEventListener('change', () => sendVar('--tape-style', selectTapeStyle.value));
 
-    songFontSizeSlider.addEventListener("input", (e) => {
-      songFontSizeValue = e.target.value;
-      applyPreview();
-    });
-
-    artistColorPicker.addEventListener("input", (e) => {
-      artistColorValue = e.target.value;
-      applyPreview();
-    });
-
-    trackColorPicker.addEventListener("input", (e) => {
-      trackColorValue = e.target.value;
-      applyPreview();
-    });
-
-    tapeStyleSelect.addEventListener("change", (e) => {
-      tapeStyleValue = e.target.value;
-      applyPreview();
-    });
-
-    labelHueSlider.addEventListener("input", (e) => {
-      labelHueValue = e.target.value;
-      applyPreview();
-    });
-
-    artistPositionSlider.addEventListener("input", (e) => {
-      artistPositionValue = e.target.value;
-      applyPreview();
-    });
-
-    songPositionSlider.addEventListener("input", (e) => {
-      songPositionValue = e.target.value;
-      applyPreview();
-    });
-
-    autoRotateHueSelect.addEventListener("change", (e) => {
-      autoRotateHue = e.target.value === "yes";
-      if (autoRotateHue) {
-        labelHueSlider.style.display = "none";
-        autoRotateMessageDiv.style.display = "block";
-        labelHueSlider.disabled = true;
-        startAutoRotateHue();
+    selectAutoRotate.addEventListener('change', () => {
+      if (selectAutoRotate.value === 'yes') {
+        sliderLabelHue.disabled = true;
+        document.getElementById('autoRotateMessage').style.display = 'block';
+        startAutoRotate();
       } else {
-        labelHueSlider.style.display = "block";
-        autoRotateMessageDiv.style.display = "none";
-        labelHueSlider.disabled = false;
-        stopAutoRotateHue();
+        sliderLabelHue.disabled = false;
+        document.getElementById('autoRotateMessage').style.display = 'none';
+        stopAutoRotate();
       }
     });
 
-    // Expose page-specific header callbacks for dynamic header
-    window.onSave = async function() {
-      applyPreview();
-      const cssContent = generateCSS();
-      const cssPath = "src/overlays/frame-cassette-tape/main.css";
+    // Parse :root block from main.css and populate controls
+    function parseCSSVars(cssText) {
+      const vars = {};
+      const rootMatch = cssText.match(/:root\s*\{([^}]*)\}/s);
+      if (!rootMatch) return vars;
+      rootMatch[1].split('\n').forEach(line => {
+        const m = line.match(/^\s*(--[\w-]+)\s*:\s*(.+?)\s*;/);
+        if (m) vars[m[1]] = m[2].trim();
+      });
+      return vars;
+    }
+
+    function populateSlidersFromVars(vars) {
+      function px(name, fallback) {
+        const m = (vars[name] || '').match(/(-?\d+\.?\d*)/);
+        return m ? parseFloat(m[1]) : fallback;
+      }
+      function hex(name, fallback) { return vars[name] || fallback; }
+
+      sliderArtistSize.value = px('--artist-font-size', 44);
+      sliderSongSize.value   = px('--song-font-size', 44);
+      sliderArtistPos.value  = px('--artist-position', 0);
+      sliderSongPos.value    = px('--song-position', 0);
+      sliderLabelHue.value   = px('--label-hue', 0);
+
+      const artistHex = hex('--artist-color', '#000000');
+      pickerArtistColor.value = artistHex.startsWith('#') ? artistHex : '#000000';
+      codeArtist.textContent  = pickerArtistColor.value.toUpperCase();
+
+      const songHex = hex('--track-color', '#000000');
+      pickerSongColor.value = songHex.startsWith('#') ? songHex : '#000000';
+      codeSong.textContent  = pickerSongColor.value.toUpperCase();
+
+      const font = vars['--font-family'] || 'Courier New, monospace';
+      const fontOpt = Array.from(selectFont.options).find(o => o.value === font);
+      if (fontOpt) selectFont.value = font;
+
+      const tapeStyle = vars['--tape-style'] || 'black-black-light';
+      const tapeOpt = Array.from(selectTapeStyle.options).find(o => o.value === tapeStyle);
+      if (tapeOpt) selectTapeStyle.value = tapeStyle;
+    }
+
+    function sendAllVars() {
+      CONTROLS.forEach(([el, cssVar, unit]) => sendVar(cssVar, el.value + unit));
+      sendVar('--font-family', selectFont.value);
+      sendVar('--tape-style', selectTapeStyle.value);
+    }
+
+    const CSS_PATH = 'src/overlays/frame-cassette-tape/main.css';
+
+    async function readMainCSS() {
+      if (window.tauri && window.tauri.invoke) {
+        return window.tauri.invoke('read_text_file', { path: CSS_PATH });
+      }
+      return fetch('./main.css?raw').then(r => r.text()).catch(() => '');
+    }
+
+    readMainCSS()
+      .then(css => { if (css) populateSlidersFromVars(parseCSSVars(css)); })
+      .catch(() => {})
+      .finally(() => {
+        previewFrame.addEventListener('load', sendAllVars, { once: true });
+        setTimeout(sendAllVars, 800);
+      });
+
+    function buildRootBlock(vars) {
+      return `:root {
+  --artist-color: ${pickerArtistColor.value};
+  --track-color: ${pickerSongColor.value};
+  --font-family: ${selectFont.value};
+  --artist-font-size: ${sliderArtistSize.value}px;
+  --song-font-size: ${sliderSongSize.value}px;
+  --tape-style: ${selectTapeStyle.value};
+  --label-hue: ${sliderLabelHue.value}deg;
+  --artist-position: ${sliderArtistPos.value}px;
+  --song-position: ${sliderSongPos.value}px;
+
+  /* Scroller tuning (read by common.js) */
+  --scroll-extra: ${vars['--scroll-extra'] || '0px'};
+  --scroll-start-offset: ${vars['--scroll-start-offset'] || '30px'};
+}`;
+    }
+
+    window.onSave = async function () {
+      let existingCSS = '';
+      try {
+        existingCSS = await readMainCSS();
+      } catch (e) {
+        alert('Could not read main.css before saving: ' + e);
+        return;
+      }
+      const existingVars = parseCSSVars(existingCSS);
+      const newRoot = buildRootBlock(existingVars);
+      const updated = existingCSS.replace(/:root\s*\{[^}]*\}/s, newRoot);
       if (window.tauri && window.tauri.invoke) {
         try {
-          await window.tauri.invoke("save_css_file", { path: cssPath, content: cssContent });
-          alert("CSS saved successfully!");
+          await window.tauri.invoke('save_css_file', { path: CSS_PATH, content: updated });
+          alert('Saved successfully!');
         } catch (e) {
-          alert("Failed to save CSS: " + e);
+          alert('Failed to save: ' + e);
         }
       } else {
-        alert("Tauri API not available. Please run inside the Tauri app.");
+        alert('Tauri API not available. Run inside the app to save.');
       }
     };
-    window.onBack = function() { history.back(); };
 
-    applyPreview();
-
+    window.onBack = function () { history.back(); };
   </script>
 
   <script type="module" src="../../js/editor-header-loader.js"></script>
+</body>
 </html>

@@ -9,6 +9,6 @@
   "editor": "editor.html",
   "preview": "preview.png",
   "description": "An animated equalizer bars visualizer with colorful spectrum display and dynamic moving bars.",
-  "obsSize": null,
+  "obsSize": { "width": 800, "height": 600 },
   "tags": ["visualizer", "animated", "equalizer"]
 }

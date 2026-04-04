@@ -1,0 +1,246 @@
+/* Program Window Now Playing Frame */
+/* OBS canvas: 1000 x 440px */
+
+:root {
+  --font-main: proxima-nova, sans-serif;
+  --artist-color: #ff8c00;
+  --artist-size: 47px;
+  --track-color: #8b4513;
+  --song-size: 57px;
+  --text-spacing: 30px;
+  --content-padding-left: 33px;
+  --content-margin-top: 0px;
+  --now-playing-color: #8b4513;
+  --now-playing-size: 40px;
+  --now-playing-margin-top: -7px;
+  --now-playing-padding-left: 0px;
+  --image-margin-top: 26px;
+  --image-size: 222px;
+  --image-margin-left: 110px;
+  --progress-bar-color: #ffc800;
+  --frame-hue: 0deg;
+  --frame-saturation: 100%;
+  --now-playing-text: "Now Playing...";
+  --scroll-extra: 0px;
+  --scroll-start-offset: 30px;
+}
+
+html {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body {
+  background: transparent;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: var(--font-main);
+  width: 1000px;
+  height: 440px;
+  position: relative;
+}
+
+/* Main background container */
+#background {
+  position: relative;
+  width: 1000px;
+  height: 440px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  transform: translateX(-40px);
+}
+
+/* Program window frame image */
+#frame-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  object-fit: contain;
+  filter: hue-rotate(var(--frame-hue)) saturate(var(--frame-saturation));
+}
+
+/* Now Playing text container */
+#now-playing-container {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 5;
+  overflow: hidden;
+  filter: var(--content-filter, none);
+}
+
+#now-playing-text {
+  margin: 0;
+  box-sizing: border-box;
+  height: 64px;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  line-height: normal;
+  padding: 0 20px;
+  margin-top: var(--now-playing-margin-top);
+  margin-left: 50px;
+  padding-left: var(--now-playing-padding-left);
+  font-family: var(--font-main);
+  font-size: var(--now-playing-size);
+  font-weight: 600;
+  color: var(--now-playing-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Album art wrapper */
+#image-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  overflow: visible;
+  margin-left: var(--image-margin-left);
+  margin-top: var(--image-margin-top);
+  z-index: 5;
+}
+
+/* Album art image */
+#image {
+  width: var(--image-size);
+  object-fit: cover;
+  border-radius: 16px;
+  display: block;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  border: 2px solid #522D05;
+  box-sizing: border-box;
+}
+
+/* Content container - text */
+#content {
+  flex: 1;
+  overflow: hidden;
+  padding: 0 40px 0 var(--content-padding-left);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: var(--content-margin-top);
+  z-index: 5;
+  filter: var(--content-filter, none);
+}
+
+/* Text box */
+#text-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  flex-grow: 1;
+  overflow: hidden;
+  text-align: left;
+}
+
+.text-clip {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.text-inner {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* Artist name */
+#artist {
+  text-transform: uppercase;
+  font-family: var(--font-main);
+  font-weight: 600;
+  font-size: var(--artist-size);
+  margin: 0 0 var(--text-spacing) 0;
+  margin-top: 40px;
+  color: var(--artist-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Song title */
+#song {
+  font-family: var(--font-main);
+  font-weight: bold;
+  font-size: var(--song-size);
+  margin: 0;
+  color: var(--track-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Scrolling span */
+#text-box span {
+  display: inline-block;
+  white-space: nowrap;
+  will-change: transform;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  transform: translateX(var(--marquee-start, 0));
+}
+
+/* Marquee animation */
+.marquee {
+  animation-name: marqueeAnim;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: var(--marquee-duration, 10s);
+}
+
+@keyframes marqueeAnim {
+  0% { transform: translateX(var(--marquee-start, 0)); }
+  100% { transform: translateX(var(--marquee-end, 0)); }
+}
+
+/* Progress bar */
+#progress-container {
+  position: absolute;
+  bottom: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 85%;
+  height: 20px;
+  background: #333;
+  border-radius: 4px;
+  z-index: 5;
+  overflow: visible;
+  filter: var(--content-filter, none);
+}
+
+#progress-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--progress-bar-color);
+  transition: width 0.1s ease;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+  border-radius: 4px;
+}
+
+#progress-bar::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  top: -5px;
+  width: 8px;
+  height: calc(100% + 10px);
+  background: var(--now-playing-color);
+  box-shadow: 1px 0 2px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}

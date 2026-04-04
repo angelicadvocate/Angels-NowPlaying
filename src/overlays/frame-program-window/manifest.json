@@ -9,6 +9,6 @@
   "editor": "editor.html",
   "preview": "preview.png",
   "description": "A desktop interface theme inspired by UI elements, window frames, and system fonts. Perfect for retro PC gaming.",
-  "obsSize": null,
+  "obsSize": { "width": 920, "height": 440 },
   "tags": ["retro", "desktop", "windows"]
 }

@@ -1,16 +1,18 @@
-// Angels Now Playing Widget - Common JavaScript Library v0.5.3
-// Minimal Now Playing script modeled after the reference example
-// Polls Song.json, updates DOM, and uses a JS margin-left scroller for long text.
+// Angels Now Playing Widget — common.js
+// Polls Tuna's HTTP endpoint for the current track, updates DOM,
+// scrolls long text, animates the progress bar, and supports ?edit=1 preview mode.
 (function () {
   const POLL_INTERVAL = 2000;
 
-  // Paths to Tuna output files. Overridden at startup from ../tuna-config.json if present.
-  let SONG_JSON_PATH = 'Song.json';
-  let ARTWORK_PNG_PATH = 'Artwork.png';
+  let TUNA_BASE_URL = 'http://localhost:1608';
 
   let newArtist = '';
   let newSong = '';
+  let newCoverUrl = '';
   let shown = false;
+
+  let lastDisplayedSong = null;
+  let lastDisplayedArtist = null;
 
   let lastProgress = 0;
   let lastUpdateTime = Date.now();
@@ -81,35 +83,26 @@
   function startScroll(el) {
     if (!el) return;
     stopScroll(el);
-  const $el = $(el);
-  // if a .text-clip exists, use it as the measurement container
-  const $parent = $el.closest('.text-clip').length ? $el.closest('.text-clip') : $el.parent();
-  const parentW = getEffectiveParentWidthElement($parent[0]);
-    // temporarily ensure the element is inline-block + nowrap so scrollWidth reports full intrinsic width
-    const prevDisplay = el.style.display;
-    const prevWhite = el.style.whiteSpace;
+    const $el = $(el);
+    const $parent = $el.closest('.text-clip').length ? $el.closest('.text-clip') : $el.parent();
+    const parentW = getEffectiveParentWidthElement($parent[0]);
     el.style.display = 'inline-block';
     el.style.whiteSpace = 'nowrap';
     const textW = el.scrollWidth || el.clientWidth || 0;
-    // startScroll: measurements logged only in dev backups
     if (textW <= parentW) return;
 
-    // Use transform-based requestAnimationFrame scroller to avoid layout thrashing from margin-left.
     const buffer = 24;
     const startOffset = getScrollStartOffset($parent[0]) || 30;
-    const startPos = parentW + startOffset; // pixels to position element off-right
-    const totalDistance = parentW + textW + buffer * 2; // total horizontal distance to travel
-    const durationSeconds = Math.max(5, totalDistance / 100); // speed heuristic: px per 100s
+    const startPos = parentW + startOffset;
+    const totalDistance = parentW + textW + buffer * 2;
+    const durationSeconds = Math.max(5, totalDistance / 100);
     const durMs = Math.round(durationSeconds * 1000);
 
     let rafId = null;
     let startTime = null;
     let running = true;
-    // store state in map so stopScroll can cancel
     _scrollers.set(el, { running: true, cancel: function() { running = false; if (rafId) cancelAnimationFrame(rafId); } });
 
-    // Prepare element for transform animation (GPU-accelerated)
-    // Reset any existing transform and ensure will-change for smoother motion
     try { el.style.transform = `translateX(${startPos}px)`; el.style.willChange = 'transform, opacity'; } catch (e) {}
 
     function step(ts) {
@@ -117,15 +110,11 @@
       if (!startTime) startTime = ts;
       const elapsed = ts - startTime;
       const t = Math.min(1, elapsed / durMs);
-      // linear timing
-      const currentX = startPos + (-(totalDistance) * t);
+      const currentX = startPos - totalDistance * t;
       try { el.style.transform = `translateX(${Math.round(currentX)}px)`; } catch (e) {}
       if (t < 1) {
         rafId = requestAnimationFrame(step);
       } else {
-        // completed one pass; debug log
-        // rAF pass complete
-        // reset and loop after tiny delay to avoid jank
         if (running) {
           startTime = null;
           try { el.style.transform = `translateX(${startPos}px)`; } catch (e) {}
@@ -134,14 +123,11 @@
       }
     }
 
-    // small timeout to allow layout settling
     setTimeout(function () { rafId = requestAnimationFrame(step); }, 40);
-    // when .stopScroll() is called, the _scrollers entry will be cleared and cancel() invoked
   }
 
   function stopScroll(el) {
     try {
-  // stopScroll called
       const info = _scrollers.get(el);
       if (info) {
         if (typeof info.cancel === 'function') info.cancel();
@@ -149,17 +135,14 @@
       }
       _scrollers.delete(el);
       if (el && el.style) {
-        // clear transform and will-change to restore normal layout
         try { el.style.transform = ''; el.style.willChange = ''; } catch (e) {}
         try { el.style.marginLeft = ''; } catch (e) {}
       }
-      // stop any jQuery animations as well (show/hide uses them)
       try { $(el).stop(true, true); } catch (e) {}
     } catch (e) { /* ignore */ }
   }
 
   function hideText() {
-  // hideText called
     $('#artist').animate({ marginLeft: '-100px', opacity: 0 }, 300);
     $('#song').animate({ marginLeft: '-100px', opacity: 0 }, 300);
     stopScroll(document.getElementById('artist'));
@@ -174,9 +157,8 @@
   function showText() {
     const artistEl = document.getElementById('artist');
     const songEl = document.getElementById('song');
-  // prefer measuring against the optional .text-clip ancestor so visible width matches progress bar
-  const clipEl = (artistEl && artistEl.closest && artistEl.closest('.text-clip')) || null;
-  const parentW = clipEl ? getEffectiveParentWidthElement(clipEl) : ((artistEl && artistEl.parentElement) ? getEffectiveParentWidthElement(artistEl.parentElement) : 260);
+    const clipEl = (artistEl && artistEl.closest && artistEl.closest('.text-clip')) || null;
+    const parentW = clipEl ? getEffectiveParentWidthElement(clipEl) : ((artistEl && artistEl.parentElement) ? getEffectiveParentWidthElement(artistEl.parentElement) : 260);
 
     // artist
     if (artistEl && artistEl.scrollWidth > parentW) {
@@ -210,53 +192,56 @@
   }
 
   function checkUpdate() {
-    // cache-busted GET for JSON
-    $.getJSON(SONG_JSON_PATH + '?t=' + Date.now()).done(function (data) {
+    $.getJSON(TUNA_BASE_URL + '?t=' + Date.now()).done(function (data) {
       try {
-        const artist = data && (data.album_artist || (data.artists && data.artists.join(', '))) || 'Unknown Artist';
-        const title = data && (data.title) || 'Unknown Track';
+        const artist = (data && (data.album_artist || (data.artists && data.artists.join(', ')))) || 'Unknown Artist';
+        const title = (data && data.title) || 'Unknown Track';
         const rawProgress = Number(data && data.progress) || 0;
         const rawDuration = Number(data && data.duration) || 0;
         const normalizedProgress = rawProgress > 1000 ? rawProgress / 1000 : rawProgress;
         const normalizedDuration = rawDuration > 1000 ? rawDuration / 1000 : rawDuration || 1;
 
-        // update progress bookkeeping
         lastProgress = normalizedProgress;
         currentDuration = normalizedDuration || 1;
         lastUpdateTime = Date.now();
 
         newArtist = artist;
         newSong = title;
+        newCoverUrl = (data && data.cover_url) || (TUNA_BASE_URL + '/cover.png');
 
         displayData();
-      } catch (e) {
-        // ignore parse errors
-      }
+      } catch (e) { /* ignore malformed response */ }
     }).fail(function () {
-      // ignore file:// blocking here; just retry next poll
+      // Tuna not running — retry silently next cycle.
     }).always(function () {
       setTimeout(checkUpdate, POLL_INTERVAL);
     });
   }
 
   function displayData() {
-    const curSong = document.getElementById('song') && document.getElementById('song').innerHTML;
-    if (newSong !== curSong) {
-  // displayData: new song changed
-      if (newSong && !shown) {
-        $('#background').animate({ marginLeft: '0px' }, 500);
-        shown = true;
-      }
-      if (!newSong && shown) {
-        $('#background').animate({ marginLeft: '-500px' }, 500);
-        shown = false;
-      }
+    const songChanged = newSong !== lastDisplayedSong;
+    const artistChanged = newArtist !== lastDisplayedArtist;
 
-      hideText();
-      setTimeout(updateText, 300);
-      setTimeout(showText, 400);
+    if (!songChanged && !artistChanged) return;
 
-      const imgpath = ARTWORK_PNG_PATH + '?t=' + encodeURIComponent(newSong + newArtist + Date.now());
+    lastDisplayedSong = newSong;
+    lastDisplayedArtist = newArtist;
+
+    if (newSong && !shown) {
+      $('#background').animate({ marginLeft: '0px' }, 500);
+      shown = true;
+    }
+    if (!newSong && shown) {
+      $('#background').animate({ marginLeft: '-500px' }, 500);
+      shown = false;
+    }
+
+    hideText();
+    setTimeout(updateText, 300);
+    setTimeout(showText, 400);
+
+    if (songChanged) {
+      const imgpath = newCoverUrl + (newCoverUrl.indexOf('?') === -1 ? '?' : '&') + 't=' + Date.now();
       $('#image').fadeOut(500, function () { $(this).attr('src', imgpath).fadeIn(500); });
     }
   }
@@ -271,17 +256,41 @@
   }
 
   function loadTunaConfig(callback) {
-    $.getJSON('../tuna-config.json?t=' + Date.now())
+    $.getJSON('../settings.json?t=' + Date.now())
       .done(function (cfg) {
-        if (cfg && cfg.song_json_path) SONG_JSON_PATH = cfg.song_json_path;
-        if (cfg && cfg.artwork_png_path) ARTWORK_PNG_PATH = cfg.artwork_png_path;
+        if (cfg && cfg.tuna_port) TUNA_BASE_URL = 'http://localhost:' + cfg.tuna_port;
       })
       .always(callback);
   }
 
+  // ── ?edit=1 mode ──────────────────────────────────────────────────────────────
+
+  const isEditMode = new URLSearchParams(location.search).get('edit') === '1';
+
+  if (isEditMode) {
+    window.addEventListener('message', function (e) {
+      if (e.data && e.data.type === 'setCSSVar') {
+        document.documentElement.style.setProperty(e.data.name, e.data.value);
+      }
+    });
+
+    $(document).ready(function () {
+      $('#artist').text('Sample Artist').css('opacity', 1);
+      $('#song').text('Sample Song Title').css('opacity', 1);
+      $('#image').attr('src', './SampleAlbum.png');
+      $('#background').css('margin-left', '0px');
+
+      lastProgress = 0.5;
+      currentDuration = 1;
+      lastUpdateTime = Date.now() - 500;
+      animateProgressBar();
+    });
+
+    return;
+  }
+
   $(document).ready(function () {
     loadTunaConfig(function () {
-      $('#image').attr('src', ARTWORK_PNG_PATH + '?t=' + Date.now());
       checkUpdate();
       animateProgressBar();
     });

@@ -1,3 +1,13 @@
+/* editor-common.css locks body to height:100vh + overflow:hidden.
+   Override so this page can scroll when the window is smaller than the content. */
+body {
+  box-sizing: border-box;
+  height: auto;
+  min-height: 100vh;
+  overflow-y: auto;
+  padding-bottom: 0;
+}
+
 /* Site wrapper - two-column layout: controls left/right, preview spans both below */
 #site {
   display: grid;
@@ -6,8 +16,7 @@
   align-items: start;
   justify-items: center;
   flex: 1;
-  overflow-y: auto;
-  padding: 40px 20px;
+  padding: 40px 20px 0;
 }
 
 /* Controls container */
@@ -52,142 +61,30 @@
   margin-top: 0px;
 }
 
-/* Sample preview section */
+/* Preview section — iframe replaces the old static #sample DOM */
 #sample {
   grid-column: 1 / -1;
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
-  text-align: left;
   margin-top: -40px;
 }
 
-
-/* Big container for album art + text */
-#background {
-  position: relative;
-  width: 1600px;
-  min-width: 1600px;
-  max-width: 1600px;
-  height: 130px;
-  background-image: url('./Frame4.png');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  border-radius: 0px;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  overflow: visible;
-}
-
-#image-wrapper {
-  position: relative;
-  flex-shrink: 0;
-  overflow: visible;
-  margin-left: 0;
-  padding-left: 0;
-  z-index: 5;
-}
-
-/* Flex container for image + text */
-#content {
-  flex: 1;
-  overflow: hidden;
-  padding: 0 20px 0 30px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-/* Album art image */
-#image {
-  width: 70px;
-  height: 70px;
-  object-fit: cover;
-  border-radius: 4px;
+/* The preview iframe renders at 2400×450 internally. The body in main.css uses
+   display:flex + justify-content:center so #background (1800px wide) sits centered,
+   giving 300px of horizontal clearance per side and ~150px of vertical room above
+   and below the 150px banner for large album art to overflow without clipping.
+   transform: scale(0.65) shrinks the iframe visually; margin-bottom compensates
+   for the layout space CSS transform does not reclaim:
+   height * (1 - scale) = 450 * 0.35 = 157.5px, negated to pull content up. */
+#preview-frame {
+  width: 1920px;
+  height: 250px;
+  border: none;
   display: block;
-}
-
-/* Text container next to album art */
-#text-box {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-width: 0;
-  flex-grow: 1;
-  overflow: hidden;
-  text-align: left;
-}
-
-#text-box p {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-#artist, #song {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin: 0;
-}
-
-/* Artist name styling */
-#artist {
-  text-transform: uppercase;
-  font-weight: 600;
-  font-size: 15px;
-  margin: 0 0 5px 0;
-  margin-left: 0;
-  margin-right: 0;
-  color: var(--highlight);
-}
-
-/* Song title styling */
-#song {
-  font-weight: bold;
-  font-size: 24px;
-  margin: 0;
-  margin-left: 0;
-  margin-right: 0;
-  color: white;
-}
-
-/* Visualizer preview styling */
-#visualizer {
-  position: absolute;
-  right: -72px; /* Shifted right a bit more */
-  top: 50%;
-  transform: translateY(-50%); /* Center vertically */
-  width: 1287px; /* 715px * 1.8 = 1287px */
-  height: 135px; /* 75px * 1.8 = 135px */
-  object-fit: cover;
-  opacity: 0.7;
-  pointer-events: none;
-  z-index: 2;
-}
-
-/* Progress bar preview styling */
-#progress-container {
-  width: 240px; /* Reduced from 600px (600/2.5=240) */
-  height: 8px;
-  position: absolute;
-  left: 150px; /* Start to the right of the image area */
-  bottom: 15px;
-  background-color: rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-#progress-bar {
-  height: 100%;
-  background-color: var(--highlight);
-  width: 50%; /* Static 50% fill for preview */
-  transition: background-color 0.3s ease;
-  border-radius: 4px;
+  background: transparent;
+  transform: scale(0.85);
+  transform-origin: top center;
+  margin-bottom: -0px;
 }

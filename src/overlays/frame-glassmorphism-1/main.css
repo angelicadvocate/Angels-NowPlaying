@@ -1,0 +1,220 @@
+/* F5 - Glassmorphism 1 */
+/* OBS canvas: 800 x 180px */
+
+:root {
+  --text-color: #ffffff;
+  --progress-bar-color: #ffffff;
+  --font-main: proxima-nova, sans-serif;
+  --artist-size: 40px;
+  --song-size: 49px;
+  --text-spacing: 2px;
+  --image-size: 242px;
+  --content-padding-left: 10px;
+  --image-margin-left: -113px;
+  --image-vertical-offset: 0px;
+  --text-vertical-offset: -10px;
+  --progress-bar-offset: 20px;
+  --scroll-extra: 0px;
+  --scroll-start-offset: 30px;
+}
+
+html {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body {
+  background: transparent;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: var(--font-main);
+  position: relative;
+}
+
+/* Blurred album art background */
+#album-art-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 90px;
+  filter: blur(20px) brightness(0.7);
+  z-index: 0;
+  clip-path: inset(0 round 90px);
+}
+
+/* Pill-shaped container */
+#background {
+  position: relative;
+  width: 800px;
+  min-width: 800px;
+  max-width: 800px;
+  height: 180px;
+  border-radius: 90px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: visible;
+  z-index: 1;
+  transform: translateX(56px);
+}
+
+/* Frosted glass overlay */
+#glass-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 6px 16px 0 rgba(31, 38, 135, 0.18);
+  border-radius: 90px;
+  clip-path: inset(0 round 90px);
+  z-index: 1;
+}
+
+/* Content wrapper */
+#content-wrapper {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Image wrapper */
+#image-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  overflow: visible;
+  margin-left: var(--image-margin-left);
+  transform: translateY(var(--image-vertical-offset));
+  z-index: 5;
+}
+
+/* Album art */
+#image {
+  width: var(--image-size);
+  height: var(--image-size);
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.45);
+}
+
+/* Content area */
+#content {
+  flex: 1;
+  overflow: hidden;
+  padding: 0 20px 0 var(--content-padding-left);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  transform: translateY(var(--text-vertical-offset));
+}
+
+/* Text container */
+#text-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  flex-grow: 1;
+  overflow: hidden;
+  text-align: left;
+}
+
+.text-clip {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.text-row { display: block; }
+.text-inner { display: inline-block; white-space: nowrap; }
+
+#artist,
+#song {
+  position: relative;
+  margin: 0;
+}
+
+/* Artist name */
+#artist {
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: var(--artist-size);
+  margin-bottom: var(--text-spacing);
+  color: var(--text-color);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.55);
+}
+
+/* Song title */
+#song {
+  font-weight: bold;
+  font-size: var(--song-size);
+  color: var(--text-color);
+  margin: 0;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+}
+
+p {
+  white-space: nowrap;
+}
+
+/* Scrolling span */
+#text-box span {
+  display: inline-block;
+  white-space: nowrap;
+  will-change: transform;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  transform: translateX(var(--marquee-start, 0));
+}
+
+/* Marquee animation */
+.marquee {
+  animation-name: marqueeAnim;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: var(--marquee-duration, 10s);
+}
+
+@keyframes marqueeAnim {
+  0% { transform: translateX(var(--marquee-start, 0)); }
+  100% { transform: translateX(var(--marquee-end, 0)); }
+}
+
+/* Progress bar */
+#progress-container {
+  position: absolute;
+  bottom: var(--progress-bar-offset);
+  left: calc(var(--image-margin-left) + var(--image-size) + var(--content-padding-left));
+  width: calc(100% - var(--image-margin-left) - var(--image-size) - var(--content-padding-left) - 60px);
+  height: 16px;
+  background-color: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  border-radius: 10px;
+  z-index: 9999;
+}
+
+#progress-bar {
+  height: 100%;
+  width: 0%;
+  background-color: var(--progress-bar-color);
+  transition: width 0.3s linear;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.45);
+  border-radius: 6px;
+}

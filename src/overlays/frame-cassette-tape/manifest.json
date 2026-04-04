@@ -9,6 +9,6 @@
   "editor": "editor.html",
   "preview": "preview.png",
   "description": "A retro cassette tape layout with animated winding reels and classic tape styling. Great for retro and synthwave streams.",
-  "obsSize": null,
+  "obsSize": { "width": 880, "height": 570 },
   "tags": ["retro", "cassette", "animated"]
 }

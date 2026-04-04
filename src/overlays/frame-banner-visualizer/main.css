@@ -8,23 +8,42 @@
   --f4-width: 1800px;
   --f4-height: 150px;
   --highlight: hsl(221, 82%, 58%);
-  --font-main: "proxima-nova", sans-serif;
-  --scroll-extra: 40; /* px added to overflow calculation for marquee */
-  --scroll-start-offset: 30; /* px to start the scroller off-screen */
-  --visualizer-opacity: 0.7; /* opacity of the visuals over the background */
-  /* Progress bar measured in pixels relative to the text box */
-  --progress-width-px: 450px; /* target pixel width of the progress bar */
-  --progress-left-px: 0px;    /* left margin offset inside the text-box */
-  --text-left-px: 0px;        /* left margin for visible text (independent of progress bar) */
-  --text-start-offset: 0px;   /* the margin-left reset used when text is not scrolling */
+  --artist-color: hsl(221, 82%, 58%);
+  --accent-hex: #3b82f6;
+  --font-main: proxima-nova, sans-serif;
+  --artist-size: 15px;
+  --song-size: 24px;
+  --text-spacing: 5px;
+  --image-size: 120px;
+  --image-padding: 20px;
+  --content-padding-left: 30px;
+  --text-vertical-offset: 0px;
+  --scroll-extra: 40px;
+  --scroll-start-offset: 30px;
+  --visualizer-opacity: 0.7;
+  --progress-width-px: 450px;
+  --progress-left-px: 0px;
+  --text-left-px: 0px;
+  --text-start-offset: 0px;
 }
 
-html,body{
-  margin:0;
-  padding:0;
-  height:100%;
-  font-family:var(--font-main);
-  background:transparent; /* OBS will composite over scene */
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100%;
+  font-family: var(--font-main);
+  background: transparent;
+  overflow: visible;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 #background{
@@ -39,6 +58,12 @@ html,body{
   background-size: contain;
   box-sizing:border-box;
   display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  overflow:visible;
+  transform: scale(0.8);
+  transform-origin: center center;
   align-items:center;
   justify-content:center;
   padding:0;
@@ -78,25 +103,25 @@ html,body{
   transition: width 0.1s linear;
 }
 
-/* Album art */
 #image{
-  width:120px;
-  height:120px;
+  width:var(--image-size);
+  height:var(--image-size);
   object-fit:cover;
   border-radius:4px;
   display:block;
-  margin-left:20px;
+  margin-left:var(--image-padding);
   z-index:40;
 }
 
 #content{
   flex:1;
   overflow:hidden;
-  padding:0 20px 0 30px;
+  padding:0 20px 0 var(--content-padding-left);
   box-sizing:border-box;
   display:flex;
   flex-direction:row;
   align-items:center;
+  transform:translateY(var(--text-vertical-offset));
   z-index:40;
 }
 
@@ -133,14 +158,14 @@ html,body{
 #artist{
   text-transform:uppercase;
   font-weight:600;
-  font-size:15px;
-  margin:0 0 5px 0;
+  font-size:var(--artist-size);
+  margin:0 0 var(--text-spacing) 0;
   color:var(--highlight);
 }
 
 #song{
   font-weight:bold;
-  font-size:24px;
+  font-size:var(--song-size);
   margin:0;
   color:white;
 }

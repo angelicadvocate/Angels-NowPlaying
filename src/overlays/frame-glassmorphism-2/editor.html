@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EditorV2-Frame6</title>
+  <title>Glassmorphism 2 — Editor</title>
   <link rel="stylesheet" href="../../css/editor_pages/editor-header.css" />
   <link rel="stylesheet" href="./editor.css" />
   <link rel="stylesheet" href="../../css/editor_pages/editor-common.css" />
@@ -11,7 +11,7 @@
 </head>
 <body>
     <!-- Dynamic header placeholder -->
-    <div id="header-root" data-src="../../editor_pages/editor-header.html" data-page-title="Frame 6 - Glassmorphism 2"></div>
+    <div id="header-root" data-src="../../editor_pages/editor-header.html" data-page-title="Glassmorphism 2"></div>
 
     <main id="site">
     <div class="controls-grid">
@@ -29,10 +29,10 @@
         </select>
 
         <label for="artistFontSize" class="info">Artist Font Size</label>
-        <input type="range" min="8" max="24" value="17" class="slider" id="artistFontSize">
+        <input type="range" min="16" max="74" value="34" class="slider" id="artistFontSize">
 
         <label for="trackFontSize" class="info">Track Font Size</label>
-        <input type="range" min="12" max="32" value="24" class="slider" id="trackFontSize">
+        <input type="range" min="24" max="74" value="48" class="slider" id="trackFontSize">
 
         <label for="textColor" class="info">Text Color</label>
         <div class="color-picker-container">
@@ -41,23 +41,17 @@
             <code id="textColorCode">#FFFFFF</code>
           </div>
         </div>
-
-        <label for="spacing" class="info">Text Vertical Spacing</label>
-        <input type="range" min="-8" max="20" value="4" class="slider" id="spacing">
       </div>
 
       <div class="controls-column">
-        <label for="imageSize" class="info">Album Art Size</label>
-        <input type="range" min="40" max="150" value="125" class="slider" id="imageSize">
-
-        <label for="imagePadding" class="info">Image Left Padding</label>
-        <input type="range" min="-50" max="50" value="0" class="slider" id="imagePadding">
+        <label for="spacing" class="info">Text Vertical Spacing</label>
+        <input type="range" min="-8" max="20" value="4" class="slider" id="spacing">
 
         <label for="textVerticalOffset" class="info">Text Vertical Position</label>
-        <input type="range" min="-30" max="30" value="-10" class="slider" id="textVerticalOffset">
+        <input type="range" min="-40" max="80" value="-10" class="slider" id="textVerticalOffset">
 
         <label for="progressBarOffset" class="info">Progress Bar Vertical Position</label>
-        <input type="range" min="-30" max="30" value="0" class="slider" id="progressBarOffset">
+        <input type="range" min="-180" max="60" value="0" class="slider" id="progressBarOffset">
 
         <label for="progressBarColor" class="info">Progress Bar Color</label>
         <div class="color-picker-container">
@@ -70,268 +64,160 @@
     </div>
 
     <section id="sample">
-      <div id="background">
-        <!-- Album art image as background -->
-        <img id="album-art" src="./SampleAlbum.png" alt="Album Art" />
-        <!-- Frosted glass pill-shaped container -->
-        <div id="glass-container">
-          <!-- Text box -->
-          <div id="content">
-            <div id="text-box">
-              <p id="artist">Sample Artist</p>
-              <p id="song">Sample Song Title</p>
-            </div>
-          </div>
-          <!-- Progress bar -->
-          <div id="progress-container">
-            <div id="progress-bar"></div>
-          </div>
-        </div>
-      </div>
+      <iframe id="preview-frame" src="./main.html?edit=1" scrolling="no" title="Overlay preview"></iframe>
     </section>
   </main>
 
   <script>
-    const fontFamily = document.getElementById("fontFamily");
-    const textColor = document.getElementById("textColor");
-    const progressBarColor = document.getElementById("progressBarColor");
-    const spacing = document.getElementById("spacing");
-    const textVerticalOffset = document.getElementById("textVerticalOffset");
-    const progressBarOffset = document.getElementById("progressBarOffset");
-    const artistFontSize = document.getElementById("artistFontSize");
-    const trackFontSize = document.getElementById("trackFontSize");
-    
-    const artistEl = document.getElementById("artist");
-    const songEl = document.getElementById("song");
+    const fontFamily        = document.getElementById('fontFamily');
+    const textColor         = document.getElementById('textColor');
+    const textColorCode     = document.getElementById('textColorCode');
+    const progressBarColor  = document.getElementById('progressBarColor');
+    const progressBarColorCode = document.getElementById('progressBarColorCode');
+    const spacing           = document.getElementById('spacing');
+    const artistFontSize    = document.getElementById('artistFontSize');
+    const trackFontSize     = document.getElementById('trackFontSize');
+    const textVerticalOffset    = document.getElementById('textVerticalOffset');
+    const progressBarOffset     = document.getElementById('progressBarOffset');
+    const previewFrame      = document.getElementById('preview-frame');
 
-    let fontFamilyValue = fontFamily.value;
-    let textColorValue = textColor.value || "#ffffff";
-    let progressBarColorValue = progressBarColor.value || "#ffffff";
-    let spacingValue = spacing.value;
-    let textVerticalOffsetValue = textVerticalOffset.value;
-    let progressBarOffsetValue = progressBarOffset.value;
-    let artistFontSizeValue = artistFontSize.value;
-    let trackFontSizeValue = trackFontSize.value;
-
-    const scale = 2;
-
-    function applyPreview() {
-      // Apply font family
-      artistEl.style.fontFamily = fontFamilyValue;
-      songEl.style.fontFamily = fontFamilyValue;
-      
-      // Apply font sizes
-      artistEl.style.fontSize = artistFontSizeValue + "px";
-      songEl.style.fontSize = trackFontSizeValue + "px";
-      
-      // Apply text color
-      artistEl.style.color = textColorValue;
-      songEl.style.color = textColorValue;
-      
-      // Apply spacing
-      artistEl.style.marginBottom = spacingValue + "px";
-      
-      // Display hex color code
-      document.getElementById("textColorCode").textContent = textColorValue.toUpperCase();
-      
-      // Apply progress bar color
-      const progressBar = document.getElementById('progress-bar');
-      if (progressBar) {
-        progressBar.style.backgroundColor = progressBarColorValue;
-      }
-      document.getElementById("progressBarColorCode").textContent = progressBarColorValue.toUpperCase();
-      
-      // Apply text vertical offset
-      const content = document.getElementById('content');
-      content.style.transform = `translateY(${textVerticalOffsetValue}px)`;
-      
-      // Apply progress bar offset
-      const progressContainer = document.getElementById('progress-container');
-      if (progressContainer) {
-        progressContainer.style.transform = `translateY(${progressBarOffsetValue}px)`;
+    // --- Send a CSS variable to the preview iframe ---
+    function sendVar(name, value) {
+      if (previewFrame && previewFrame.contentWindow) {
+        previewFrame.contentWindow.postMessage({ type: 'setCSSVar', name, value }, '*');
       }
     }
 
-    function generateCSS() {
-      return `
-/* F6 - Glassmorphism Layout */
+    // --- Standard slider controls (value → px var) ---
+    const CONTROLS = [
+      [artistFontSize,     '--artist-size',         'px'],
+      [trackFontSize,      '--song-size',            'px'],
+      [spacing,            '--text-spacing',         'px'],
+      [textVerticalOffset, '--text-vertical-offset', 'px'],
+      [progressBarOffset,  '--progress-bar-offset',  'px'],
+    ];
 
-:root {
-  --text-color: ${textColorValue};
-  --progress-bar-color: ${progressBarColorValue};
-  --font-main: ${fontFamilyValue};
-}
+    CONTROLS.forEach(([el, cssVar, unit]) => {
+      el.addEventListener('input', () => sendVar(cssVar, el.value + unit));
+    });
 
-/* Reset and base styles */
-body {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  font-family: var(--font-main);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
+    textColor.addEventListener('input', () => {
+      sendVar('--text-color', textColor.value);
+      textColorCode.textContent = textColor.value.toUpperCase();
+    });
 
-/* Main background container */
-#background {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+    progressBarColor.addEventListener('input', () => {
+      sendVar('--progress-bar-color', progressBarColor.value);
+      progressBarColorCode.textContent = progressBarColor.value.toUpperCase();
+    });
 
-/* Frosted glass pill-shaped container */
-#glass-container {
-  width: ${400 * scale}px;
-  padding: ${20 * scale}px ${30 * scale}px;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: ${50 * scale}px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
+    fontFamily.addEventListener('change', () => sendVar('--font-main', fontFamily.value));
 
-/* Text content container */
-#content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  width: 100%;
-  transform: translateY(${textVerticalOffsetValue * scale}px);
-}
-
-/* Text box */
-#text-box {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-  overflow: hidden;
-  width: 100%;
-}
-
-/* Artist name styling */
-#artist {
-  text-transform: uppercase;
-  font-weight: 600;
-  font-size: ${artistFontSizeValue * scale}px;
-  margin: 0 0 ${spacingValue * scale}px 0;
-  color: var(--text-color);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Song title styling */
-#song {
-  font-weight: bold;
-  font-size: ${trackFontSizeValue * scale}px;
-  margin: 0;
-  color: var(--text-color);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Progress bar container */
-#progress-container {
-  width: 100%;
-  height: ${8 * scale}px;
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
-  overflow: hidden;
-  margin-top: ${10 * scale}px;
-  transform: translateY(${progressBarOffsetValue * scale}px);
-}
-
-#progress-bar {
-  height: 100%;
-  width: 0%;
-  background-color: var(--progress-bar-color);
-  transition: width 0.3s linear;
-}
-      `.trim();
-    }
-
-    function downloadCSS(filename, content) {
-      const blob = new Blob([content], {type: "text/css"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }, 0);
-    }
-
-    // Event listeners for sliders
-    [spacing, textVerticalOffset, progressBarOffset, artistFontSize, trackFontSize].forEach((slider) => {
-      slider.addEventListener("input", (e) => {
-        if (e.target === spacing) spacingValue = e.target.value;
-        if (e.target === textVerticalOffset) textVerticalOffsetValue = e.target.value;
-        if (e.target === progressBarOffset) progressBarOffsetValue = e.target.value;
-        if (e.target === artistFontSize) artistFontSizeValue = e.target.value;
-        if (e.target === trackFontSize) trackFontSizeValue = e.target.value;
-        applyPreview();
+    // --- Parse :root block from main.css ---
+    function parseCSSVars(cssText) {
+      const vars = {};
+      const m = cssText.match(/:root\s*\{([^}]*)\}/s);
+      if (!m) return vars;
+      m[1].split('\n').forEach(line => {
+        const lm = line.match(/^\s*(--[\w-]+)\s*:\s*(.+?)\s*;/);
+        if (lm) vars[lm[1]] = lm[2].trim();
       });
-    });
+      return vars;
+    }
 
-    // Font family event listener
-    fontFamily.addEventListener("change", (e) => {
-      fontFamilyValue = e.target.value;
-      applyPreview();
-    });
+    function populateSlidersFromVars(vars) {
+      function px(name, fallback) {
+        const v = vars[name] || '';
+        const m = v.match(/(-?\d+\.?\d*)/);
+        return m ? parseFloat(m[1]) : fallback;
+      }
+      artistFontSize.value     = px('--artist-size', 34);
+      trackFontSize.value      = px('--song-size', 48);
+      spacing.value            = px('--text-spacing', 4);
+      textVerticalOffset.value = px('--text-vertical-offset', -10);
+      progressBarOffset.value  = px('--progress-bar-offset', 0);
 
-    // Text color event listener
-    textColor.addEventListener("input", (e) => {
-      textColorValue = e.target.value;
-      applyPreview();
-    });
+      const tcVal = vars['--text-color'] || '#ffffff';
+      textColor.value = tcVal;
+      textColorCode.textContent = tcVal.toUpperCase();
 
-    // Progress bar color event listener
-    progressBarColor.addEventListener("input", (e) => {
-      progressBarColorValue = e.target.value;
-      applyPreview();
-    });
+      const pbcVal = vars['--progress-bar-color'] || '#ffffff';
+      progressBarColor.value = pbcVal;
+      progressBarColorCode.textContent = pbcVal.toUpperCase();
 
-    applyPreview();
+      const font = vars['--font-main'] || 'proxima-nova, sans-serif';
+      const opt = Array.from(fontFamily.options).find(o => o.value === font);
+      if (opt) fontFamily.value = font;
+    }
 
-    // Expose page-specific header callbacks for dynamic header
-    window.onSave = async function() {
-      applyPreview();
-      const cssContent = generateCSS();
-      const cssPath = "src/overlays/frame-glassmorphism-2/main.css";
+    function sendAllVars() {
+      CONTROLS.forEach(([el, cssVar, unit]) => sendVar(cssVar, el.value + unit));
+      sendVar('--text-color', textColor.value);
+      textColorCode.textContent = textColor.value.toUpperCase();
+      sendVar('--progress-bar-color', progressBarColor.value);
+      progressBarColorCode.textContent = progressBarColor.value.toUpperCase();
+      sendVar('--font-main', fontFamily.value);
+    }
+
+    const CSS_PATH = 'src/overlays/frame-glassmorphism-2/main.css';
+
+    async function readMainCSS() {
+      if (window.tauri && window.tauri.invoke) {
+        return window.tauri.invoke('read_text_file', { path: CSS_PATH });
+      }
+      return fetch('./main.css?raw').then(r => r.text()).catch(() => '');
+    }
+
+    readMainCSS()
+      .then(css => { if (css) populateSlidersFromVars(parseCSSVars(css)); })
+      .catch(() => {})
+      .finally(() => {
+        previewFrame.addEventListener('load', sendAllVars, { once: true });
+        setTimeout(sendAllVars, 800);
+      });
+
+    // --- Build :root block for saving ---
+    function buildRootBlock(vars) {
+      return `:root {
+  --text-color: ${textColor.value};
+  --progress-bar-color: ${progressBarColor.value};
+  --font-main: ${fontFamily.value};
+  --artist-size: ${artistFontSize.value}px;
+  --song-size: ${trackFontSize.value}px;
+  --text-spacing: ${spacing.value}px;
+  --text-vertical-offset: ${textVerticalOffset.value}px;
+  --progress-bar-offset: ${progressBarOffset.value}px;
+  --scroll-extra: ${vars['--scroll-extra'] || '0px'};
+  --scroll-start-offset: ${vars['--scroll-start-offset'] || '30px'};
+}`;
+    }
+
+    // --- Save ---
+    window.onSave = async function () {
+      let existingCSS = '';
+      try {
+        existingCSS = await readMainCSS();
+      } catch (e) {
+        alert('Could not read main.css before saving: ' + e);
+        return;
+      }
+      const existingVars = parseCSSVars(existingCSS);
+      const newRoot = buildRootBlock(existingVars);
+      const updated = existingCSS.replace(/:root\s*\{[^}]*\}/s, newRoot);
+
       if (window.tauri && window.tauri.invoke) {
         try {
-          await window.tauri.invoke("save_css_file", { path: cssPath, content: cssContent });
-          alert("CSS saved successfully!");
+          await window.tauri.invoke('save_css_file', { path: CSS_PATH, content: updated });
+          alert('Saved successfully!');
         } catch (e) {
-          alert("Failed to save CSS: " + e);
+          alert('Failed to save: ' + e);
         }
       } else {
-        alert("Tauri API not available. Please run inside the Tauri app.");
+        alert('Tauri API not available. Please run inside the Tauri app.');
       }
     };
-    window.onBack = function() { history.back(); };
 
+    window.onBack = function () { history.back(); };
   </script>
 
   <script type="module" src="../../js/editor-header-loader.js"></script>

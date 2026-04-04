@@ -10,6 +10,15 @@
   --label-hue: 0deg;
   --artist-position: 0px;
   --song-position: 0px;
+
+  /* Scroller tuning (read by common.js) */
+  /* 9999px disables scrolling on this overlay — text truncates with ellipsis instead */
+  --scroll-extra: 9999px;
+  --scroll-start-offset: 30px;
+
+  /* Long-title mode: left-align past the INDEX artwork text.
+     Tune this to line up the start of text with the end of the INDEX graphic. */
+  --song-index-offset: 80px;
 }
 
 /* Reset and base styles */
@@ -28,8 +37,8 @@ body {
 /* Cassette wrapper - main container */
 #cassette-wrapper {
   position: relative;
-  width: 600px;
-  height: 400px;
+  width: 800px;
+  height: 560px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -41,6 +50,7 @@ body {
   display: block;
   z-index: 5;
   opacity: 1;
+  filter: hue-rotate(var(--label-hue, 0deg));
 }
 
 /* Cassette label layer */
@@ -49,14 +59,13 @@ body {
   top: 0;
   left: -34px;
   height: 560px;
-  display: none;
+  display: block;
   z-index: 6;
   opacity: 1;
-  filter: hue-rotate(var(--label-hue, 0deg));
 }
 
 /* Tape layers container */
-#tape-layers {
+#tape-wrapper {
   position: absolute;
   top: 42px;
   left: 28px;
@@ -97,6 +106,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
+  overflow: hidden; /* clip boundary for long-title mode — keeps text inside cassette area */
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -112,8 +122,8 @@ body {
   text-transform: uppercase;
   font-weight: 600;
   color: var(--artist-color);
-  margin-top: var(--artist-position);
   margin: 0;
+  margin-top: var(--artist-position);
   font-family: var(--font-family);
   font-size: var(--artist-font-size);
   white-space: nowrap;
@@ -134,7 +144,18 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
+  box-sizing: border-box;
   text-align: center;
+}
+
+/* Long-title mode: left-aligned, offset past the INDEX artwork text.
+   overflow:visible lets #text-overlay handle clipping so JS SONG_LONG_MAX
+   is the sole truncation controller (not the element's reduced content-box). */
+#song.song-long {
+  text-align: left;
+  padding-left: var(--song-index-offset);
+  overflow: visible;
+  text-overflow: clip;
 }
 
 /* Text box wrapper */

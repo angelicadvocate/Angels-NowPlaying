@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EditorV2-Frame8-Vinyl</title>
+  <title>Retro Vinyl — Editor</title>
   <link rel="stylesheet" href="../../css/editor_pages/editor-header.css" />
-  <link rel="stylesheet" href="./editor.css" />
   <link rel="stylesheet" href="../../css/editor_pages/editor-common.css" />
+  <link rel="stylesheet" href="./editor.css" />
   <script type="module" src="../../js/tauri.js"></script>
 </head>
 <body>
     <!-- Dynamic header placeholder -->
-    <div id="header-root" data-src="../../editor_pages/editor-header.html" data-page-title="Frame 8 - Retro Vinyl"></div>
+    <div id="header-root" data-src="../../editor_pages/editor-header.html" data-page-title="Retro Vinyl"></div>
 
     <main id="site">
     <section id="controls">
       <label for="fontFamily" class="info">Font Family</label>
       <select id="fontFamily" class="dropdown">
-        <option value="proxima-nova, sans-serif" selected>Proxima Nova</option>
+        <option value="proxima-nova, sans-serif">Proxima Nova</option>
         <option value="Comic Sans MS, cursive">Comic Sans MS</option>
         <option value="Brush Script MT, cursive">Brush Script MT</option>
         <option value="Georgia, serif">Georgia</option>
@@ -28,159 +28,182 @@
       </select>
 
       <label for="artist_name" class="info">Artist Name Size</label>
-      <input type="range" min="12" max="48" value="24" class="slider" id="artist_name"> 
+      <input type="range" min="12" max="84" value="48" class="slider" id="artist_name">
 
       <label for="track_title" class="info">Track Title Size</label>
-      <input type="range" min="16" max="50" value="30" class="slider" id="track_title">  
+      <input type="range" min="16" max="84" value="60" class="slider" id="track_title">
 
-      <label for="textColor" class="info">Text Color</label>
+      <label for="spacing" class="info">Text Vertical Spacing</label>
+      <input type="range" min="-8" max="20" value="10" class="slider" id="spacing">
+
+      <label for="contentOffset" class="info">Text Vertical Position</label>
+      <input type="range" min="-300" max="600" value="272" class="slider" id="contentOffset">
+
+      <label for="accentColor" class="info">Accent Color (Artist)</label>
+      <div class="color-picker-container">
+        <input type="color" id="accentColor" class="color-picker" value="#377dff">
+        <div id="accentColorDisplay" class="color-code-overlay"><code id="accentColorCode">#377DFF</code></div>
+      </div>
+
+      <label for="textColor" class="info">Text Color (Song Title)</label>
       <div class="color-picker-container">
         <input type="color" id="textColor" class="color-picker" value="#ffffff">
         <div id="textColorDisplay" class="color-code-overlay"><code id="textColorCode">#FFFFFF</code></div>
       </div>
-
-      <label for="accentColor" class="info">Accent Color</label>
-      <div class="color-picker-container">
-        <input type="color" id="accentColor" class="color-picker" value="#ff2a2a">
-        <div id="accentColorDisplay" class="color-code-overlay"><code id="accentColorCode">#FF2A2A</code></div>
-      </div>
-
-      <label for="contentOffset" class="info">Text Vertical Offset</label>
-      <input type="range" min="-290" max="290" value="136" class="slider" id="contentOffset">
-
-      <label for="spacing" class="info">Text Vertical Spacing</label>
-      <input type="range" min="-8" max="20" value="0" class="slider" id="spacing">
     </section>
 
     <section id="sample">
-      <div id="background">
-        <!-- Preview Album Art Background (centered in container) -->
-        <div id="album-art-container">
-          <img id="image" src="./SampleAlbum.png" alt="Album Art" />
-        </div>
-        <!-- Vinyl Elements (centered in container) -->
-        <div id="vinyl-container">
-          <img id="vinyl-record" src="./vinyl_base.png" alt="Vinyl Record" />
-        </div>
-
-        <!-- Common Content -->
-        <div id="content">
-          <div id="text-box">
-            <p id="artist">Sample Artist</p>
-            <p id="song">Sample Song Title</p>
-          </div>
-        </div>
-      </div>
+      <!-- Live preview: main.html loaded in ?edit=1 mode so it skips Tuna polling
+           and listens for postMessage CSS variable updates from this editor. -->
+      <iframe id="preview-frame" src="./main.html?edit=1" scrolling="no" title="Overlay preview"></iframe>
     </section>
     </main>
 
   <script>
-    // Input elements
-    const artistSize = document.getElementById("artist_name");
-    const songSize = document.getElementById("track_title");
-    const textColor = document.getElementById("textColor");
-    const accentColor = document.getElementById("accentColor");
-    const contentOffset = document.getElementById("contentOffset");
-    const fontFamily = document.getElementById("fontFamily");
-    const spacing = document.getElementById("spacing");
-    
-    // Storage keys
-    const STORAGE_KEY = 'F8EditorSettings';
-    
-    // Load settings from localStorage on page load
-    function loadSettings() {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const settings = JSON.parse(saved);
-        artistSize.value = settings.artistSize || "24";
-        songSize.value = settings.songSize || "30";
-        textColor.value = settings.textColor || "#ffffff";
-        accentColor.value = settings.accentColor || "#ff2a2a";
-        contentOffset.value = settings.contentOffset || "136";
-        fontFamily.value = settings.fontFamily || "proxima-nova, sans-serif";
-        spacing.value = settings.spacing || "8";
-        applyPreview();
+    const sliderArtistSize = document.getElementById('artist_name');
+    const sliderSongSize   = document.getElementById('track_title');
+    const sliderSpacing    = document.getElementById('spacing');
+    const sliderTextOffset = document.getElementById('contentOffset');
+    const pickerAccent     = document.getElementById('accentColor');
+    const pickerText       = document.getElementById('textColor');
+    const selectFont       = document.getElementById('fontFamily');
+    const codeAccent       = document.getElementById('accentColorCode');
+    const codeText         = document.getElementById('textColorCode');
+    const previewFrame     = document.getElementById('preview-frame');
+
+    // Map: element → [CSS var name, unit suffix]
+    const CONTROLS = [
+      [sliderArtistSize, '--artist-size',         'px'],
+      [sliderSongSize,   '--song-size',            'px'],
+      [sliderSpacing,    '--text-spacing',         'px'],
+      [sliderTextOffset, '--text-vertical-offset', 'px'],
+      [pickerAccent,     '--accent-color',         ''],
+      [pickerText,       '--text-color',           ''],
+    ];
+
+    function sendVar(name, value) {
+      if (previewFrame && previewFrame.contentWindow) {
+        previewFrame.contentWindow.postMessage({ type: 'setCSSVar', name, value }, '*');
       }
     }
-    
-    // Save settings to localStorage
-    function saveSettings() {
-      const settings = {
-        artistSize: artistSize.value,
-        songSize: songSize.value,
-        textColor: textColor.value,
-        accentColor: accentColor.value,
-        contentOffset: contentOffset.value,
-        fontFamily: fontFamily.value,
-        spacing: spacing.value
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-    }
-    
-    // Apply preview
-    function applyPreview() {
-      const artist = document.getElementById("artist");
-      const song = document.getElementById("song");
-      const content = document.getElementById("content");
-      
-      artist.style.fontSize = artistSize.value + 'px';
-      artist.style.color = accentColor.value;
-      artist.style.fontFamily = fontFamily.value;
-      // Horizontal spacing between artist and song (applies as bottom margin on artist)
-      artist.style.marginBottom = (spacing ? spacing.value : 8) + 'px';
-      song.style.fontSize = songSize.value + 'px';
-      song.style.color = textColor.value;
-      song.style.fontFamily = fontFamily.value;
-      content.style.transform = `translateY(${contentOffset.value}px)`;
 
-        // update badges
-        updateColorBadges();
-    }
-
-      // Update hex badges when preview updates
-      function updateColorBadges() {
-        const t = document.getElementById('textColorCode');
-        const a = document.getElementById('accentColorCode');
-        if (t) t.textContent = (textColor.value || '').toUpperCase();
-        if (a) a.textContent = (accentColor.value || '').toUpperCase();
-      }
-    
-    // Event listeners for live preview
-    [artistSize, songSize, textColor, accentColor, contentOffset, fontFamily, spacing].forEach(input => {
-      input.addEventListener('input', () => {
-        applyPreview();
+    CONTROLS.forEach(([el, cssVar, unit]) => {
+      el.addEventListener('input', () => {
+        sendVar(cssVar, el.value + unit);
+        if (el === pickerAccent) codeAccent.textContent = el.value.toUpperCase();
+        if (el === pickerText)   codeText.textContent   = el.value.toUpperCase();
       });
     });
-    
-    // Expose page-specific header callbacks for dynamic header
-    window.onSave = function() {
-      saveSettings();
-      alert("Settings saved!");
-    };
-    window.onBack = function() { history.back(); };
-    
-    // Load URL parameters if present
-    function loadFromURL() {
-      const params = new URLSearchParams(window.location.search);
-      if (params.has('artistSize')) {
-        artistSize.value = params.get('artistSize');
-        songSize.value = params.get('songSize');
-        textColor.value = '#' + params.get('textColor');
-        accentColor.value = '#' + params.get('accentColor');
-        contentOffset.value = params.get('contentOffset');
-        applyPreview();
-      }
-    }
-    
-    // Initialize
-    window.addEventListener('DOMContentLoaded', () => {
-      loadFromURL();
-      if (!window.location.search) {
-        loadSettings();
-      }
-      // Ensure preview is applied on load even when no saved settings or URL params
-      applyPreview();
+
+    selectFont.addEventListener('change', () => {
+      sendVar('--font-main', selectFont.value);
     });
+
+    // Parse :root block from main.css to populate sliders on load
+    function parseCSSVars(cssText) {
+      const vars = {};
+      const rootMatch = cssText.match(/:root\s*\{([^}]*)\}/s);
+      if (!rootMatch) return vars;
+      rootMatch[1].split('\n').forEach(line => {
+        const m = line.match(/^\s*(--[\w-]+)\s*:\s*(.+?)\s*;/);
+        if (m) vars[m[1]] = m[2].trim();
+      });
+      return vars;
+    }
+
+    function populateSlidersFromVars(vars) {
+      function px(name, fallback) {
+        const v = vars[name] || '';
+        const m = v.match(/(-?\d+\.?\d*)/);
+        return m ? parseFloat(m[1]) : fallback;
+      }
+      function hex(name, fallback) { return vars[name] || fallback; }
+
+      sliderArtistSize.value = px('--artist-size', 48);
+      sliderSongSize.value   = px('--song-size', 60);
+      sliderSpacing.value    = px('--text-spacing', 10);
+      sliderTextOffset.value = px('--text-vertical-offset', 272);
+
+      const accent = hex('--accent-color', '#377dff');
+      pickerAccent.value = accent.startsWith('#') ? accent : '#377dff';
+      codeAccent.textContent = pickerAccent.value.toUpperCase();
+
+      const textCol = hex('--text-color', '#ffffff');
+      pickerText.value = textCol.startsWith('#') ? textCol : '#ffffff';
+      codeText.textContent = pickerText.value.toUpperCase();
+
+      const font = hex('--font-main', 'proxima-nova, sans-serif');
+      const opt = Array.from(selectFont.options).find(o => o.value === font);
+      if (opt) selectFont.value = font;
+    }
+
+    function sendAllVars() {
+      CONTROLS.forEach(([el, cssVar, unit]) => sendVar(cssVar, el.value + unit));
+      sendVar('--font-main', selectFont.value);
+    }
+
+    const CSS_PATH = 'src/overlays/frame-retro-vinyl/main.css';
+
+    async function readMainCSS() {
+      if (window.tauri && window.tauri.invoke) {
+        return window.tauri.invoke('read_text_file', { path: CSS_PATH });
+      }
+      return fetch('./main.css?raw').then(r => r.text()).catch(() => '');
+    }
+
+    readMainCSS()
+      .then(css => { if (css) populateSlidersFromVars(parseCSSVars(css)); })
+      .catch(() => {})
+      .finally(() => {
+        previewFrame.addEventListener('load', sendAllVars, { once: true });
+        setTimeout(sendAllVars, 800);
+      });
+
+    function buildRootBlock(vars) {
+      return `:root {
+  /* --- Colors --- */
+  --text-color: ${pickerText.value};
+  --accent-color: ${pickerAccent.value};
+
+  /* --- Typography --- */
+  --font-main: ${selectFont.value};
+  --artist-size: ${sliderArtistSize.value}px;
+  --song-size: ${sliderSongSize.value}px;
+  --text-spacing: ${sliderSpacing.value}px;
+
+  /* --- Layout --- */
+  --text-vertical-offset: ${sliderTextOffset.value}px;
+
+  /* --- Scroller tuning (read by common.js) --- */
+  --scroll-extra: ${vars['--scroll-extra'] || '0px'};
+  --scroll-start-offset: ${vars['--scroll-start-offset'] || '30px'};
+}`;
+    }
+
+    window.onSave = async function () {
+      let existingCSS = '';
+      try {
+        existingCSS = await readMainCSS();
+      } catch (e) {
+        alert('Could not read main.css before saving: ' + e);
+        return;
+      }
+      const existingVars = parseCSSVars(existingCSS);
+      const newRoot = buildRootBlock(existingVars);
+      const updated = existingCSS.replace(/:root\s*\{[^}]*\}/s, newRoot);
+      if (window.tauri && window.tauri.invoke) {
+        try {
+          await window.tauri.invoke('save_css_file', { path: CSS_PATH, content: updated });
+          alert('Saved successfully!');
+        } catch (e) {
+          alert('Failed to save: ' + e);
+        }
+      } else {
+        alert('Tauri API not available. Run inside the app to save.');
+      }
+    };
+
+    window.onBack = function () { history.back(); };
   </script>
 
   <script type="module" src="../../js/editor-header-loader.js"></script>

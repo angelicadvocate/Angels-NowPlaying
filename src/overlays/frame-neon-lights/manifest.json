@@ -9,6 +9,6 @@
   "editor": "editor.html",
   "preview": "preview.png",
   "description": "A neon theme with bright glowing borders, animated effects, and vibrant accents on dark backgrounds.",
-  "obsSize": null,
+  "obsSize": { "width": 800, "height": 180 },
   "tags": ["neon", "animated", "glow"]
 }

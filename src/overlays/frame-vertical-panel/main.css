@@ -1,25 +1,37 @@
 /* Vertical frame (F3) styles — modeled on F2 but for a portrait layout */
 
 :root {
+  /* --- Colors --- */
   --highlight: hsl(200, 90%, 60%);
-  --font-main: "proxima-nova", sans-serif;
+  --accent-hex: #29a9ff;
+  --song-color: #ffffff;
 
-  /* Numeric spacing vars for F3 (numbers only — px applied via calc) */
-  --f3-image-margin-left: 0;          /* px */
-  --f3-image-margin-bottom: 0;       /* px */
-  --f3-content-padding-top: 0;       /* px */
-  --f3-content-padding-side: 0;      /* px */
-  --f3-text-margin-top: 25;          /* px: distance from top to text block */
-  --f3-text-margin-bottom: 85;        /* px: gap above progress bar */
-  --f3-progress-bottom: 85;           /* px: distance from bottom for progress bar */
-  --f3-text-margin-left: 0;           /* px: horizontal offset for text block */
-  --f3-text-box-width: 360;          /* px: fixed width for the text box */
-  --f3-progress-scale: 0.9;           /* fraction of full width for the progress bar (0-1) */
+  /* --- Typography --- */
+  --font-main: proxima-nova, sans-serif;
+  --artist-size: 24px;
+  --song-size: 40px;
+  --text-spacing: 8px;
+  --text-align: center;
+
+  /* --- Layout --- */
+  --image-size: 340px;
+  --image-margin-top: 76px;
+  --image-margin-left: 0px;
+  --image-border-radius: 6%;
+  --text-margin-top: 25px;
+
+  /* --- Scroller tuning (read by common.js) --- */
+  --scroll-extra: 40px;
+  --scroll-start-offset: 40px;
+
+  /* --- Fixed layout constants (not exposed as editor controls) --- */
+  --f3-progress-bottom: 85px;
+  --f3-progress-scale: 0.9;
 }
 
 /* Reset and base styles */
 body {
-  background: #ebebeb;
+  background: transparent;
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -53,14 +65,14 @@ body {
 
 /* Album art image (main) — stacked above/below text in vertical frame */
 #image {
-  width: 340px;
-  height: 340px;
+  width: var(--image-size);
+  height: var(--image-size);
   object-fit: cover;
-  margin-top: 76px;
-  margin-left: calc(var(--f3-image-margin-left) * 1px);
-  margin-bottom: calc(var(--f3-image-margin-bottom) * 1px);
+  margin-top: var(--image-margin-top);
+  margin-left: var(--image-margin-left);
+  margin-bottom: 0px;
   padding-top: 0px;
-  border-radius: 16px;
+  border-radius: var(--image-border-radius);
   display: block;
 }
 
@@ -82,7 +94,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start; /* stack from top; text positioning controlled by numeric vars */
-  padding: calc(var(--f3-content-padding-top) * 1px) calc(var(--f3-content-padding-side) * 1px);
+  padding: 0;
   overflow: hidden;
 }
 
@@ -103,16 +115,16 @@ body {
 
 #text-box {
   /* Fixed numeric spacing instead of auto margins */
-  margin-top: calc(var(--f3-text-margin-top) * 1px);
-  margin-right: 0; /* keep centered unless overridden by left offset */
-  margin-left: calc(var(--f3-text-margin-left) * 1px);
-  margin-bottom: calc(var(--f3-text-margin-bottom) * 1px);
+  margin-top: var(--text-margin-top);
+  margin-right: 0;
+  margin-left: 0;
+  margin-bottom: 85px;
   position: relative;
   z-index: 10;
-  /* fixed width so the box doesn't resize with text length */
-  width: calc(var(--f3-text-box-width) * 1px);
+  width: 360px;
   box-sizing: border-box;
   display: block;
+  text-align: var(--text-align);
 }
 
 #artist,
@@ -132,16 +144,16 @@ body {
 #artist {
   text-transform: uppercase;
   font-weight: 600;
-  font-size: 24px;
-  margin-bottom: 8px;
+  font-size: var(--artist-size);
+  margin-bottom: var(--text-spacing);
   color: var(--highlight);
 }
 
 /* Song title styling */
 #song {
   font-weight: bold;
-  font-size: 40px;
-  color: white;
+  font-size: var(--song-size);
+  color: var(--song-color);
   margin: 0;
 }
 
@@ -180,7 +192,7 @@ p {
 /* Progress bar container — place near the bottom for vertical frame */
 #progress-container {
   position: absolute;
-  bottom: calc(var(--f3-progress-bottom) * 1px);
+  bottom: var(--f3-progress-bottom);
   /* center the progress container and scale its width relative to background */
   left: 50%;
   transform: translateX(-50%);

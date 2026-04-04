@@ -9,6 +9,6 @@
   "editor": "editor.html",
   "preview": "preview.png",
   "description": "A frosted glass style layout with large album artwork, a subtle blurred background effect, and a progress bar.",
-  "obsSize": null,
+  "obsSize": { "width": 920, "height": 250 },
   "tags": ["glassmorphism", "frosted", "progress-bar"]
 }

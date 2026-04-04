@@ -3,25 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EditorV2-Frame11-ProgramWindow</title>
+  <title>Program Window — Editor</title>
   <link rel="stylesheet" href="../../css/editor_pages/editor-header.css" />
   <link rel="stylesheet" href="./editor.css" />
   <link rel="stylesheet" href="../../css/editor_pages/editor-common.css" />
-  <style>
-    #sample {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      background: transparent;
-      margin: 20px 0;
-    }
-  </style>
   <script type="module" src="../../js/tauri.js"></script>
 </head>
 <body>
     <!-- Dynamic header placeholder -->
-    <div id="header-root" data-src="../../editor_pages/editor-header.html" data-page-title="Frame 11 - Program Window"></div>
+    <div id="header-root" data-src="../../editor_pages/editor-header.html" data-page-title="Program Window"></div>
 
     <main id="site">
     <section id="controls">
@@ -46,7 +36,7 @@
       </div>
 
       <label for="artist_name" class="info">Artist Name Size</label>
-      <input type="range" min="12" max="32" value="22" class="slider" id="artist_name"> 
+      <input type="range" min="24" max="64" value="44" class="slider" id="artist_name">
 
       <label for="trackColor" class="info">Track Color</label>
       <div class="color-picker-container">
@@ -57,16 +47,16 @@
       </div>
 
       <label for="track_title" class="info">Track Title Size</label>
-      <input type="range" min="18" max="40" value="28" class="slider" id="track_title">  
+      <input type="range" min="36" max="80" value="56" class="slider" id="track_title">
 
       <label for="spacing" class="info">Text Vertical Spacing</label>
-      <input type="range" min="5" max="25" value="15" class="slider" id="spacing">  
+      <input type="range" min="10" max="50" value="30" class="slider" id="spacing">
 
       <label for="contentPadding" class="info">Text Left Padding</label>
-      <input type="range" min="10" max="50" value="30" class="slider" id="contentPadding">
+      <input type="range" min="20" max="100" value="60" class="slider" id="contentPadding">
 
       <label for="contentTopPadding" class="info">Text Top Margin</label>
-      <input type="range" min="-30" max="50" value="0" class="slider" id="contentTopPadding">
+      <input type="range" min="-60" max="100" value="0" class="slider" id="contentTopPadding">
     </section>
 
     <section id="controls-middle">
@@ -82,22 +72,22 @@
       </div>
 
       <label for="nowPlayingFontSize" class="info">Custom Text Font Size</label>
-      <input type="range" min="10" max="24" value="17" class="slider" id="nowPlayingFontSize">
+      <input type="range" min="20" max="56" value="34" class="slider" id="nowPlayingFontSize">
 
       <label for="nowPlayingTopMargin" class="info">Custom Text Top Margin</label>
-      <input type="range" min="-25" max="25" value="-2" class="slider" id="nowPlayingTopMargin">
+      <input type="range" min="-50" max="50" value="-4" class="slider" id="nowPlayingTopMargin">
 
       <label for="nowPlayingLeftPadding" class="info">Custom Text Left Padding</label>
-      <input type="range" min="-15" max="30" value="0" class="slider" id="nowPlayingLeftPadding">
+      <input type="range" min="-30" max="60" value="0" class="slider" id="nowPlayingLeftPadding">
 
       <label for="imageTopPadding" class="info">Album Art Top Margin</label>
-      <input type="range" min="-40" max="40" value="15" class="slider" id="imageTopPadding">
+      <input type="range" min="-80" max="80" value="30" class="slider" id="imageTopPadding">
 
       <label class="info" for="imageSize">Album Art Size</label>
-      <input type="range" min="80" max="140" value="110" class="slider" id="imageSize">
+      <input type="range" min="160" max="280" value="220" class="slider" id="imageSize">
 
       <label for="imagePadding" class="info">Album Art Left Padding</label>
-      <input type="range" min="25" max="75" value="50" class="slider" id="imagePadding">
+      <input type="range" min="50" max="150" value="100" class="slider" id="imagePadding">
     </section>
 
     <section id="controls-right">
@@ -127,24 +117,7 @@
       </select>
 
       <section id="sample">
-        <div id="background">
-          <img id="frame-image" src="./program-window-frame.png" alt="Frame" />
-          <div id="now-playing-container">
-            <p id="now-playing-text">Now Playing...</p>
-          </div>
-          <div id="image-wrapper">
-            <img id="image" src="./SampleAlbum.png" alt="Album Art" />
-          </div>
-          <div id="content">
-            <div id="text-box">
-              <p id="artist">Sample Artist</p>
-              <p id="song">Sample Song Title</p>
-            </div>
-          </div>
-          <div id="progress-container">
-            <div id="progress-bar"></div>
-          </div>
-        </div>
+        <iframe id="preview-frame" src="./main.html?edit=1" scrolling="no" title="Overlay preview"></iframe>
       </section>
     </section>
 
@@ -153,192 +126,120 @@
   </main>
 
   <script>
-    const fontFamilySelect = document.getElementById("fontFamily");
-    const artistSize = document.getElementById("artist_name");
-    const songSize = document.getElementById("track_title");
-    const spacing = document.getElementById("spacing");
-    const artistColor = document.getElementById("artistColor");
-    const trackColor = document.getElementById("trackColor");
-    const frameHue = document.getElementById("frameHue");
-    const autoRotateHue = document.getElementById("autoRotateHue");
-    const frameSaturation = document.getElementById("frameSaturation");
-    const progressBarColor = document.getElementById("progressBarColor");
-    const artistEl = document.getElementById("artist");
-    const songEl = document.getElementById("song");
-    const image = document.getElementById('image');
-    const imageSizeSlider = document.getElementById('imageSize');
-    const contentPaddingSlider = document.getElementById('contentPadding');
-    const imagePaddingSlider = document.getElementById('imagePadding');
-    const imageTopPaddingSlider = document.getElementById('imageTopPadding');
+    const fontFamilySelect       = document.getElementById('fontFamily');
+    const artistSize             = document.getElementById('artist_name');
+    const songSize               = document.getElementById('track_title');
+    const spacing                = document.getElementById('spacing');
+    const artistColor            = document.getElementById('artistColor');
+    const artistColorCode        = document.getElementById('artistColorCode');
+    const trackColor             = document.getElementById('trackColor');
+    const trackColorCode         = document.getElementById('trackColorCode');
+    const frameHue               = document.getElementById('frameHue');
+    const autoRotateHue          = document.getElementById('autoRotateHue');
+    const frameSaturation        = document.getElementById('frameSaturation');
+    const progressBarColor       = document.getElementById('progressBarColor');
+    const progressBarColorCode   = document.getElementById('progressBarColorCode');
+    const imageSizeSlider        = document.getElementById('imageSize');
+    const contentPaddingSlider   = document.getElementById('contentPadding');
+    const imagePaddingSlider     = document.getElementById('imagePadding');
+    const imageTopPaddingSlider  = document.getElementById('imageTopPadding');
     const contentTopPaddingSlider = document.getElementById('contentTopPadding');
-    const nowPlayingTextInput = document.getElementById('nowPlayingText');
+    const nowPlayingTextInput    = document.getElementById('nowPlayingText');
     const nowPlayingFontSizeSlider = document.getElementById('nowPlayingFontSize');
     const nowPlayingTopMarginSlider = document.getElementById('nowPlayingTopMargin');
     const nowPlayingLeftPaddingSlider = document.getElementById('nowPlayingLeftPadding');
-    const nowPlayingColor = document.getElementById('nowPlayingColor');
+    const nowPlayingColor        = document.getElementById('nowPlayingColor');
+    const nowPlayingColorCode    = document.getElementById('nowPlayingColorCode');
+    const previewFrame           = document.getElementById('preview-frame');
 
-    let imagePaddingValue = imagePaddingSlider.value;    
-    let contentPaddingValue = contentPaddingSlider.value;
-    let imageSizeValue = imageSizeSlider.value;
-    let imageTopPaddingValue = imageTopPaddingSlider.value;
-    let contentTopPaddingValue = contentTopPaddingSlider.value;
-    let nowPlayingTextValue = nowPlayingTextInput.value;
-    let nowPlayingFontSizeValue = nowPlayingFontSizeSlider.value;
-    let nowPlayingTopMarginValue = nowPlayingTopMarginSlider.value;
-    let nowPlayingLeftPaddingValue = nowPlayingLeftPaddingSlider.value;
-    let nowPlayingColorValue = nowPlayingColor.value || "#8B4513";
-    let artistSizeValue = artistSize.value;
-    let songSizeValue = songSize.value;
-    let spacingValue = spacing.value;
-    let artistColorValue = artistColor.value || "#FF8C00";
-    let trackColorValue = trackColor.value || "#8B4513";
-    let progressBarColorValue = progressBarColor.value || "#FFC800";
-    let fontFamilyValue = fontFamilySelect.value;
-    let frameHueValue = frameHue.value;
-    let frameSaturationValue = frameSaturation.value;
     let autoRotateInterval = null;
     let autoRotateHueMode = 'no';
 
-    const scale = 2;
-
-    function applyPreview() {
-      // Apply font family
-      artistEl.style.fontFamily = fontFamilyValue;
-      songEl.style.fontFamily = fontFamilyValue;
-      document.getElementById("now-playing-text").style.fontFamily = fontFamilyValue;
-      
-      // Apply individual font sizes
-      artistEl.style.fontSize = artistSizeValue + "px";
-      songEl.style.fontSize = songSizeValue + "px";
-      
-      // Apply colors
-      artistEl.style.color = artistColorValue;
-      songEl.style.color = trackColorValue;
-      document.getElementById("now-playing-text").style.color = nowPlayingColorValue;
-      document.getElementById("progress-bar").style.backgroundColor = progressBarColorValue;
-      document.getElementById("progress-bar").style.setProperty('--indicator-color', nowPlayingColorValue);
-      
-      // Apply spacing and padding
-      artistEl.style.marginBottom = spacingValue + "px";
-      image.style.width = imageSizeValue + "px";
-      image.style.border = "2px solid #522D05";
-      image.style.boxSizing = "border-box";
-      document.getElementById("content").style.paddingLeft = contentPaddingValue + "px";
-      document.getElementById("image-wrapper").style.marginLeft = imagePaddingValue + "px";
-      document.getElementById("image-wrapper").style.marginTop = imageTopPaddingValue + "px";
-      document.getElementById("content").style.marginTop = contentTopPaddingValue + "px";
-      
-      // Apply now playing text styling
-      const nowPlayingEl = document.getElementById("now-playing-text");
-      nowPlayingEl.textContent = nowPlayingTextValue;
-      nowPlayingEl.style.fontSize = nowPlayingFontSizeValue + "px";
-      nowPlayingEl.style.marginTop = nowPlayingTopMarginValue + "px";
-      nowPlayingEl.style.paddingLeft = nowPlayingLeftPaddingValue + "px";
-      nowPlayingEl.style.color = nowPlayingColorValue;
-      
-      // Update color display codes
-      document.getElementById("artistColorCode").textContent = artistColorValue.toUpperCase();
-      document.getElementById("trackColorCode").textContent = trackColorValue.toUpperCase();
-      document.getElementById("nowPlayingColorCode").textContent = nowPlayingColorValue.toUpperCase();
-      document.getElementById("progressBarColorCode").textContent = progressBarColorValue.toUpperCase();
-      
-      // Apply frame hue rotation according to auto-rotate mode (simpler approach like F9)
-      const filterValue = `hue-rotate(${frameHueValue}deg) saturate(${frameSaturationValue}%)`;
-      const frameImage = document.getElementById('frame-image');
-      const background = document.getElementById('background');
-      const albumArt = document.getElementById('image');
-
-      // Apply filters based on selected mode. Avoid double-filtering the frame image
-      if (autoRotateHueMode === 'yes-all') {
-        // Apply to entire preview container; cancel on album art so it appears unchanged
-        if (background) background.style.filter = filterValue;
-        if (frameImage) frameImage.style.filter = '';
-        if (albumArt) albumArt.style.filter = `hue-rotate(-${frameHueValue}deg)`;
-      } else if (autoRotateHueMode === 'yes-frame') {
-        // Frame-only: apply filter to the frame image only
-        if (background) background.style.filter = '';
-        if (frameImage) frameImage.style.filter = filterValue;
-        if (albumArt) albumArt.style.filter = '';
-      } else {
-        // No auto-rotate: use manual frame hue on frame image only
-        if (background) background.style.filter = '';
-        if (frameImage) frameImage.style.filter = `hue-rotate(${frameHueValue}deg) saturate(${frameSaturationValue}%)`;
-        if (albumArt) albumArt.style.filter = '';
+    // --- Send a CSS variable to the preview iframe ---
+    function sendVar(name, value) {
+      if (previewFrame && previewFrame.contentWindow) {
+        previewFrame.contentWindow.postMessage({ type: 'setCSSVar', name, value }, '*');
       }
     }
 
-    // (Removed complex per-element hue applier â€” simplified to match F9 approach)
+    function sendNowPlayingText(text) {
+      if (previewFrame && previewFrame.contentWindow) {
+        previewFrame.contentWindow.postMessage({ type: 'setNowPlayingText', value: text }, '*');
+      }
+    }
+
+    // --- Standard slider controls (value → px var) ---
+    const CONTROLS = [
+      [artistSize,              '--artist-size',              'px'],
+      [songSize,                '--song-size',                'px'],
+      [spacing,                 '--text-spacing',             'px'],
+      [contentPaddingSlider,    '--content-padding-left',     'px'],
+      [contentTopPaddingSlider, '--content-margin-top',       'px'],
+      [imageSizeSlider,         '--image-size',               'px'],
+      [imagePaddingSlider,      '--image-margin-left',        'px'],
+      [imageTopPaddingSlider,   '--image-margin-top',         'px'],
+      [nowPlayingFontSizeSlider,'--now-playing-size',         'px'],
+      [nowPlayingTopMarginSlider,'--now-playing-margin-top',  'px'],
+      [nowPlayingLeftPaddingSlider,'--now-playing-padding-left','px'],
+    ];
+
+    CONTROLS.forEach(([el, cssVar, unit]) => {
+      el.addEventListener('input', () => sendVar(cssVar, el.value + unit));
+    });
+
+    artistColor.addEventListener('input', () => {
+      sendVar('--artist-color', artistColor.value);
+      artistColorCode.textContent = artistColor.value.toUpperCase();
+    });
+    trackColor.addEventListener('input', () => {
+      sendVar('--track-color', trackColor.value);
+      trackColorCode.textContent = trackColor.value.toUpperCase();
+    });
+    nowPlayingColor.addEventListener('input', () => {
+      sendVar('--now-playing-color', nowPlayingColor.value);
+      nowPlayingColorCode.textContent = nowPlayingColor.value.toUpperCase();
+    });
+    progressBarColor.addEventListener('input', () => {
+      sendVar('--progress-bar-color', progressBarColor.value);
+      progressBarColorCode.textContent = progressBarColor.value.toUpperCase();
+    });
+    fontFamilySelect.addEventListener('change', () => sendVar('--font-main', fontFamilySelect.value));
+    nowPlayingTextInput.addEventListener('input', () => sendNowPlayingText(nowPlayingTextInput.value));
+
+    // --- Frame hue / saturation ---
+    function applyFilters(hueOverride) {
+      const hue = hueOverride !== undefined ? hueOverride : parseFloat(frameHue.value);
+      const sat = frameSaturation.value;
+      const filter = `hue-rotate(${hue}deg) saturate(${sat}%)`;
+      sendVar('--frame-hue', hue + 'deg');
+      sendVar('--frame-saturation', sat + '%');
+      if (autoRotateHueMode === 'yes-all') {
+        sendVar('--content-filter', filter);
+      } else {
+        sendVar('--content-filter', 'none');
+      }
+    }
+
+    frameHue.addEventListener('input', () => {
+      if (autoRotateHueMode !== 'no') {
+        stopAutoRotateHue();
+        autoRotateHueMode = 'no';
+        autoRotateHue.value = 'no';
+        document.getElementById('autoRotateMessage').style.display = 'none';
+      }
+      applyFilters();
+    });
+
+    frameSaturation.addEventListener('input', () => applyFilters());
 
     function startAutoRotateHue() {
-      // Follow F9 pattern: increment hue and call applyPreview()
       stopAutoRotateHue();
       let currentHue = 0;
       autoRotateInterval = setInterval(() => {
         currentHue = (currentHue + 1) % 360;
-        frameHueValue = currentHue;
         frameHue.value = currentHue;
-        applyPreview();
+        applyFilters(currentHue);
       }, 60);
-    }
-
-    function rgbToHsl(r, g, b) {
-      r /= 255;
-      g /= 255;
-      b /= 255;
-      const max = Math.max(r, g, b);
-      const min = Math.min(r, g, b);
-      let h, s, l = (max + min) / 2;
-
-      if (max === min) {
-        h = s = 0;
-      } else {
-        const d = max - min;
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-        switch (max) {
-          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-          case g: h = (b - r) / d + 2; break;
-          case b: h = (r - g) / d + 4; break;
-        }
-        h /= 6;
-      }
-      return [h * 360, s * 100, l * 100];
-    }
-
-    function hslToRgb(h, s, l) {
-      h = h % 360;
-      s = s / 100;
-      l = l / 100;
-      const c = (1 - Math.abs(2 * l - 1)) * s;
-      const x = c * (1 - Math.abs((h / 60) % 2 - 1));
-      const m = l - c / 2;
-      let r, g, b;
-
-      if (h < 60) {
-        r = c;
-        g = x;
-        b = 0;
-      } else if (h < 120) {
-        r = x;
-        g = c;
-        b = 0;
-      } else if (h < 180) {
-        r = 0;
-        g = c;
-        b = x;
-      } else if (h < 240) {
-        r = 0;
-        g = x;
-        b = c;
-      } else if (h < 300) {
-        r = x;
-        g = 0;
-        b = c;
-      } else {
-        r = c;
-        g = 0;
-        b = x;
-      }
-      return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
     }
 
     function stopAutoRotateHue() {
@@ -346,331 +247,160 @@
         clearInterval(autoRotateInterval);
         autoRotateInterval = null;
       }
-      // Reset progress bar color to the configured value
-      const progBar = document.getElementById("progress-bar");
-      if (progBar) progBar.style.backgroundColor = progressBarColorValue;
-      // Reset background and album art filters so effects don't persist
-      const background = document.getElementById('background');
-      const albumArt = document.getElementById('image');
-      if (background) background.style.filter = '';
-      if (albumArt) albumArt.style.filter = '';
-      // Ensure frame image shows manual hue value
-      const frameImage = document.getElementById('frame-image');
-      if (frameImage) frameImage.style.filter = `hue-rotate(${frameHueValue}deg) saturate(${frameSaturationValue}%)`;
+      frameHue.value = 0;
+      applyFilters();
     }
 
-    function generateCSS() {
-      return `
-/* Program Window Now Playing Frame - F11 */
-
-:root {
-  --artist-color: ${artistColorValue};
-  --track-color: ${trackColorValue};
-  --font-family: ${fontFamilyValue};
-  --artist-font-size: ${artistSizeValue * 2}px;
-  --song-font-size: ${songSizeValue * 2}px;
-  --frame-hue: ${frameHueValue}deg;
-  --frame-saturation: ${frameSaturationValue}%;
-  --spacing-horizontal: ${spacingValue * 2}px;
-  --image-size: ${imageSizeValue * 2}px;
-  --text-left-padding: ${contentPaddingValue * 2}px;
-  --image-left-padding: ${imagePaddingValue * 2}px;
-  --image-top-margin: ${imageTopPaddingValue * 2}px;
-  --content-top-margin: ${contentTopPaddingValue * 2}px;
-  --now-playing-text: "${nowPlayingTextValue}";
-  --now-playing-font-size: ${nowPlayingFontSizeValue * 2}px;
-  --now-playing-top-margin: ${nowPlayingTopMarginValue * 2}px;
-  --now-playing-left-padding: ${nowPlayingLeftPaddingValue * 2}px;
-  --now-playing-color: ${nowPlayingColorValue};
-}
-
-/* Reset and base styles */
-body {
-  background: transparent;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  font-family: var(--font-family);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Background container */
-#background {
-  width: 800px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  position: relative;
-  background: transparent;
-}
-
-/* Frame container - THE BASE - contains everything */
-#frame-container {
-  position: relative;
-  width: 240px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Frame image - THE BACKGROUND */
-#frame-image {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  filter: hue-rotate(var(--frame-hue)) saturate(var(--frame-saturation));
-  z-index: 1;
-  object-fit: contain;
-}
-
-/* Album art wrapper - OVERLAID ON FRAME */
-#image-wrapper {
-  position: absolute;
-  z-index: 2;
-  margin-left: var(--image-left-padding);
-  margin-top: var(--image-top-margin);
-}
-
-/* Album art image */
-#image {
-  width: var(--image-size);
-  object-fit: cover;
-  border-radius: 4px;
-}
-
-/* Now Playing text container */
-#now-playing-container {
-  position: absolute;
-  top: var(--now-playing-top-margin);
-  left: var(--now-playing-left-padding);
-  z-index: 5;
-  overflow: hidden;
-}
-
-#now-playing-text {
-  margin: 0;
-  padding: 0;
-  font-family: var(--font-family);
-  font-size: var(--now-playing-font-size);
-  font-weight: 600;
-  color: var(--now-playing-color);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Content container - TEXT OVERLAID ON FRAME */
-#content {
-  position: absolute;
-  z-index: 3;
-  padding-left: var(--text-left-padding);
-  margin-top: var(--content-top-margin);
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  justify-content: center;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* Text box */
-#text-box {
-  width: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-/* Artist and song text */
-#artist, #song {
-  margin: 0;
-  padding: 0;
-  font-family: var(--font-family);
-  color: white;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-#artist {
-  font-size: var(--artist-font-size);
-  color: var(--artist-color);
-  margin-bottom: 8px;
-}
-
-#song {
-  font-size: var(--song-font-size);
-  color: var(--track-color);
-}
-
-/* Progress bar - OVERLAID ON FRAME */
-#progress-container {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: #333;
-  overflow: hidden;
-  z-index: 4;
-}
-
-#progress-bar {
-  width: 33%;
-  background: #00d4ff;
-  transition: width 0.1s ease;
-}
-`;
-    }
-
-    // Event listeners
-    artistSize.addEventListener("input", (e) => {
-      artistSizeValue = e.target.value;
-      applyPreview();
-    });
-
-    songSize.addEventListener("input", (e) => {
-      songSizeValue = e.target.value;
-      applyPreview();
-    });
-
-    spacing.addEventListener("input", (e) => {
-      spacingValue = e.target.value;
-      applyPreview();
-    });
-
-    imageSizeSlider.addEventListener("input", (e) => {
-      imageSizeValue = e.target.value;
-      image.style.width = imageSizeValue + "px";
-      image.style.height = "auto";
-    });
-
-    contentPaddingSlider.addEventListener("input", (e) => {
-      contentPaddingValue = e.target.value;
-      document.getElementById("content").style.paddingLeft = contentPaddingValue + "px";
-    });
-
-    imagePaddingSlider.addEventListener("input", (e) => {
-      imagePaddingValue = e.target.value;
-      document.getElementById("image-wrapper").style.marginLeft = imagePaddingValue + "px";
-    });
-
-    imageTopPaddingSlider.addEventListener("input", (e) => {
-      imageTopPaddingValue = e.target.value;
-      document.getElementById("image-wrapper").style.marginTop = imageTopPaddingValue + "px";
-    });
-
-    contentTopPaddingSlider.addEventListener("input", (e) => {
-      contentTopPaddingValue = e.target.value;
-      document.getElementById("content").style.marginTop = contentTopPaddingValue + "px";
-    });
-
-    nowPlayingTextInput.addEventListener("input", (e) => {
-      nowPlayingTextValue = e.target.value;
-      document.getElementById("now-playing-text").textContent = nowPlayingTextValue;
-    });
-
-    nowPlayingFontSizeSlider.addEventListener("input", (e) => {
-      nowPlayingFontSizeValue = e.target.value;
-      document.getElementById("now-playing-text").style.fontSize = nowPlayingFontSizeValue + "px";
-    });
-
-    nowPlayingTopMarginSlider.addEventListener("input", (e) => {
-      nowPlayingTopMarginValue = e.target.value;
-      document.getElementById("now-playing-text").style.marginTop = nowPlayingTopMarginValue + "px";
-    });
-
-    nowPlayingLeftPaddingSlider.addEventListener("input", (e) => {
-      nowPlayingLeftPaddingValue = e.target.value;
-      document.getElementById("now-playing-text").style.paddingLeft = nowPlayingLeftPaddingValue + "px";
-    });
-
-    nowPlayingColor.addEventListener("input", (e) => {
-      nowPlayingColorValue = e.target.value;
-      applyPreview();
-    });
-
-    artistColor.addEventListener("input", (e) => {
-      artistColorValue = e.target.value;
-      applyPreview();
-    });
-
-    trackColor.addEventListener("input", (e) => {
-      trackColorValue = e.target.value;
-      applyPreview();
-    });
-
-    progressBarColor.addEventListener("input", (e) => {
-      progressBarColorValue = e.target.value;
-      applyPreview();
-    });
-
-    fontFamilySelect.addEventListener("change", (e) => {
-      fontFamilyValue = e.target.value;
-      applyPreview();
-    });
-
-    frameHue.addEventListener("input", (e) => {
-      frameHueValue = e.target.value;
-      // If auto-rotate is active, disable it when user manually changes the slider
-      if (autoRotateHueMode && autoRotateHueMode !== "no") {
-        stopAutoRotateHue();
-        autoRotateHueMode = 'no';
-        if (autoRotateHue) autoRotateHue.value = 'no';
-        document.getElementById("autoRotateMessage").style.display = "none";
-      }
-      // Apply manual hue to preview
-      applyPreview();
-    });
-
-    frameSaturation.addEventListener("input", (e) => {
-      frameSaturationValue = e.target.value;
-      applyPreview();
-    });
-
-    autoRotateHue.addEventListener("change", (e) => {
-      const val = e.target.value;
+    autoRotateHue.addEventListener('change', () => {
+      const val = autoRotateHue.value;
       autoRotateHueMode = val;
       stopAutoRotateHue();
-      if (val === "yes-frame" || val === "yes-all") {
-        frameHue.style.display = "none";
+      if (val === 'yes-frame' || val === 'yes-all') {
+        frameHue.style.display = 'none';
         frameHue.disabled = true;
-        document.getElementById("autoRotateMessage").style.display = "block";
-        frameHueValue = 0;
-        frameHue.value = 0;
+        document.getElementById('autoRotateMessage').style.display = 'block';
         startAutoRotateHue();
       } else {
-        frameHue.style.display = "block";
+        frameHue.style.display = 'block';
         frameHue.disabled = false;
-        document.getElementById("autoRotateMessage").style.display = "none";
-        frameHueValue = 0;
-        frameHue.value = 0;
-        applyPreview();
+        document.getElementById('autoRotateMessage').style.display = 'none';
+        applyFilters();
       }
     });
 
-    // Expose page-specific header callbacks for dynamic header
-    window.onSave = async function() {
-      const cssContent = generateCSS();
-      const cssPath = "src/overlays/frame-program-window/main.css";
+    // --- Parse :root block from main.css ---
+    function parseCSSVars(cssText) {
+      const vars = {};
+      const m = cssText.match(/:root\s*\{([^}]*)\}/s);
+      if (!m) return vars;
+      m[1].split('\n').forEach(line => {
+        const lm = line.match(/^\s*(--[\w-]+)\s*:\s*(.+?)\s*;/);
+        if (lm) vars[lm[1]] = lm[2].trim();
+      });
+      return vars;
+    }
+
+    function populateSlidersFromVars(vars) {
+      function px(name, fallback) {
+        const v = vars[name] || '';
+        const m = v.match(/(-?\d+\.?\d*)/);
+        return m ? parseFloat(m[1]) : fallback;
+      }
+      artistSize.value              = px('--artist-size', 44);
+      songSize.value                = px('--song-size', 56);
+      spacing.value                 = px('--text-spacing', 30);
+      contentPaddingSlider.value    = px('--content-padding-left', 60);
+      contentTopPaddingSlider.value = px('--content-margin-top', 0);
+      imageSizeSlider.value         = px('--image-size', 220);
+      imagePaddingSlider.value      = px('--image-margin-left', 100);
+      imageTopPaddingSlider.value   = px('--image-margin-top', 30);
+      nowPlayingFontSizeSlider.value    = px('--now-playing-size', 34);
+      nowPlayingTopMarginSlider.value   = px('--now-playing-margin-top', -4);
+      nowPlayingLeftPaddingSlider.value = px('--now-playing-padding-left', 0);
+      frameHue.value        = px('--frame-hue', 0);
+      frameSaturation.value = px('--frame-saturation', 100);
+
+      const ac = vars['--artist-color'] || '#FF8C00';
+      artistColor.value = ac; artistColorCode.textContent = ac.toUpperCase();
+      const tc = vars['--track-color'] || '#8B4513';
+      trackColor.value = tc; trackColorCode.textContent = tc.toUpperCase();
+      const npc = vars['--now-playing-color'] || '#8B4513';
+      nowPlayingColor.value = npc; nowPlayingColorCode.textContent = npc.toUpperCase();
+      const pbc = vars['--progress-bar-color'] || '#FFC800';
+      progressBarColor.value = pbc; progressBarColorCode.textContent = pbc.toUpperCase();
+
+      const font = vars['--font-main'] || 'proxima-nova, sans-serif';
+      const opt = Array.from(fontFamilySelect.options).find(o => o.value === font);
+      if (opt) fontFamilySelect.value = font;
+
+      const rawText = vars['--now-playing-text'] || '"Now Playing..."';
+      nowPlayingTextInput.value = rawText.replace(/^"|"$/g, '');
+    }
+
+    function sendAllVars() {
+      CONTROLS.forEach(([el, cssVar, unit]) => sendVar(cssVar, el.value + unit));
+      sendVar('--artist-color', artistColor.value);
+      artistColorCode.textContent = artistColor.value.toUpperCase();
+      sendVar('--track-color', trackColor.value);
+      trackColorCode.textContent = trackColor.value.toUpperCase();
+      sendVar('--now-playing-color', nowPlayingColor.value);
+      nowPlayingColorCode.textContent = nowPlayingColor.value.toUpperCase();
+      sendVar('--progress-bar-color', progressBarColor.value);
+      progressBarColorCode.textContent = progressBarColor.value.toUpperCase();
+      sendVar('--font-main', fontFamilySelect.value);
+      sendNowPlayingText(nowPlayingTextInput.value);
+      applyFilters();
+    }
+
+    const CSS_PATH = 'src/overlays/frame-program-window/main.css';
+
+    async function readMainCSS() {
+      if (window.tauri && window.tauri.invoke) {
+        return window.tauri.invoke('read_text_file', { path: CSS_PATH });
+      }
+      return fetch('./main.css?raw').then(r => r.text()).catch(() => '');
+    }
+
+    readMainCSS()
+      .then(css => { if (css) populateSlidersFromVars(parseCSSVars(css)); })
+      .catch(() => {})
+      .finally(() => {
+        previewFrame.addEventListener('load', sendAllVars, { once: true });
+        setTimeout(sendAllVars, 800);
+      });
+
+    // --- Build :root block for saving ---
+    function buildRootBlock(vars) {
+      return `:root {
+  --font-main: ${fontFamilySelect.value};
+  --artist-color: ${artistColor.value};
+  --artist-size: ${artistSize.value}px;
+  --track-color: ${trackColor.value};
+  --song-size: ${songSize.value}px;
+  --text-spacing: ${spacing.value}px;
+  --content-padding-left: ${contentPaddingSlider.value}px;
+  --content-margin-top: ${contentTopPaddingSlider.value}px;
+  --now-playing-color: ${nowPlayingColor.value};
+  --now-playing-size: ${nowPlayingFontSizeSlider.value}px;
+  --now-playing-margin-top: ${nowPlayingTopMarginSlider.value}px;
+  --now-playing-padding-left: ${nowPlayingLeftPaddingSlider.value}px;
+  --image-margin-top: ${imageTopPaddingSlider.value}px;
+  --image-size: ${imageSizeSlider.value}px;
+  --image-margin-left: ${imagePaddingSlider.value}px;
+  --progress-bar-color: ${progressBarColor.value};
+  --frame-hue: ${frameHue.value}deg;
+  --frame-saturation: ${frameSaturation.value}%;
+  --now-playing-text: "${nowPlayingTextInput.value.replace(/"/g, '\\"')}";
+  --scroll-extra: ${vars['--scroll-extra'] || '0px'};
+  --scroll-start-offset: ${vars['--scroll-start-offset'] || '30px'};
+}`;
+    }
+
+    // --- Save ---
+    window.onSave = async function () {
+      let existingCSS = '';
+      try {
+        existingCSS = await readMainCSS();
+      } catch (e) {
+        alert('Could not read main.css before saving: ' + e);
+        return;
+      }
+      const existingVars = parseCSSVars(existingCSS);
+      const newRoot = buildRootBlock(existingVars);
+      const updated = existingCSS.replace(/:root\s*\{[^}]*\}/s, newRoot);
+
       if (window.tauri && window.tauri.invoke) {
         try {
-          await window.tauri.invoke("save_css_file", { path: cssPath, content: cssContent });
-          alert("CSS saved successfully!");
+          await window.tauri.invoke('save_css_file', { path: CSS_PATH, content: updated });
+          alert('Saved successfully!');
         } catch (e) {
-          alert("Failed to save CSS: " + e);
+          alert('Failed to save: ' + e);
         }
       } else {
-        alert("Tauri API not available. Please run inside the Tauri app.");
+        alert('Tauri API not available. Please run inside the Tauri app.');
       }
     };
-    window.onBack = function() { history.back(); };
-
-    // Initial preview
-    applyPreview();
-
+    window.onBack = function () { history.back(); };
   </script>
 
   <script type="module" src="../../js/editor-header-loader.js"></script>

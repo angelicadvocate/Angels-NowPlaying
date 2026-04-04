@@ -9,6 +9,6 @@
   "editor": "editor.html",
   "preview": "preview.png",
   "description": "A second frosted glass variant with refined styling and layout adjustments.",
-  "obsSize": null,
+  "obsSize": { "width": 850, "height": 260 },
   "tags": ["glassmorphism", "frosted"]
 }

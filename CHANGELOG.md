@@ -10,6 +10,23 @@ Please be sure to add date, completed tag, `github:[username]`, and version numb
 
 ---------------------------------------------------------------------------------
 
+## v0.8.1 – 2026-04-04
+
+* [x] **iframe editor migration for all 11 bundled overlays + full OBS QA pass** ✨ *COMPLETED* `github:AngelicAdvocate`
+
+  **Editor iframe migration**
+  * Migrated all 11 bundled overlay editors to the iframe preview pattern established in `frame-template-starter`: `<iframe src="main.html?edit=1">` replaces the old inline `#sample` div; `sendVar()` / `postMessage` replaces direct DOM manipulation in every `editor.html`
+  * Each editor now uses `parseCSSVars` + `populateSlidersFromVars` to load saved values from `main.css` on open, and `buildRootBlock` + `onSave` to write them back
+  * `editor.css` updated in every overlay to size and scale the iframe preview correctly at `transform: scale(S); transform-origin: top left` with compensating negative margins
+  * Overlays migrated: `frame-banner-visualizer`, `frame-cassette-tape`, `frame-color-bar-visualizer`, `frame-glassmorphism-1`, `frame-glassmorphism-2`, `frame-horizontal-classic`, `frame-horizontal-wide`, `frame-neon-lights`, `frame-program-window`, `frame-retro-vinyl`, `frame-vertical-panel`
+
+  **Pre-ship OBS + editor QA**
+  * All 11 overlays tested with Tuna running and a real song playing
+  * Phase 1 (default overlay in OBS): album art, title/artist, progress bar, and marquee scroll verified on each
+  * Phase 2 (edit → save → reload OBS): at least one visual property changed and confirmed matching between editor preview and OBS output on each overlay
+
+---------------------------------------------------------------------------------
+
 ## v0.8.0 – 2026-04-03
 
 * [x] **Overlay management, documentation overhaul, settings page, and editor improvements** ✨ *COMPLETED* `github:AngelicAdvocate`

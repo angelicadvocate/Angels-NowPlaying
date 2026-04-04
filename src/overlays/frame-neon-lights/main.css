@@ -1,0 +1,196 @@
+﻿/* Neon Lights Now Playing Frame */
+
+:root {
+  /* --- Colors --- */
+  --highlight: hsl(313, 100%, 59%);
+  --accent-hex: #ff2ed2;
+
+  /* --- Typography --- */
+  --font-main: proxima-nova, sans-serif;
+  --artist-size: 32px;
+  --song-size: 49px;
+  --text-spacing: -5px;
+
+  /* --- Layout --- */
+  --image-size: 109px;
+  --image-margin-left: 85px;
+  --content-padding-left: 20px;
+  --text-vertical-offset: -20px;
+  --progress-bar-offset: 31px;
+
+  /* --- Neon filter vars (managed by editor or ?edit=1 postMessage) --- */
+  --neon-filter: hue-rotate(0deg);
+  --auto-rotate-mode: no;
+
+  /* --- Scroller tuning (read by common.js) --- */
+  --scroll-extra: 0px;
+  --scroll-start-offset: 30px;
+}
+
+body {
+  background: transparent;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: var(--font-main);
+}
+
+#background {
+  position: relative;
+  width: 800px;
+  height: 180px;
+  border-radius: 16px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  overflow: visible;
+  z-index: 1;
+}
+
+#neon-frame {
+  position: absolute;
+  left: 0px;
+  width: 800px;
+  height: 180px;
+  object-fit: cover;
+  z-index: -1;
+  filter: var(--neon-filter);
+}
+
+#image-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  overflow: visible;
+  margin-left: var(--image-margin-left);
+  z-index: 5;
+}
+
+#image {
+  width: var(--image-size);
+  height: var(--image-size);
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+}
+
+/* Neon album art frame scales automatically with --image-size */
+#neon-album-art-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--image-size);
+  height: var(--image-size);
+  transform: translate(-50%, -50%) scale(1.417);
+  object-fit: cover;
+  z-index: 6;
+  pointer-events: none;
+  filter: var(--neon-filter);
+}
+
+#content {
+  flex: 1;
+  overflow: hidden;
+  margin-right: 110px;
+  padding: 0 0 0 var(--content-padding-left);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  z-index: 3;
+  margin-top: var(--text-vertical-offset);
+}
+
+#text-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  flex-grow: 1;
+  overflow: hidden;
+  text-align: left;
+}
+
+#artist,
+#song {
+  position: relative;
+  margin: 0;
+}
+
+.text-box {
+  width: 100%;
+  overflow: clip;
+  white-space: nowrap;
+  position: relative;
+}
+
+#artist {
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: var(--artist-size);
+  margin-bottom: var(--text-spacing);
+  font-family: var(--font-main);
+  color: var(--highlight);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8), 0 0 6px var(--highlight);
+  padding-left: 5px;
+  padding-bottom: 5px;
+}
+
+#song {
+  font-weight: bold;
+  font-size: var(--song-size);
+  font-family: var(--font-main);
+  color: white;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+  padding-left: 5px;
+  padding-bottom: 5px;
+}
+
+p { white-space: nowrap; }
+
+#text-box span {
+  display: inline-block;
+  white-space: nowrap;
+  will-change: transform;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  transform: translateX(var(--marquee-start, 0));
+}
+
+.marquee {
+  animation-name: marqueeAnim;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: var(--marquee-duration, 10s);
+}
+
+@keyframes marqueeAnim {
+  0%   { transform: translateX(var(--marquee-start, 0)); }
+  100% { transform: translateX(var(--marquee-end, 0)); }
+}
+
+/* Progress bar — positioned via CSS calc so it auto-adjusts with image size/padding */
+#progress-container {
+  position: absolute;
+  bottom: var(--progress-bar-offset);
+  left: calc(var(--image-margin-left) + var(--image-size) + 20px);
+  width: calc(800px - var(--image-margin-left) - var(--image-size) - 100px);
+  height: 15px;
+  background-color: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  border-radius: 10px;
+  z-index: 9999;
+}
+
+#progress-bar {
+  height: 100%;
+  width: 0%;
+  background-color: var(--highlight);
+  transition: width 0.3s linear;
+}

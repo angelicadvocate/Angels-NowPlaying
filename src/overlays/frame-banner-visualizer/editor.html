@@ -3,117 +3,104 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EditorV2-Frame4</title>
+  <title>Banner Visualizer — Editor</title>
   <link rel="stylesheet" href="../../css/editor_pages/editor-header.css" />
-  <link rel="stylesheet" href="./editor.css" />
   <link rel="stylesheet" href="../../css/editor_pages/editor-common.css" />
+  <link rel="stylesheet" href="./editor.css" />
   <script type="module" src="../../js/tauri.js"></script>
 </head>
 <body>
-    <!-- Dynamic header placeholder -->
-    <div id="header-root" data-src="../../editor_pages/editor-header.html" data-page-title="Frame 4 - Banner Visualizer"></div>
+  <div id="header-root" data-src="../../editor_pages/editor-header.html" data-page-title="Banner Visualizer"></div>
 
   <main id="site">
-      <!-- Two-column layout for all sliders -->
-      <div class="controls-grid">
-        <!-- Left Column -->
-        <div class="controls-column">
-          <label for="fontFamily" class="info">Font Family</label>
-          <select id="fontFamily" class="dropdown">
-            <option value="proxima-nova, sans-serif" selected>Proxima Nova</option>
-            <option value="Comic Sans MS, cursive">Comic Sans MS</option>
-            <option value="Brush Script MT, cursive">Brush Script MT</option>
-            <option value="Georgia, serif">Georgia</option>
-            <option value="Times New Roman, serif">Times New Roman</option>
-            <option value="Courier New, monospace">Courier New</option>
-            <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
-            <option value="Verdana, sans-serif">Verdana</option>
-          </select>
-          <label for="artist_name" class="info">Artist Name Size</label>
-          <input type="range" min="8" max="45" value="20" class="slider" id="artist_name"> 
+    <div class="controls-grid">
+      <div class="controls-column">
+        <label for="fontFamily" class="info">Font Family</label>
+        <select id="fontFamily" class="dropdown">
+          <option value="proxima-nova, sans-serif" selected>Proxima Nova</option>
+          <option value="Comic Sans MS, cursive">Comic Sans MS</option>
+          <option value="Brush Script MT, cursive">Brush Script MT</option>
+          <option value="Georgia, serif">Georgia</option>
+          <option value="Times New Roman, serif">Times New Roman</option>
+          <option value="Courier New, monospace">Courier New</option>
+          <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
+          <option value="Verdana, sans-serif">Verdana</option>
+        </select>
 
-          <label for="track_title" class="info">Track Title Size</label>
-          <input type="range" min="8" max="53" value="32" class="slider" id="track_title">  
+        <label for="artist_name" class="info">Artist Name Size</label>
+        <input type="range" min="8" max="45" value="15" class="slider" id="artist_name">
 
-          <label for="spacing" class="info">Text Vertical Spacing</label>
-          <input type="range" min="-12" max="20" value="8" class="slider" id="spacing">  
+        <label for="track_title" class="info">Track Title Size</label>
+        <input type="range" min="8" max="53" value="24" class="slider" id="track_title">
 
-          <label for="color" class="info">Accent Color</label>
-          <div class="color-picker-container">
-            <input type="color" id="color" class="color-picker" value="#3b82f6">
-              <div id="colorDisplay" class="color-code-overlay"><code id="colorCode">#3B82F6</code></div>
-          </div>
-        </div>
+        <label for="spacing" class="info">Text Vertical Spacing</label>
+        <input type="range" min="-12" max="20" value="5" class="slider" id="spacing">
 
-        <!-- Right Column -->
-        <div class="controls-column">
-          <label for="visualizerOpacity" class="info">Visualizer Opacity</label>
-          <input type="range" min="0" max="100" value="70" class="slider" id="visualizerOpacity">
-
-          <label class="info" for="imageSize">Album Art Size</label>
-          <input type="range" min="40" max="300" value="110" class="slider" id="imageSize">
-
-          <label for="contentPadding" class="info">Text Left Padding</label>
-          <input type="range" min="0" max="200" value="20" class="slider" id="contentPadding">
-
-              <label for="textVerticalOffset" class="info">Text Vertical Position</label>
-              <input type="range" min="-30" max="30" value="-7" class="slider" id="textVerticalOffset">
-
-          <label for="imagePadding" class="info">Image Left Padding</label>
-          <input type="range" min="-150" max="50" value="25" class="slider" id="imagePadding">
+        <label for="color" class="info">Accent Color</label>
+        <div class="color-picker-container">
+          <input type="color" id="color" class="color-picker" value="#3b82f6">
+          <div id="colorDisplay" class="color-code-overlay"><code id="colorCode">#3B82F6</code></div>
         </div>
       </div>
 
+      <div class="controls-column">
+        <label for="visualizerOpacity" class="info">Visualizer Opacity</label>
+        <input type="range" min="0" max="100" value="70" class="slider" id="visualizerOpacity">
+
+        <label class="info" for="imageSize">Album Art Size</label>
+        <input type="range" min="40" max="300" value="120" class="slider" id="imageSize">
+
+        <label for="contentPadding" class="info">Text Left Padding</label>
+        <input type="range" min="0" max="200" value="30" class="slider" id="contentPadding">
+
+        <label for="textVerticalOffset" class="info">Text Vertical Position</label>
+        <input type="range" min="-30" max="30" value="0" class="slider" id="textVerticalOffset">
+
+        <label for="imagePadding" class="info">Image Left Padding</label>
+        <input type="range" min="-150" max="50" value="20" class="slider" id="imagePadding">
+      </div>
+    </div>
+
+    <!-- Live preview: main.html loaded in ?edit=1 mode so it skips Tuna polling
+         and listens for postMessage CSS variable updates from this editor. -->
+    <section id="sample">
+      <iframe id="preview-frame" src="./main.html?edit=1" scrolling="no" title="Overlay preview"></iframe>
     </section>
-
-<section id="sample">
-  <div id="background">
-    <div id="image-wrapper">
-  <img id="image" src="./SampleAlbum.png" alt="Album Art" />
-    </div>
-    <div id="content">
-      <div id="text-box">
-        <p id="artist">Sample Artist</p>
-        <p id="song">Sample Song Title</p>
-      </div>
-    </div>
-    <div id="progress-container">
-      <div id="progress-bar"></div>
-    </div>
-    <video id="visualizer" autoplay muted loop>
-      <source src="./visualizer.webm" type="video/webm">
-    </video>
-  </div>
-</section>
-
-    
   </main>
 
   <script>
-    const artistSize = document.getElementById("artist_name");
-    const songSize = document.getElementById("track_title");
-    const spacing = document.getElementById("spacing");
-    const color = document.getElementById("color");
-    const fontFamily = document.getElementById("fontFamily");
-    const artistEl = document.getElementById("artist");
-    const songEl = document.getElementById("song");
-    const image = document.getElementById('image');
-    const imageSizeSlider = document.getElementById('imageSize');
-    const contentPaddingSlider = document.getElementById('contentPadding');
-    const textVerticalOffset = document.getElementById('textVerticalOffset');
-    const imagePaddingSlider = document.getElementById('imagePadding');
-    const visualizerOpacitySlider = document.getElementById('visualizerOpacity');
+    // --- Control element references ---
+    const sliderArtistSize       = document.getElementById('artist_name');
+    const sliderSongSize         = document.getElementById('track_title');
+    const sliderSpacing          = document.getElementById('spacing');
+    const sliderImageSize        = document.getElementById('imageSize');
+    const sliderImagePadding     = document.getElementById('imagePadding');
+    const sliderContentPadding   = document.getElementById('contentPadding');
+    const sliderTextOffset       = document.getElementById('textVerticalOffset');
+    const sliderVisualizerOpacity = document.getElementById('visualizerOpacity');
+    const pickerAccent           = document.getElementById('color');
+    const selectFont             = document.getElementById('fontFamily');
+    const codeAccent             = document.getElementById('colorCode');
+    const previewFrame           = document.getElementById('preview-frame');
 
-    let imagePaddingValue = imagePaddingSlider.value;    
-    let contentPaddingValue = contentPaddingSlider.value;
-    let imageSizeValue = imageSizeSlider.value;
-    let artistSizeValue = artistSize.value;
-    let songSizeValue = songSize.value;
-    let spacingValue = spacing.value;
-    let colorValue = color.value;
-    let visualizerOpacityValue = visualizerOpacitySlider.value;
-    let textVerticalOffsetValue = textVerticalOffset.value;
-    let fontFamilyValue = fontFamily.value;
+    // Map: [element, CSS var name, unit]. Color pickers use '' as unit.
+    const CONTROLS = [
+      [sliderArtistSize,      '--artist-size',          'px'],
+      [sliderSongSize,        '--song-size',            'px'],
+      [sliderSpacing,         '--text-spacing',         'px'],
+      [sliderImageSize,       '--image-size',           'px'],
+      [sliderImagePadding,    '--image-padding',        'px'],
+      [sliderContentPadding,  '--content-padding-left', 'px'],
+      [sliderTextOffset,      '--text-vertical-offset', 'px'],
+      [pickerAccent,          '--accent-hex',           ''],
+    ];
+
+    // --- Send a CSS variable update to the preview iframe ---
+    function sendVar(name, value) {
+      if (previewFrame && previewFrame.contentWindow) {
+        previewFrame.contentWindow.postMessage({ type: 'setCSSVar', name, value }, '*');
+      }
+    }
 
     function hexToHsl(hex) {
       const r = parseInt(hex.slice(1,3),16)/255;
@@ -121,197 +108,179 @@
       const b = parseInt(hex.slice(5,7),16)/255;
       const max = Math.max(r,g,b), min = Math.min(r,g,b);
       let h=0, s=0, l=(max+min)/2;
-      if(max!==min){
-        const d = max-min;
-        s = l>0.5? d/(2-max-min) : d/(max+min);
-        switch(max){
-          case r: h = (g-b)/d + (g<b?6:0); break;
-          case g: h = (b-r)/d + 2; break;
-          case b: h = (r-g)/d + 4; break;
+      if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          case b: h = (r - g) / d + 4; break;
         }
-        h = Math.round(h*60);
-        s = Math.round(s*100);
-        l = Math.round(l*100);
-      } else { h = 0; s = 0; l = Math.round(l*100); }
-      return [h,s,l];
+        h = Math.round(h * 60);
+        s = Math.round(s * 100);
+        l = Math.round(l * 100);
+      } else { h = 0; s = 0; l = Math.round(l * 100); }
+      return [h, s, l];
     }
 
-function applyPreview() {
-  artistEl.style.fontSize = artistSizeValue + "px";
-  songEl.style.fontSize = songSizeValue + "px";
-  artistEl.style.marginBottom = spacingValue + "px";
-  artistEl.style.color = colorValue;
-  document.getElementById("colorCode").textContent = (colorValue||'').toUpperCase();
-
-  image.style.width = imageSizeValue + "px";
-  image.style.height = imageSizeValue + "px";
-  const content = document.getElementById('content');
-  content.style.padding = `0 20px 0 ${contentPaddingValue}px`;
-  const imageWrapper = document.getElementById('image-wrapper');
-  imageWrapper.style.marginLeft = imagePaddingValue + "px";
-  // Apply text vertical offset from slider
-  content.style.transform = `translateY(${textVerticalOffsetValue}px)`;
-  
-  // Update progress bar color and position (similar to F1)
-  const progressBar = document.getElementById('progress-bar');
-  const progressContainer = document.getElementById('progress-container');
-  if (progressBar) {
-    // Use hex color picked by the user for preview
-    progressBar.style.backgroundColor = colorValue;
-  }
-
-// Font selector change handler
-fontFamily.addEventListener('change', (e) => {
-  fontFamilyValue = e.target.value;
-  artistEl.style.fontFamily = fontFamilyValue;
-  songEl.style.fontFamily = fontFamilyValue;
-  applyPreview();
-});
-  
-  // Dynamic progress bar positioning based on image position
-  if (progressContainer) {
-    // Calculate progress bar position based on image and content padding
-    const imageWidth = parseInt(imageSizeValue);
-    const imageLeftMargin = parseInt(imagePaddingValue);
-    const contentLeftPadding = parseInt(contentPaddingValue);
-    
-    // Progress bar starts after image + some spacing
-    const progressLeft = imageLeftMargin + imageWidth + 20; // 20px spacing after image
-    // Progress bar width is smaller now due to larger visualizer
-    const totalWidth = 1200; // Total frame width
-    const visualizerSpace = 700; // Increased space reserved for larger visualizer
-    const progressWidth = totalWidth - progressLeft - visualizerSpace - 40; // 40px margin
-    
-    progressContainer.style.left = progressLeft + 'px';
-    progressContainer.style.width = Math.max(150, progressWidth) + 'px'; // Reduced minimum width
-  }
-  
-  // Update visualizer opacity
-  const visualizer = document.getElementById('visualizer');
-  if (visualizer) {
-    visualizer.style.opacity = visualizerOpacityValue / 100;
-  }
-}
-
-
-    function generateCSS() {
-      const scale = 1.2; // Preview to OBS scaling factor (NOTE: Change to 1 if issues found during testing)
-      
-      // Calculate dynamic progress bar positioning (same logic as preview)
-      const imageWidth = parseInt(imageSizeValue);
-      const imageLeftMargin = parseInt(imagePaddingValue);
-      const progressLeft = (imageLeftMargin + imageWidth + 20) * scale; // 20px spacing after image
-      const totalWidth = 900 * scale; // Total frame width (scaled)
-      const visualizerSpace = 350 * scale; // Increased space reserved for larger visualizer (scaled)
-      const progressWidth = totalWidth - progressLeft - visualizerSpace - (40 * scale); // 40px margin (scaled)
-      
-      // emit a CSS file matching css/04-NowPlaying-F4-Styles.css
-      return `
-/* F4 Now-Playing frame styles (generated by editor) */
-:root{
-  --f4-width: ${900 * scale};
-  --f4-height: ${75 * scale};
-  --highlight: hsl(${Math.min(360, Math.max(0, hexToHsl(colorValue)[0] || 221))}, 82%, 58%);
-  --font-main: "proxima-nova", sans-serif;
-  --scroll-extra: 40;
-  --scroll-start-offset: 30;
-  --visualizer-opacity: ${visualizerOpacityValue / 100};
-  --progress-width-px: ${Math.max(150 * scale, progressWidth)}px;
-  --progress-left-px: ${progressLeft}px;
-  --text-left-px: ${0}px;
-  --text-start-offset: ${0}px;
-}
-
-html,body{ margin:0; padding:0; height:100%; font-family:var(--font-main); background:transparent; }
-
-#background{ position:relative; width:var(--f4-width); min-width:var(--f4-width); max-width:var(--f4-width); height:var(--f4-height); background-image: url('./Frame4.png'); background-repeat: no-repeat; background-position: center; background-size: contain; box-sizing:border-box; display:flex; align-items:center; justify-content:center; padding:0; overflow:visible; }
-
-#visualizer{ position:absolute; right:-144px; top:50%; transform:translateY(-50%); width:${1287 * scale}px; height:${135 * scale}px; object-fit:cover; opacity:var(--visualizer-opacity); pointer-events:none; z-index:2; }
-
-#progress-container{ position:relative; width:var(--progress-width-px); margin-left:var(--progress-left-px); height:${8 * scale}px; margin-top:${8 * scale}px; background:rgba(255,255,255,0.06); border-radius:${4 * scale}px; overflow:hidden; z-index:45; }
-
-#progress-bar{ width:0%; height:100%; background:linear-gradient(90deg,var(--highlight), #8fe); transition: width 0.1s linear; border-radius:${4 * scale}px; }
-
-#image{ width:120px; height:120px; object-fit:cover; border-radius:4px; display:block; margin-left:20px; z-index:40; }
-
-#content{ flex:1; overflow:hidden; padding:0 20px 0 30px; box-sizing:border-box; display:flex; flex-direction:row; align-items:center; z-index:40; }
-
-#text-box{ display:flex; flex-direction:column; justify-content:center; min-width:0; margin-left: -10px; flex-grow:1; overflow:hidden; text-align:left; }
-
-.text-clip{ width:var(--progress-width-px); margin-left:var(--text-left-px); overflow:hidden; white-space:nowrap; }
-.text-item{ display:inline-block; white-space:nowrap; }
-.text-row{ display:block; overflow:visible; }
-.text-inner{ display:inline-block; white-space:nowrap; }
-
-#artist,#song{ margin:0; display:inline-block; }
-.text-row{ display:block; overflow:visible; margin-bottom:4px; line-height:1; }
-.text-inner{ display:block; white-space:nowrap; }
-
-#artist,#song{ margin:0; display:block; }
-
-#artist{ text-transform:uppercase; font-weight:600; font-size:${artistSizeValue * scale}px; margin:0 0 ${5 * scale}px 0; color:var(--highlight); }
-
-#song{ font-weight:bold; font-size:${songSizeValue * scale}px; margin:0; color:white; }
-
-/* ensure the visual layers stack correctly in OBS */
-#background > *{pointer-events:none}
-
-@media (max-width:1200px){ #visualizer{display:none} }
-
-      `.trim();
+    function applyAccentColor(hex) {
+      const [h, s, l] = hexToHsl(hex);
+      const hsl = `hsl(${h}, ${s}%, ${l}%)`;
+      sendVar('--highlight',    hsl);
+      sendVar('--artist-color', hsl);
+      sendVar('--accent-hex',   hex);
+      codeAccent.textContent = hex.toUpperCase();
     }
 
-    function downloadCSS(filename, content) {
-      const blob = new Blob([content], {type: "text/css"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }, 0);
+    // --- Wire up controls ---
+    CONTROLS.forEach(([el, cssVar, unit]) => {
+      el.addEventListener('input', () => {
+        if (el === pickerAccent) {
+          applyAccentColor(el.value);
+        } else {
+          sendVar(cssVar, el.value + unit);
+        }
+      });
+    });
+
+    sliderVisualizerOpacity.addEventListener('input', () => {
+      sendVar('--visualizer-opacity', (sliderVisualizerOpacity.value / 100).toString());
+    });
+
+    selectFont.addEventListener('change', () => {
+      sendVar('--font-main', selectFont.value);
+    });
+
+    // --- Parse :root block from main.css and populate sliders ---
+    function parseCSSVars(cssText) {
+      const vars = {};
+      const rootMatch = cssText.match(/:root\s*\{([^}]*)\}/s);
+      if (!rootMatch) return vars;
+      rootMatch[1].split('\n').forEach(line => {
+        const m = line.match(/^\s*(--[\w-]+)\s*:\s*(.+?)\s*;/);
+        if (m) vars[m[1]] = m[2].trim();
+      });
+      return vars;
     }
 
-[artistSize, songSize, spacing, color, imageSizeSlider, contentPaddingSlider, textVerticalOffset, imagePaddingSlider, visualizerOpacitySlider].forEach((slider) => {
-  slider.addEventListener("input", (e) => {
-    if (e.target === artistSize) artistSizeValue = e.target.value;
-    if (e.target === songSize) songSizeValue = e.target.value;
-    if (e.target === spacing) spacingValue = e.target.value;
-    if (e.target === color) colorValue = e.target.value;
-    if (e.target === imageSizeSlider) imageSizeValue = e.target.value;
-    if (e.target === contentPaddingSlider) contentPaddingValue = e.target.value;
-    if (e.target === textVerticalOffset) textVerticalOffsetValue = e.target.value;
-    if (e.target === imagePaddingSlider) imagePaddingValue = e.target.value;
-    if (e.target === visualizerOpacitySlider) visualizerOpacityValue = e.target.value;
-    applyPreview();
-  });
-});
+    function populateSlidersFromVars(vars) {
+      function px(name, fallback) {
+        const m = (vars[name] || '').match(/(-?\d+\.?\d*)/);
+        return m ? parseFloat(m[1]) : fallback;
+      }
+      function frac(name, fallback) {
+        const m = (vars[name] || '').match(/(-?\d+\.?\d*)/);
+        return m ? parseFloat(m[1]) : fallback;
+      }
 
-    applyPreview();
+      sliderArtistSize.value        = px('--artist-size', 15);
+      sliderSongSize.value          = px('--song-size', 24);
+      sliderSpacing.value           = px('--text-spacing', 5);
+      sliderImageSize.value         = px('--image-size', 120);
+      sliderImagePadding.value      = px('--image-padding', 20);
+      sliderContentPadding.value    = px('--content-padding-left', 30);
+      sliderTextOffset.value        = px('--text-vertical-offset', 0);
+      sliderVisualizerOpacity.value = Math.round(frac('--visualizer-opacity', 0.7) * 100);
 
-    // Expose page-specific header callbacks for dynamic header
-    window.onSave = async function() {
-      applyPreview();
-      const cssContent = generateCSS();
-      const cssPath = "src/overlays/frame-banner-visualizer/main.css";
+      const accentHex = vars['--accent-hex'] || '#3b82f6';
+      pickerAccent.value = accentHex;
+      codeAccent.textContent = accentHex.toUpperCase();
+
+      const font = vars['--font-main'] || 'proxima-nova, sans-serif';
+      const opt = Array.from(selectFont.options).find(o => o.value === font);
+      if (opt) selectFont.value = font;
+    }
+
+    function sendAllVars() {
+      CONTROLS.forEach(([el, cssVar, unit]) => {
+        if (el === pickerAccent) {
+          applyAccentColor(el.value);
+        } else {
+          sendVar(cssVar, el.value + unit);
+        }
+      });
+      sendVar('--visualizer-opacity', (sliderVisualizerOpacity.value / 100).toString());
+      sendVar('--font-main', selectFont.value);
+    }
+
+    const CSS_PATH = 'src/overlays/frame-banner-visualizer/main.css';
+
+    async function readMainCSS() {
+      if (window.tauri && window.tauri.invoke) {
+        return window.tauri.invoke('read_text_file', { path: CSS_PATH });
+      }
+      return fetch('./main.css?raw').then(r => r.text()).catch(() => '');
+    }
+
+    readMainCSS()
+      .then(css => { if (css) populateSlidersFromVars(parseCSSVars(css)); })
+      .catch(() => { /* keep slider defaults */ })
+      .finally(() => {
+        previewFrame.addEventListener('load', sendAllVars, { once: true });
+        setTimeout(sendAllVars, 800);
+      });
+
+    // --- Build updated :root block from current slider/picker values ---
+    function buildRootBlock(existingVars) {
+      const [h, s, l] = hexToHsl(pickerAccent.value);
+      const hsl = `hsl(${h}, ${s}%, ${l}%)`;
+      return `:root{
+  --f4-width: ${existingVars['--f4-width'] || '1800px'};
+  --f4-height: ${existingVars['--f4-height'] || '150px'};
+  --highlight: ${hsl};
+  --artist-color: ${hsl};
+  --accent-hex: ${pickerAccent.value};
+  --font-main: ${selectFont.value};
+  --artist-size: ${sliderArtistSize.value}px;
+  --song-size: ${sliderSongSize.value}px;
+  --text-spacing: ${sliderSpacing.value}px;
+  --image-size: ${sliderImageSize.value}px;
+  --image-padding: ${sliderImagePadding.value}px;
+  --content-padding-left: ${sliderContentPadding.value}px;
+  --text-vertical-offset: ${sliderTextOffset.value}px;
+  --scroll-extra: ${existingVars['--scroll-extra'] || '40px'};
+  --scroll-start-offset: ${existingVars['--scroll-start-offset'] || '30px'};
+  --visualizer-opacity: ${(sliderVisualizerOpacity.value / 100).toFixed(2)};
+  --progress-width-px: ${existingVars['--progress-width-px'] || '450px'};
+  --progress-left-px: ${existingVars['--progress-left-px'] || '0px'};
+  --text-left-px: ${existingVars['--text-left-px'] || '0px'};
+  --text-start-offset: ${existingVars['--text-start-offset'] || '0px'};
+}`;
+    }
+
+    // --- Save: rewrite only the :root block in main.css ---
+    window.onSave = async function () {
+      let existingCSS = '';
+      try {
+        existingCSS = await readMainCSS();
+      } catch (e) {
+        alert('Could not read main.css before saving: ' + e);
+        return;
+      }
+
+      const existingVars = parseCSSVars(existingCSS);
+      const newRoot = buildRootBlock(existingVars);
+      const updated = existingCSS.replace(/:root\s*\{[^}]*\}/s, newRoot);
+
       if (window.tauri && window.tauri.invoke) {
         try {
-          await window.tauri.invoke("save_css_file", { path: cssPath, content: cssContent });
-          alert("CSS saved successfully!");
+          await window.tauri.invoke('save_css_file', { path: CSS_PATH, content: updated });
+          alert('Saved successfully!');
         } catch (e) {
-          alert("Failed to save CSS: " + e);
+          alert('Failed to save: ' + e);
         }
       } else {
-        alert("Tauri API not available. Please run inside the Tauri app.");
+        alert('Tauri API not available. Please run inside the app.');
       }
     };
-    window.onBack = function() { history.back(); };
 
+    window.onBack = function () { history.back(); };
   </script>
 
+  <!--
+    IMPORTANT: editor-header-loader.js must remain the last script in <body>.
+    It injects the header HTML and wires up window.onSave / window.onBack.
+  -->
   <script type="module" src="../../js/editor-header-loader.js"></script>
 </body>
 </html>

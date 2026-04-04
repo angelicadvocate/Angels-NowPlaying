@@ -3,541 +3,355 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EditorV2-Frame10</title>
+  <title>Color Bar Visualizer — Editor</title>
   <link rel="stylesheet" href="../../css/editor_pages/editor-header.css" />
   <link rel="stylesheet" href="./editor.css" />
   <link rel="stylesheet" href="../../css/editor_pages/editor-common.css" />
   <script type="module" src="../../js/tauri.js"></script>
 </head>
 <body>
-    <!-- Dynamic header placeholder -->
-    <div id="header-root" data-src="../../editor_pages/editor-header.html" data-page-title="Frame 10 - Color Bar Visualizer"></div>
+  <!-- Dynamic header placeholder -->
+  <div id="header-root"
+       data-src="../../editor_pages/editor-header.html"
+       data-page-title="Color Bar Visualizer">
+  </div>
 
-    <main id="site">
-    <section id="controls">
-      <label for="fontFamily" class="info">Font Family</label>
-      <select id="fontFamily" class="dropdown">
-        <option value="proxima-nova, sans-serif" selected>Proxima Nova</option>
-        <option value="Comic Sans MS, cursive">Comic Sans MS</option>
-        <option value="Brush Script MT, cursive">Brush Script MT</option>
-        <option value="Georgia, serif">Georgia</option>
-        <option value="Times New Roman, serif">Times New Roman</option>
-        <option value="Courier New, monospace">Courier New</option>
-        <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
-        <option value="Verdana, sans-serif">Verdana</option>
-      </select>
+  <main id="site">
+    <div id="controls">
+      <!-- Left column -->
+      <div class="controls-column">
+        <label for="selectFont" class="info">Font Family</label>
+        <select id="selectFont" class="dropdown">
+          <option value="proxima-nova, sans-serif">Proxima Nova</option>
+          <option value="Arial, sans-serif">Arial</option>
+          <option value="Georgia, serif">Georgia</option>
+          <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
+          <option value="Verdana, sans-serif">Verdana</option>
+          <option value="Courier New, monospace">Courier New</option>
+          <option value="Comic Sans MS, cursive">Comic Sans MS</option>
+        </select>
 
-      <label class="info" for="imageSize">Album Art Size</label>
-      <input type="range" min="40" max="150" value="70" class="slider" id="imageSize">
+        <label for="sliderArtistSize" class="info">Artist Name Size</label>
+        <input type="range" min="16" max="64" step="1" value="32" class="slider" id="sliderArtistSize">
 
-      <label for="artist_name" class="info">Artist Name Size</label>
-      <input type="range" min="8" max="32" value="16" class="slider" id="artist_name"> 
+        <label for="sliderSongSize" class="info">Track Title Size</label>
+        <input type="range" min="16" max="72" step="1" value="48" class="slider" id="sliderSongSize">
 
-      <label for="track_title" class="info">Track Title Size</label>
-      <input type="range" min="8" max="32" value="24" class="slider" id="track_title">  
+        <label for="sliderTextSpacing" class="info">Text Vertical Spacing</label>
+        <input type="range" min="-8" max="20" step="1" value="2" class="slider" id="sliderTextSpacing">
 
-      <label for="spacing" class="info">Text Vertical Spacing</label>
-      <input type="range" min="-8" max="20" value="1" class="slider" id="spacing">
+        <label for="sliderTextOffset" class="info">Text Vertical Position</label>
+        <input type="range" min="-50" max="50" step="1" value="-14" class="slider" id="sliderTextOffset">
 
-      <label for="textVerticalOffset" class="info">Text Vertical Position</label>
-      <input type="range" min="-50" max="30" value="-7" class="slider" id="textVerticalOffset">
+        <label for="sliderContentPadding" class="info">Content Left Padding</label>
+        <input type="range" min="0" max="100" step="1" value="30" class="slider" id="sliderContentPadding">
 
-      <label for="progressBarOffset" class="info">Progress Bar Vertical Position</label>
-      <input type="range" min="-30" max="30" value="-5" class="slider" id="progressBarOffset">
-    </section>
+        <label for="sliderProgressOffset" class="info">Progress Bar Position</label>
+        <input type="range" min="-60" max="60" step="1" value="-5" class="slider" id="sliderProgressOffset">
 
-    <section id="controls-middle">
-      <label for="accentColor" class="info">Accent Color</label>
-      <div class="color-picker-container">
-        <input type="color" id="accentColor" class="color-picker" value="#db0000">
-        <div id="accentColorDisplay" class="color-code-overlay">
-          <code id="accentColorCode">#DB0000</code>
+        <label for="pickerAccent" class="info">Accent Color</label>
+        <div class="color-picker-container">
+          <input type="color" id="pickerAccent" class="color-picker" value="#db0000">
+          <div class="color-code-overlay"><code id="codeAccent">#DB0000</code></div>
         </div>
       </div>
 
-      <label for="contentPadding" class="info">Text Left Padding</label>
-      <input type="range" min="0" max="50" value="15" class="slider" id="contentPadding">
+      <!-- Right column -->
+      <div class="controls-column">
+        <label for="sliderImageSize" class="info">Album Art Size</label>
+        <input type="range" min="40" max="300" step="1" value="140" class="slider" id="sliderImageSize">
 
-      <label for="imagePadding" class="info">Image Left Padding</label>
-      <input type="range" min="-50" max="50" value="30" class="slider" id="imagePadding">
+        <label for="sliderImageMargin" class="info">Image Left Margin</label>
+        <input type="range" min="-50" max="200" step="1" value="60" class="slider" id="sliderImageMargin">
 
-      <label for="frameOpacity" class="info">Frame Opacity</label>
-      <input type="range" min="0" max="100" value="100" class="slider" id="frameOpacity">
+        <label for="sliderImageOffset" class="info">Image Vertical Position</label>
+        <input type="range" min="-90" max="90" step="1" value="0" class="slider" id="sliderImageOffset">
 
-      <label for="frameBrightness" class="info">Frame Brightness</label>
-      <input type="range" min="50" max="150" value="100" class="slider" id="frameBrightness">
+        <label for="sliderFrameOpacity" class="info">Frame Opacity</label>
+        <input type="range" min="0" max="100" step="1" value="100" class="slider" id="sliderFrameOpacity">
 
-      <label for="frameHue" class="info">Frame Hue</label>
-      <input type="range" min="-180" max="180" value="0" class="slider" id="frameHue">
-      <div id="autoRotateMessage" style="display: none; padding: 10px; background: #d3d3d3; border-radius: 5px; text-align: center; font-size: 14px; color: var(--highlight); font-weight: bold;">
-        Disable hue rotation to set hue color manually.
+        <label for="sliderFrameBrightness" class="info">Frame Brightness</label>
+        <input type="range" min="50" max="200" step="1" value="100" class="slider" id="sliderFrameBrightness">
+
+        <label for="sliderFrameSaturation" class="info">Frame Saturation</label>
+        <input type="range" min="0" max="200" step="1" value="100" class="slider" id="sliderFrameSaturation">
+
+        <label for="sliderFrameHue" class="info">Frame Hue</label>
+        <input type="range" min="-180" max="180" step="1" value="0" class="slider" id="sliderFrameHue">
+
+        <label for="selectAutoRotate" class="info">Auto Rotate Hue</label>
+        <select id="selectAutoRotate" class="dropdown">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
       </div>
+    </div>
 
-      <label for="autoRotateHue" class="info">Auto Rotate Hue</label>
-      <select id="autoRotateHue" class="dropdown">
-        <option value="no" selected>No</option>
-        <option value="yes">Yes</option>
-      </select>
-    </section>
-
+    <!-- Live preview iframe -->
     <section id="sample">
-      <div id="background">
-        <!-- Frame PNG with filters -->
-        <img id="frame-image" src="./Frame10.png" alt="Frame" />
-        <!-- Visualizer at top -->
-        <video id="visualizer-preview" autoplay loop muted playsinline>
-          <source src="./color-bar-visualizer.webm" type="video/webm">
-        </video>
-        <div id="image-wrapper">
-      <img id="image" src="./SampleAlbum.png" alt="Album Art" />
-        </div>
-        <div id="content">
-          <div id="text-box">
-            <p id="artist">Sample Artist</p>
-            <p id="song">Sample Song Title</p>
-          </div>
-        </div>
-        <div id="progress-container-preview">
-          <div id="progress-bar-preview"></div>
-        </div>
-      </div>
+      <iframe id="preview-frame" src="./main.html?edit=1" scrolling="no" title="Overlay preview"></iframe>
     </section>
   </main>
 
   <script>
-    const fontFamily = document.getElementById("fontFamily");
-    const artistSize = document.getElementById("artist_name");
-    const songSize = document.getElementById("track_title");
-    const spacing = document.getElementById("spacing");
-    const accentColor = document.getElementById("accentColor");
-    const artistEl = document.getElementById("artist");
-    const songEl = document.getElementById("song");
-    const image = document.getElementById('image');
-    const imageSizeSlider = document.getElementById('imageSize');
-    const contentPaddingSlider = document.getElementById('contentPadding');
-    const imagePaddingSlider = document.getElementById('imagePadding');
-    const frameOpacitySlider = document.getElementById('frameOpacity');
-    const frameBrightnessSlider = document.getElementById('frameBrightness');
-    const frameHue = document.getElementById('frameHue');
-    const autoRotateHue = document.getElementById('autoRotateHue');
-    const textVerticalOffsetSlider = document.getElementById('textVerticalOffset');
-    const progressBarOffsetSlider = document.getElementById('progressBarOffset');
+    // --- Element references ---
+    const selectFont           = document.getElementById('selectFont');
+    const sliderArtistSize     = document.getElementById('sliderArtistSize');
+    const sliderSongSize       = document.getElementById('sliderSongSize');
+    const sliderTextSpacing    = document.getElementById('sliderTextSpacing');
+    const sliderTextOffset     = document.getElementById('sliderTextOffset');
+    const sliderContentPadding = document.getElementById('sliderContentPadding');
+    const pickerAccent         = document.getElementById('pickerAccent');
+    const codeAccent           = document.getElementById('codeAccent');
+    const sliderImageSize      = document.getElementById('sliderImageSize');
+    const sliderImageMargin    = document.getElementById('sliderImageMargin');
+    const sliderImageOffset    = document.getElementById('sliderImageOffset');
+    const sliderProgressOffset = document.getElementById('sliderProgressOffset');
+    const sliderFrameOpacity   = document.getElementById('sliderFrameOpacity');
+    const sliderFrameBrightness   = document.getElementById('sliderFrameBrightness');
+    const sliderFrameSaturation  = document.getElementById('sliderFrameSaturation');
+    const sliderFrameHue         = document.getElementById('sliderFrameHue');
+    const selectAutoRotate     = document.getElementById('selectAutoRotate');
+    const previewFrame         = document.getElementById('preview-frame');
 
-    let fontFamilyValue = fontFamily.value;
-    let imagePaddingValue = imagePaddingSlider.value;    
-    let contentPaddingValue = contentPaddingSlider.value;
-    let imageSizeValue = imageSizeSlider.value;
-    let frameOpacityValue = frameOpacitySlider.value;
-    let frameBrightnessValue = frameBrightnessSlider.value;
-    let artistSizeValue = artistSize.value;
-    let textVerticalOffsetValue = textVerticalOffsetSlider.value;
-    let progressBarOffsetValue = progressBarOffsetSlider.value;
-    let songSizeValue = songSize.value;
-    let spacingValue = spacing.value;
-    let accentColorValue = accentColor.value || "#db0000";
-    let frameHueValue = frameHue.value;
-    let autoRotateHueValue = autoRotateHue.value;
-
-    const scale = 2;
-
-function applyPreview() {
-  artistEl.style.fontSize = artistSizeValue + "px";
-  songEl.style.fontSize = songSizeValue + "px";
-  artistEl.style.marginBottom = spacingValue + "px";
-  artistEl.style.color = accentColorValue;
-  artistEl.style.fontFamily = fontFamilyValue;
-  artistEl.style.textShadow = "0 2px 4px rgba(0, 0, 0, 0.5)";
-  songEl.style.fontFamily = fontFamilyValue;
-  songEl.style.textShadow = "0 2px 4px rgba(0, 0, 0, 0.5)";
-  
-  // Display hex color code
-  document.getElementById("accentColorCode").textContent = accentColorValue.toUpperCase();
-
-  image.style.width = imageSizeValue + "px";
-  image.style.height = imageSizeValue + "px";
-  image.style.filter = "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4))";
-  const content = document.getElementById('content');
-  content.style.padding = `0 20px 0 ${contentPaddingValue}px`;
-  content.style.transform = `translateY(${textVerticalOffsetValue}px)`;
-  const imageWrapper = document.getElementById('image-wrapper');
-  imageWrapper.style.marginLeft = imagePaddingValue + "px";
-  
-  // Update progress bar positioning and color dynamically
-  const progressContainer = document.getElementById('progress-container-preview');
-  const progressBar = document.getElementById('progress-bar-preview');
-  if (progressContainer && progressBar) {
-    // Calculate dynamic positioning based on image position and size
-    const imageLeftPos = parseInt(imagePaddingValue) + 5; // Base padding + image padding
-    const imageRightEdge = imageLeftPos + parseInt(imageSizeValue);
-    const progressStartPos = imageRightEdge + 10; // Small gap after image
-    const containerWidth = 400; // Preview container width
-    const progressWidth = containerWidth - progressStartPos - 30; // Leave some right margin
-    
-    progressContainer.style.left = progressStartPos + "px";
-    progressContainer.style.width = progressWidth + "px";
-    progressContainer.style.transform = `translateY(${progressBarOffsetValue}px)`;
-    progressContainer.style.filter = "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4))";
-    
-    // Update progress bar color to match accent color
-    progressBar.style.backgroundColor = accentColorValue;
-  }
-
-  // Update frame opacity and brightness
-  const background = document.getElementById('background');
-  const opacityValue = frameOpacityValue / 100;
-  const brightnessValue = frameBrightnessValue / 100;
-  
-  // Frame opacity affects the entire container
-  background.style.opacity = opacityValue;
-  
-  // Apply frame hue rotation and brightness to frame image only
-  document.getElementById("frame-image").style.filter = `hue-rotate(${frameHueValue}deg) brightness(${brightnessValue}) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4))`;
-  
-  // Apply hue rotation to visualizer video
-  const visualizer = document.getElementById('visualizer-preview');
-  if (visualizer) {
-    visualizer.style.filter = `hue-rotate(${frameHueValue}deg)`;
-  }
-}
-
-
-    function generateCSS() {
-      // Convert hex color to HSL for CSS output
-      function hexToHsl(hex) {
-        hex = hex.replace(/^#/, '');
-        const r = parseInt(hex.substring(0, 2), 16) / 255;
-        const g = parseInt(hex.substring(2, 4), 16) / 255;
-        const b = parseInt(hex.substring(4, 6), 16) / 255;
-        
-        const max = Math.max(r, g, b);
-        const min = Math.min(r, g, b);
-        let h, s, l = (max + min) / 2;
-        
-        if (max === min) {
-          h = s = 0;
-        } else {
-          const d = max - min;
-          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-          switch (max) {
-            case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
-            case g: h = ((b - r) / d + 2) / 6; break;
-            case b: h = ((r - g) / d + 4) / 6; break;
-          }
-        }
-        
-        h = Math.round(h * 360);
-        s = Math.round(s * 100);
-        l = Math.round(l * 100);
-        
-        return `${h}, ${s}%, ${l}%`;
+    // --- Send a CSS variable to the preview iframe ---
+    function sendVar(name, value) {
+      if (previewFrame && previewFrame.contentWindow) {
+        previewFrame.contentWindow.postMessage({ type: 'setCSSVar', name, value }, '*');
       }
-      
-      const highlightHsl = hexToHsl(accentColorValue);
-      const brightnessValue = frameBrightnessValue / 100;
-      
-      // Generate CSS matching css/01-NowPlaying-F10-Styles.css structure.
-      // The editor preview uses a `scale` factor to keep UI compact; the
-      // runtime files use absolute pixel values. Multiply slider values by
-      // scale to produce equivalent final sizes.
-      return `
-/* /static css placeholder/ */
-
-:root {
-  --highlight: hsl(${highlightHsl});
-  --font-main: ${fontFamilyValue};
-}
-
-/* Reset and base styles */
-body {
-  background: #ebebeb;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  font-family: var(--font-main);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
-/* Widget container */
-#background {
-  position: relative;
-  width: ${400 * scale}px;
-  min-width: ${400 * scale}px;
-  max-width: ${400 * scale}px;
-  height: ${90 * scale}px;
-  background-image: url('./Frame1.png');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  border-radius: ${8 * scale}px;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  overflow: visible;
-  z-index: 1;
-}
-
-/* Frame image with filters */
-#frame-image {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  border-radius: ${8 * scale}px;
-  filter: hue-rotate(${frameHueValue}deg) brightness(${brightnessValue}) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
-  z-index: 0;
-}
-
-/* Album art image (main) */
-#image {
-  width: ${imageSizeValue * scale}px;
-  height: ${imageSizeValue * scale}px;
-  object-fit: cover;
-  margin-left: ${imagePaddingValue * scale}px;
-  border-radius: ${4 * scale}px;
-  display: block;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
-}
-
-/* Fading overlay image */
-#image-wrapper {
-  position: relative;
-  flex-shrink: 0;
-  overflow: visible;
-  margin-left: 0px;
-  padding-left: 0;
-  z-index: 5;
-}
-
-/* Flex container for image + text */
-#content {
-  flex: 1;
-  overflow: hidden;
-  padding: 0 ${20 * scale}px 0 ${contentPaddingValue * scale}px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  transform: translateY(${textVerticalOffsetValue * scale}px);
-}
-
-/* Text container */
-#text-box {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-width: 0;
-  flex-grow: 1;
-  overflow: hidden;
-  text-align: left;
-}
-
-#artist,
-#song {
-  position: relative;
-  margin: 0;
-}
-
-.text-box {
-  width: 100%;
-  overflow: hidden;
-  white-space: nowrap;
-  position: relative;
-}
-
-
-/* Artist name styling */
-#artist {
-  text-transform: uppercase;
-  font-weight: 600;
-  font-size: ${artistSizeValue * scale}px;
-  margin-bottom: ${spacingValue * scale}px;
-  color: var(--highlight);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-/* Song title styling */
-#song {
-  font-weight: bold;
-  font-size: ${songSizeValue * scale}px;
-  color: white;
-  margin: 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-p {
-  white-space: nowrap;
-}
-
-/* Scrolling span */
-#text-box span {
-  display: inline-block;
-  white-space: nowrap;
-  will-change: transform;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  transform: translateX(var(--marquee-start, 0));
-}
-
-/* Marquee animation */
-.marquee {
-  animation-name: marqueeAnim;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-  animation-duration: var(--marquee-duration, 10s);
-}
-
-@keyframes marqueeAnim {
-  0% {
-    transform: translateX(var(--marquee-start, 0));
-  }
-  100% {
-    transform: translateX(var(--marquee-end, 0));
-  }
-}
-
-/* Progress bar container - dynamically positioned */
-#progress-container {
-  position: absolute;
-  bottom: 0;
-  left: ${(parseInt(imagePaddingValue) * scale + parseInt(imageSizeValue) * scale + 20)}px;
-  width: ${(400 * scale) - (parseInt(imagePaddingValue) * scale + parseInt(imageSizeValue) * scale + 60)}px;
-  margin-bottom: ${12 * scale}px;
-  height: ${15 * scale}px;
-  background-color: rgba(255, 255, 255, 0.1);
-  overflow: hidden;
-  border-radius: 10px 10px 10px 10px;
-  z-index: 9999;
-  transform: translateY(${progressBarOffsetValue * scale}px);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
-}
-
-#progress-bar {
-  height: 100%;
-  width: 0%;
-  background-color: var(--highlight);
-  transition: width 0.3s linear;
-}
-
-      `.trim();
     }
 
-    function downloadCSS(filename, content) {
-      const blob = new Blob([content], {type: "text/css"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }, 0);
+    // --- Hex → HSL conversion ---
+    function hexToHsl(hex) {
+      const r = parseInt(hex.slice(1,3),16)/255;
+      const g = parseInt(hex.slice(3,5),16)/255;
+      const b = parseInt(hex.slice(5,7),16)/255;
+      const max = Math.max(r,g,b), min = Math.min(r,g,b);
+      let h=0, s=0, l=(max+min)/2;
+      if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d/(2-max-min) : d/(max+min);
+        switch(max) {
+          case r: h = (g-b)/d + (g<b?6:0); break;
+          case g: h = (b-r)/d + 2; break;
+          case b: h = (r-g)/d + 4; break;
+        }
+        h = Math.round(h*60);
+        s = Math.round(s*100);
+        l = Math.round(l*100);
+      } else { l = Math.round(l*100); }
+      return [h, s, l];
     }
 
-[artistSize, songSize, spacing, imageSizeSlider, contentPaddingSlider, imagePaddingSlider, frameOpacitySlider, frameBrightnessSlider, frameHue, textVerticalOffsetSlider, progressBarOffsetSlider].forEach((slider) => {
-  slider.addEventListener("input", (e) => {
-    if (e.target === artistSize) artistSizeValue = e.target.value;
-    if (e.target === songSize) songSizeValue = e.target.value;
-    if (e.target === spacing) spacingValue = e.target.value;
-    if (e.target === imageSizeSlider) imageSizeValue = e.target.value;
-    if (e.target === contentPaddingSlider) contentPaddingValue = e.target.value;
-    if (e.target === imagePaddingSlider) imagePaddingValue = e.target.value;
-    if (e.target === frameOpacitySlider) frameOpacityValue = e.target.value;
-    if (e.target === frameBrightnessSlider) frameBrightnessValue = e.target.value;
-    if (e.target === frameHue) frameHueValue = e.target.value;
-    if (e.target === textVerticalOffsetSlider) textVerticalOffsetValue = e.target.value;
-    if (e.target === progressBarOffsetSlider) progressBarOffsetValue = e.target.value;
-    applyPreview();
-  });
-});
-
-// Color picker event listener
-accentColor.addEventListener("input", (e) => {
-  accentColorValue = e.target.value;
-  applyPreview();
-});
-
-// Font family event listener
-fontFamily.addEventListener("change", (e) => {
-  fontFamilyValue = e.target.value;
-  applyPreview();
-});
-
-// Frame Hue event listener
-frameHue.addEventListener("input", (e) => {
-  frameHueValue = e.target.value;
-  autoRotateHueValue = "no";
-  autoRotateHue.value = "no";
-  document.getElementById("autoRotateMessage").style.display = "none";
-  frameHue.style.display = "block";
-  frameHue.disabled = false;
-  applyPreview();
-});
-
-// Auto Rotate Hue event listener
-autoRotateHue.addEventListener("change", (e) => {
-  autoRotateHueValue = e.target.value;
-  
-  if (autoRotateHueValue === "yes") {
-    document.getElementById("autoRotateMessage").style.display = "block";
-    frameHue.style.display = "none";
-    frameHue.disabled = true;
-    
-    // Start auto-rotating hue
-    let currentHue = 0;
-    const hueRotationInterval = setInterval(() => {
-      currentHue = (currentHue + 1) % 360;
-      frameHueValue = currentHue;
-      frameHue.value = currentHue;
-      applyPreview();
-    }, 30);
-    
-    // Store interval ID on the autoRotateHue element for cleanup
-    autoRotateHue.hueRotationInterval = hueRotationInterval;
-  } else {
-    document.getElementById("autoRotateMessage").style.display = "none";
-    frameHue.style.display = "block";
-    frameHue.disabled = false;
-    
-    // Clear the hue rotation interval if it exists
-    if (autoRotateHue.hueRotationInterval) {
-      clearInterval(autoRotateHue.hueRotationInterval);
-      autoRotateHue.hueRotationInterval = null;
+    function applyAccentColor(hex) {
+      const [h, s, l] = hexToHsl(hex);
+      sendVar('--highlight', `hsl(${h}, ${s}%, ${l}%)`);
+      sendVar('--accent-hex', hex);
+      codeAccent.textContent = hex.toUpperCase();
     }
-  }
-});
 
-    applyPreview();
+    // --- Frame hue filter logic ---
+    let autoRotateInterval = null;
 
-    // Expose page-specific header callbacks for dynamic header
-    window.onSave = async function() {
-      applyPreview();
-      const cssContent = generateCSS();
-      const cssPath = "src/overlays/frame-color-bar-visualizer/main.css";
+    function applyHueFilters(hue) {
+      sendVar('--frame-hue', `${hue}deg`);
+    }
+
+    sliderFrameHue.addEventListener('input', () => {
+      if (selectAutoRotate.value === 'no') {
+        applyHueFilters(parseInt(sliderFrameHue.value));
+      }
+    });
+
+    selectAutoRotate.addEventListener('change', () => {
+      clearInterval(autoRotateInterval);
+      autoRotateInterval = null;
+      if (selectAutoRotate.value === 'yes') {
+        sliderFrameHue.disabled = true;
+        let hue = 220;
+        autoRotateInterval = setInterval(() => {
+          hue = (hue + 2) % 360;
+          applyHueFilters(hue);
+        }, 50);
+      } else {
+        sliderFrameHue.disabled = false;
+        applyHueFilters(parseInt(sliderFrameHue.value));
+      }
+    });
+
+    // --- Standard controls ---
+    const CONTROLS = [
+      [sliderArtistSize,      '--artist-size',          'px'],
+      [sliderSongSize,        '--song-size',             'px'],
+      [sliderTextSpacing,     '--text-spacing',          'px'],
+      [sliderTextOffset,      '--text-vertical-offset',  'px'],
+      [sliderContentPadding,  '--content-padding-left',  'px'],
+      [sliderImageSize,       '--image-size',            'px'],
+      [sliderImageMargin,     '--image-margin-left',     'px'],
+      [sliderImageOffset,     '--image-vertical-offset',  'px'],
+      [sliderProgressOffset,  '--progress-bar-offset',   'px'],
+    ];
+
+    CONTROLS.forEach(([el, cssVar, unit]) => {
+      el.addEventListener('input', () => sendVar(cssVar, el.value + unit));
+    });
+
+    sliderFrameOpacity.addEventListener('input', () => {
+      sendVar('--frame-opacity', (sliderFrameOpacity.value / 100).toFixed(2));
+    });
+
+    sliderFrameBrightness.addEventListener('input', () => {
+      sendVar('--frame-brightness', (sliderFrameBrightness.value / 100).toFixed(2));
+    });
+
+    sliderFrameSaturation.addEventListener('input', () => {
+      sendVar('--frame-saturation', (sliderFrameSaturation.value / 100).toFixed(2));
+    });
+
+    pickerAccent.addEventListener('input', () => applyAccentColor(pickerAccent.value));
+    selectFont.addEventListener('change', () => sendVar('--font-main', selectFont.value));
+
+    // --- Parse :root block from main.css ---
+    function parseCSSVars(cssText) {
+      const vars = {};
+      const m = cssText.match(/:root\s*\{([^}]*)\}/s);
+      if (!m) return vars;
+      m[1].split('\n').forEach(line => {
+        const lm = line.match(/^\s*(--[\w-]+)\s*:\s*(.+?)\s*;/);
+        if (lm) vars[lm[1]] = lm[2].trim();
+      });
+      return vars;
+    }
+
+    function populateSlidersFromVars(vars) {
+      function px(name, fallback) {
+        const v = vars[name] || '';
+        const m = v.match(/(-?\d+\.?\d*)/);
+        return m ? parseFloat(m[1]) : fallback;
+      }
+      sliderArtistSize.value      = px('--artist-size', 32);
+      sliderSongSize.value        = px('--song-size', 48);
+      sliderTextSpacing.value     = px('--text-spacing', 2);
+      sliderTextOffset.value      = px('--text-vertical-offset', -14);
+      sliderContentPadding.value  = px('--content-padding-left', 30);
+      sliderImageSize.value       = px('--image-size', 140);
+      sliderImageMargin.value     = px('--image-margin-left', 60);
+      sliderImageOffset.value     = px('--image-vertical-offset', 0);
+      sliderProgressOffset.value  = px('--progress-bar-offset', -5);
+
+      const ov = vars['--frame-opacity'] || '1';
+      sliderFrameOpacity.value = Math.round(parseFloat(ov) * 100);
+
+      const bv = vars['--frame-brightness'] || '1';
+      sliderFrameBrightness.value = Math.round(parseFloat(bv) * 100);
+
+      const sv = vars['--frame-saturation'] || '1';
+      sliderFrameSaturation.value = Math.round(parseFloat(sv) * 100);
+
+      const fh = vars['--frame-hue'] || '0deg';
+      const hm = fh.match(/(-?\d+)/);
+      sliderFrameHue.value = hm ? parseInt(hm[1]) : 0;
+
+      const savedMode = vars['--auto-rotate-mode'] || 'no';
+      selectAutoRotate.value = savedMode;
+      sliderFrameHue.disabled = savedMode === 'yes';
+      if (savedMode === 'yes') selectAutoRotate.dispatchEvent(new Event('change'));
+
+      const accentHex = vars['--accent-hex'] || '#db0000';
+      pickerAccent.value = accentHex;
+      codeAccent.textContent = accentHex.toUpperCase();
+
+      const font = vars['--font-main'] || 'proxima-nova, sans-serif';
+      const opt = Array.from(selectFont.options).find(o => o.value === font);
+      if (opt) selectFont.value = font;
+    }
+
+    function sendAllVars() {
+      CONTROLS.forEach(([el, cssVar, unit]) => sendVar(cssVar, el.value + unit));
+      sendVar('--frame-opacity', (sliderFrameOpacity.value / 100).toFixed(2));
+      sendVar('--frame-brightness', (sliderFrameBrightness.value / 100).toFixed(2));
+      sendVar('--frame-saturation', (sliderFrameSaturation.value / 100).toFixed(2));
+      applyAccentColor(pickerAccent.value);
+      sendVar('--font-main', selectFont.value);
+      if (selectAutoRotate.value === 'no') {
+        applyHueFilters(parseInt(sliderFrameHue.value));
+      }
+    }
+
+    const CSS_PATH = 'src/overlays/frame-color-bar-visualizer/main.css';
+
+    async function readMainCSS() {
+      if (window.tauri && window.tauri.invoke) {
+        return window.tauri.invoke('read_text_file', { path: CSS_PATH });
+      }
+      return fetch('./main.css?raw').then(r => r.text()).catch(() => '');
+    }
+
+    readMainCSS()
+      .then(css => { if (css) populateSlidersFromVars(parseCSSVars(css)); })
+      .catch(() => {})
+      .finally(() => {
+        previewFrame.addEventListener('load', sendAllVars, { once: true });
+        setTimeout(sendAllVars, 800);
+      });
+
+    // --- Build :root block for saving ---
+    function buildRootBlock(vars) {
+      const [h, s, l] = hexToHsl(pickerAccent.value);
+      const hsl = `hsl(${h}, ${s}%, ${l}%)`;
+      const hue = parseInt(sliderFrameHue.value);
+      const frameHueVal = (selectAutoRotate.value === 'no') ? `${hue}deg` : '0deg';
+      return `:root {
+  --highlight: ${hsl};
+  --accent-hex: ${pickerAccent.value};
+  --font-main: ${selectFont.value};
+  --artist-size: ${sliderArtistSize.value}px;
+  --song-size: ${sliderSongSize.value}px;
+  --text-spacing: ${sliderTextSpacing.value}px;
+  --image-size: ${sliderImageSize.value}px;
+  --image-margin-left: ${sliderImageMargin.value}px;
+  --image-vertical-offset: ${sliderImageOffset.value}px;
+  --content-padding-left: ${sliderContentPadding.value}px;
+  --text-vertical-offset: ${sliderTextOffset.value}px;
+  --progress-bar-offset: ${sliderProgressOffset.value}px;
+  --frame-hue: ${frameHueVal};
+  --frame-brightness: ${(sliderFrameBrightness.value / 100).toFixed(2)};
+  --frame-saturation: ${(sliderFrameSaturation.value / 100).toFixed(2)};
+  --frame-opacity: ${(sliderFrameOpacity.value / 100).toFixed(2)};
+  --auto-rotate-mode: ${selectAutoRotate.value};
+  --scroll-extra: ${vars['--scroll-extra'] || '0px'};
+  --scroll-start-offset: ${vars['--scroll-start-offset'] || '30px'};
+}`;
+    }
+
+    // --- Save: rewrite only the :root block in main.css ---
+    window.onSave = async function () {
+      let existingCSS = '';
+      try {
+        existingCSS = await readMainCSS();
+      } catch (e) {
+        alert('Could not read main.css before saving: ' + e);
+        return;
+      }
+      const existingVars = parseCSSVars(existingCSS);
+      const newRoot = buildRootBlock(existingVars);
+      const updated = existingCSS.replace(/:root\s*\{[^}]*\}/s, newRoot);
+
       if (window.tauri && window.tauri.invoke) {
         try {
-          await window.tauri.invoke("save_css_file", { path: cssPath, content: cssContent });
-          alert("CSS saved successfully!");
+          await window.tauri.invoke('save_css_file', { path: CSS_PATH, content: updated });
+          alert('Saved successfully!');
         } catch (e) {
-          alert("Failed to save CSS: " + e);
+          alert('Failed to save: ' + e);
         }
       } else {
-        alert("Tauri API not available. Please run inside the Tauri app.");
+        alert('Tauri API not available. Run inside the app to save.');
       }
     };
-    window.onBack = function() { history.back(); };
 
+    window.onBack = function () { history.back(); };
   </script>
 
   <script type="module" src="../../js/editor-header-loader.js"></script>
-
 </body>
 </html>

@@ -2,7 +2,7 @@
 
 A cross-platform desktop app for managing and displaying **Now Playing** overlays in OBS. Built with [Tauri](https://tauri.app) (Rust backend) and plain HTML/CSS/JS overlays that run as OBS Browser Sources.
 
-> **Status:** Active development — v0.8.0. Core overlay playback and the in-app editor are working. Not all bundled overlay styles are complete. See [TODO.md](TODO.md) for what's in progress.
+> **Status:** Active development — v0.8.1. Core overlay playback and the in-app editor are working. Not all bundled overlay styles are complete. See [TODO.md](TODO.md) for what's in progress.
 
 ---
 

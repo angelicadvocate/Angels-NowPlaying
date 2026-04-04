@@ -1,130 +1,59 @@
 
 
-/* Site wrapper - takes remaining space after header */
+/* Body: allow vertical scroll, zero out editor-common.css padding-bottom */
+body {
+  box-sizing: border-box;
+  height: auto;
+  min-height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 0;
+}
+
+/* Site wrapper: controls on left, preview iframe on right */
 #site {
   display: flex;
   flex-direction: row;
-  gap: 40px;
+  gap: 60px;
   align-items: flex-start;
-  justify-content: space-around;
-  flex: 1;
-  overflow-y: hidden; /* prevent page scrollbar when preview content translates */
-  overflow-x: hidden;
-  padding: 40px 400px;
+  justify-content: center;
+  padding: 40px 40px 0;
 }
 
-/* Controls container */
+/* Controls column */
 #controls {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 15px;
-  margin-bottom: 0;
-  margin-top: 40px; /* page specific extra header space */
-  padding-left: 60px;
   flex: 0 0 auto;
-  min-width: 100px;
+  padding-top: 10px;
+  min-width: 280px;
 }
 
-/* Sample preview section */
+/* Preview section — overflow:visible lets the scaled iframe extend beyond
+   the 450px layout box without clipping */
 #sample {
   display: flex;
   justify-content: center;
-  align-items: center;
-  flex: 1;
-  text-align: center;
-  background: transparent;
-}
-
-#background {
-  position: relative;
-  width: 800px;
-  height: 600px;
-  background: transparent;
+  align-items: flex-start;
+  flex: 0 0 auto;
   overflow: visible;
 }
 
-/* Album art container */
-#album-art-container {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 0;
-}
-
-#image {
-  max-width: 160px;
-  height: auto;
-  object-fit: cover;
-  border-radius: 50%;
-  opacity: 1;
-  animation: spin 3s linear infinite;
-}
-
-/* Vinyl container */
-#vinyl-container {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1;
-}
-
-#vinyl-record {
-  max-width: 450px;
-  height: auto;
-  opacity: 1;
-  animation: spin 3s linear infinite;
-}
-
-/* Text content */
-#content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  z-index: 2;
-}
-
-#text-box {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-#artist {
-  font-size: 24px;
-  font-weight: bold;
-  text-transform: uppercase;
-  margin: 0;
-  color: #ff2a2a;
-  text-shadow: 0 4px 16px rgba(0, 0, 0, 0.65), 0 2px 4px rgba(0, 0, 0, 0.45);
-  font-family: var(--font-main);
-}
-
-#song {
-  font-size: 30px;
-  font-weight: bold;
-  margin: 0;
-  color: #ffffff;
-  text-shadow: 0 4px 16px rgba(0, 0, 0, 0.65), 0 2px 4px rgba(0, 0, 0, 0.45);
-  font-family: var(--font-main);
-}
-
-/* Spin animation for vinyl */
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* transform-origin: top left aligns visual and layout left edges.
+   margin-right collapses the extra layout width (900 - 450 = 450px)
+   so justify-content: center on #site sees the correct 450px visual width. */
+#preview-frame {
+  width: 900px;
+  height: 1500px;
+  border: none;
+  display: block;
+  background: transparent;
+  transform: scale(0.5);
+  transform-origin: top left;
+  margin-right: -450px;
+  margin-bottom: -650px;
+  margin-top: -100px;
 }
 
