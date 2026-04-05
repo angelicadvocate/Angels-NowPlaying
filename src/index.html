@@ -1,8 +1,102 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta http-equiv="refresh" content="0; url=main_pages/index.html" />
-    <script>window.location.replace('main_pages/index.html');</script>
-  </head>
-  <body></body>
+<html lang="en">
+<head>
+  <!-- Angel's-NowPlaying Editor v0.5.3 -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Angel's-NowPlaying Editor</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="./css/index.css" />
+  <script type="module" src="./js/index-page.js"></script>
+</head>
+<body>
+
+  <div class="header-container">
+    <!-- Center Mascot/Title -->
+    <div class="header-center">
+      <img src="./assets/mascot.png" alt="Mascot" class="floating-mascot" />
+      <img src="./assets/header-text.png" alt="Header Text" class="header-text" />
+    </div>
+
+    <!-- Right Action Buttons -->
+    <div class="header-actions">
+      <!-- Support Development Row -->
+      <div class="button-row">
+        <p class="button-row-label">Support Development:</p>
+        <a href="https://streamelements.com/angelicadvocate/tip" target="_blank"><button class="action-button tip-button" title="Buy Me a Coffee"><i class="fas fa-heart" style="font-size: 1.2rem;"></i> Buy Me a Coffee</button></a>
+      </div>
+
+      <!-- Share this Widget Row -->
+      <div class="button-row">
+        <p class="button-row-label">Share this widget:</p>
+        <a href="#" onclick="shareToTwitter(); return false;"><button class="action-button social-button" title="Share on Twitter"><i class="fab fa-twitter"></i></button></a>
+        <a href="#" onclick="shareOnFacebook(); return false;"><button class="action-button social-button" title="Share on Facebook"><i class="fab fa-facebook"></i></button></a>
+        <a href="#" onclick="shareToReddit(); return false;"><button class="action-button social-button" title="Share on Reddit"><i class="fab fa-reddit"></i></button></a>
+        <a href="#" onclick="shareToDiscord(); return false;"><button class="action-button social-button" title="Share on Discord"><i class="fab fa-discord"></i></button></a>
+      </div>
+      <div class="button-row">
+        <a href="https://github.com/angelicadvocate/Angels-NowPlaying" target="_blank"><button class="action-button" title="GitHub"><i class="fab fa-github"></i> GitHub</button></a>
+        <button class="action-button" onclick="openStore()" title="Open Store"><i class="fas fa-store"></i> Store</button>
+        <a href="html/settings.html"><button class="action-button" title="Settings"><i class="fas fa-cog"></i> Settings</button></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay cards are injected dynamically by js/index-page.js -->
+  <div class="grid">
+    <div class="welcome-card">
+      <div class="welcome-section">
+        <img src="./assets/instructions.png" alt="Getting Started" />
+        <p class="welcome-text">If this is your first time using this tool, please see the instructions page in <strong>Settings</strong>.</p>
+      </div>
+      <div class="welcome-divider"></div>
+      <div class="welcome-section-bottom">
+        <i class="fas fa-store"></i>
+        <span>To add more overlays, go to <strong>Settings</strong> or search in the <strong>Store</strong>.</span>
+      </div>
+      <div class="welcome-divider"></div>
+      <div class="welcome-section-bottom" style="justify-content: center; font-style: italic; opacity: 0.9;">
+        <i class="fas fa-heart" style="color: #ff6b6b; margin-right: 1rem;"></i>
+        Thanks for trying out our tool. We hope you enjoy it! Please consider leaving feedback or supporting development.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const shareURL = encodeURIComponent("https://github.com/angelicadvocate/Angels-NowPlaying");
+    const shareText = encodeURIComponent("Check out this awesome customizable Angel's-NowPlaying overlay collection!");
+
+    function shareToTwitter() {
+      window.openExternalUrl(`https://twitter.com/intent/tweet?text=${shareText}&url=${shareURL}`);
+    }
+
+    function shareToReddit() {
+      window.openExternalUrl(`https://www.reddit.com/submit?url=${shareURL}&title=${shareText}`);
+    }
+
+    function shareToDiscord() {
+      navigator.clipboard.writeText(`${decodeURIComponent(shareText)}\n${decodeURIComponent(shareURL)}`);
+      alert("Link copied! Paste it into your favorite Discord server.");
+    }
+    
+    function shareOnFacebook() {
+      window.openExternalUrl(`https://www.facebook.com/sharer/sharer.php?u=${shareURL}`);
+    }
+
+    function openStore() {
+      window.location.href = "html/store.html";
+    }
+
+    // Route all target="_blank" links through the system browser (Tauri context)
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('a[target="_blank"]').forEach(a => {
+        a.addEventListener('click', e => {
+          e.preventDefault();
+          window.openExternalUrl(a.href);
+        });
+      });
+    });
+  </script>
+
+</body>
 </html>

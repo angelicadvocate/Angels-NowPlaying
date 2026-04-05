@@ -10,6 +10,21 @@ Please be sure to add date, completed tag, `github:[username]`, and version numb
 
 ---------------------------------------------------------------------------------
 
+## v0.8.2 – 2026-04-05
+
+* [x] **Flatten `src/` directory structure** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Moved `src/main_pages/{settings,store,instructions}.html` → `src/html`
+  * Moved `src/main_pages/index.html` → `src/` directly
+  * Moved `src/editor_pages/editor-header.html` → `src/html/editor-header.html`
+  * Moved `src/css/main_pages/*.css` → `src/css/` directly
+  * Moved `src/css/editor_pages/{editor-common,editor-header}.css` → `src/css/`
+  * Removed the old redirect `src/index.html`; the real home page is now the Vite root entry
+  * Updated all internal path references: 4 main HTML pages, 12 overlay `editor.html` files, `editor-header-loader.js`, and `vite.config.js` rollup inputs
+  * Removed empty `src/main_pages/`, `src/editor_pages/`, `src/css/main_pages/`, `src/css/editor_pages/` folders
+  * Updated `DEVELOPMENT.md` project structure section to reflect new layout
+
+---------------------------------------------------------------------------------
+
 ## v0.8.1 – 2026-04-04
 
 * [x] **iframe editor migration for all 11 bundled overlays + full OBS QA pass** ✨ *COMPLETED* `github:AngelicAdvocate`

@@ -29,7 +29,9 @@ The dark mode toggle in Settings saves to `settings.json` (via `save_overlay_set
 
 ## Other To-Do Items
 - [ ] (Optional) Add onboarding or tooltips for first-time users to make the app even more user-friendly.
-- [ ] (Optional) Since the folder structure has changed for the overlays it is no longer needed to split the html and css files so granularly here. Consider flattening the main_pages and editor_pages in src and also in src/css for better navigation. If flattened properly in src, we would no longer need the duplicate index.html used as an entry point here. Dont forget to update the project structure in DEVELOPMENT.md after changes are made.
+- [ ] Refine what controls are on each overlay page and what values each slider has for min/max.
+- [ ] Tests - Still need to test uploading a user created overlay as a zip file to make sure that it unpacks correctly and works with the app.
+- [ ] **User overlay editor.html compatibility** — User-installed overlay editors (in `%APPDATA%/AngelsNowPlaying/overlays/`) reference shared scripts via `../../js/tauri.js` and `../../js/editor-header-loader.js`, which resolve correctly for bundled overlays (in `dist/overlays/`) but will 404 for user overlays since they live in AppData, not alongside `dist/js/`. Before wiring up the install/store UI, decide on one of: (a) inline shared scripts into `editor.html` during `zip_overlay` export, (b) serve `dist/js/` via the tiny_http server under a `/js/` virtual path so user overlay editors can reference it, or (c) document that custom overlay editors must bundle their own scripts.
 
 ---------------------------------------------------------------------------------
 

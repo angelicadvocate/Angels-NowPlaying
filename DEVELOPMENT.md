@@ -12,7 +12,7 @@ For building **custom overlays** (the HTML/CSS/JS frames that run in OBS), see [
 |---|---|
 | Desktop shell | [Tauri v2](https://tauri.app) |
 | Backend (Rust) | `src-tauri/src/` — Tauri commands, HTTP server, settings persistence |
-| Frontend (app UI) | Plain HTML/CSS/JS in `src/main_pages/` — no framework |
+| Frontend (app UI) | Plain HTML/CSS/JS in `src/` — no framework |
 | Overlay runtime | Plain HTML/CSS/JS in `src/overlays/` — runs inside OBS Browser Source |
 | Overlay editors | Plain HTML/CSS/JS in `src/overlays/<name>/editor.html` — loaded inside the app |
 | Build tooling | [Vite](https://vitejs.dev) (dev server + bundler) |
@@ -47,8 +47,12 @@ cargo tauri dev
 ```
 Angels-NowPlaying/
   src/
-    main_pages/       App UI pages (index, settings, store, instructions)
-    editor_pages/     Shared editor header HTML
+    index.html         Home page
+    html/
+      settings.html     Settings page
+      store.html        Overlay store / picker
+      instructions.html Instructions page
+      editor-header.html  Shared editor header fragment
     overlays/         One subfolder per overlay — each is a self-contained module
       frame-*/
         main.html     OBS Browser Source entry point
@@ -59,8 +63,12 @@ Angels-NowPlaying/
         manifest.json Overlay metadata (id, name, obsSize, tags, etc.)
         preview.png   Thumbnail shown on the home page
     css/
-      main_pages/     App-level stylesheets (one per page)
-      editor_pages/   Shared editor header and common editor styles
+      index.css       Home page styles
+      settings.css    Settings page styles
+      store.css       Store page styles
+      instructions.css  Instructions page styles
+      editor-common.css  Shared editor layout styles
+      editor-header.css  Shared editor header styles
     js/
       common.js       (legacy — overlays each carry their own copy)
       editor-header-loader.js  Injects shared header into overlay editors
@@ -122,7 +130,7 @@ The app-level `AppSettings` struct (serve port, export root, etc.) is persisted 
 
 ## Making changes
 
-### App UI pages (`src/main_pages/`)
+### App UI pages (`src/`)
 
 Standard HTML/CSS/JS. Tauri APIs are available via `window.__TAURI__.invoke(...)`. The Vite dev server provides hot reload.
 

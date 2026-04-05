@@ -2,17 +2,17 @@
 
 A cross-platform desktop app for managing and displaying **Now Playing** overlays in OBS. Built with [Tauri](https://tauri.app) (Rust backend) and plain HTML/CSS/JS overlays that run as OBS Browser Sources.
 
-> **Status:** Active development — v0.8.1. Core overlay playback and the in-app editor are working. Not all bundled overlay styles are complete. See [TODO.md](TODO.md) for what's in progress.
+> **Status:** Active development — v0.8.2. Core overlay playback and the in-app editor are working. See [TODO.md](TODO.md) for what's in progress.
 
 ---
 
 ## What it does
 
-- Reads the currently playing track from **Tuna** (OBS plugin) via its local HTTP endpoint — works with any source Tuna supports, including Spotify, Last.fm, YouTube Music Desktop App, Windows Media Player, MPD, local files via VLC, and more
+- Reads the currently playing track from **Tuna** (OBS plugin) — works with any source Tuna supports, including Spotify, Last.fm, YouTube Music Desktop App, Windows Media Player, MPD, local files via VLC, and more
 - Renders artist name, track title, album art, and a live progress bar in an OBS Browser Source
 - Ships with multiple overlay styles (horizontal bars, vertical panels, glassmorphism, cassette tape, vinyl, and more)
-- Includes a desktop app with a per-overlay visual editor — adjust colours, font sizes, and layout with sliders and see changes in a live preview without touching OBS
-- Saves customisations directly to each overlay's CSS file
+- Includes a desktop app with a per-overlay visual editor — adjust colours, font sizes, and layout with sliders and see changes in a live preview without touching OBS and saves customizations for each overlay.
+- **(Coming Soon)** Users can upload custom overlays via settings, or download user created overlays via the store.
 
 ---
 

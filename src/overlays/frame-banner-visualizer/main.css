@@ -7,20 +7,20 @@
 :root{
   --f4-width: 1800px;
   --f4-height: 150px;
-  --highlight: hsl(221, 82%, 58%);
-  --artist-color: hsl(221, 82%, 58%);
+  --highlight: hsl(217, 91%, 60%);
+  --artist-color: hsl(217, 91%, 60%);
   --accent-hex: #3b82f6;
   --font-main: proxima-nova, sans-serif;
-  --artist-size: 15px;
-  --song-size: 24px;
-  --text-spacing: 5px;
+  --artist-size: 27px;
+  --song-size: 38px;
+  --text-spacing: 8px;
   --image-size: 120px;
-  --image-padding: 20px;
+  --image-padding: 15px;
   --content-padding-left: 30px;
   --text-vertical-offset: 0px;
   --scroll-extra: 40px;
   --scroll-start-offset: 30px;
-  --visualizer-opacity: 0.7;
+  --visualizer-opacity: 0.70;
   --progress-width-px: 450px;
   --progress-left-px: 0px;
   --text-left-px: 0px;

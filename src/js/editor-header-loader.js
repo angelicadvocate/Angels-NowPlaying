@@ -5,7 +5,7 @@ async function loadHeader() {
   const root = document.getElementById('header-root');
   if (!root) return;
   try {
-    const resp = await fetch(root.dataset.src || '../editor_pages/editor-header.html');
+    const resp = await fetch(root.dataset.src || '../html/editor-header.html');
     if (!resp.ok) throw new Error('Failed to fetch header');
     const html = await resp.text();
     root.innerHTML = html;

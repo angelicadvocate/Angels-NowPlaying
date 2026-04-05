@@ -26,12 +26,14 @@ function copyOverlayStaticAssets() {
       // and all overlay-specific assets (images, videos, etc.)
       const overlaysDir = resolve(root, 'overlays')
       for (const folder of fs.readdirSync(overlaysDir)) {
+        const overlayPath = resolve(overlaysDir, folder)
+        if (!fs.statSync(overlayPath).isDirectory()) continue
         const overlayDist = resolve(dist, 'overlays', folder)
         fs.mkdirSync(overlayDist, { recursive: true })
-        for (const file of fs.readdirSync(resolve(overlaysDir, folder))) {
+        for (const file of fs.readdirSync(overlayPath)) {
           // Copy everything except editor files — those are bundled by Vite separately
           if (file === 'editor.html' || file === 'editor.css') continue
-          const src = resolve(overlaysDir, folder, file)
+          const src = resolve(overlayPath, file)
           if (fs.statSync(src).isFile()) fs.copyFileSync(src, resolve(overlayDist, file))
         }
       }
@@ -41,21 +43,20 @@ function copyOverlayStaticAssets() {
 
 export default defineConfig({
   root,
+  appType: 'mpa',
   plugins: [copyOverlayStaticAssets()],
   build: {
     outDir: resolve(__dirname, 'dist'),
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        // App shell / redirect entry
-        index: resolve(root, 'index.html'),
         // Main app pages
-        'main-index': resolve(root, 'main_pages/index.html'),
-        'main-settings': resolve(root, 'main_pages/settings.html'),
-        'main-instructions': resolve(root, 'main_pages/instructions.html'),
-        'main-store': resolve(root, 'main_pages/store.html'),
+        index: resolve(root, 'index.html'),
+        settings: resolve(root, 'html/settings.html'),
+        instructions: resolve(root, 'html/instructions.html'),
+        store: resolve(root, 'html/store.html'),
         // Editor header fragment (shared fetch target)
-        'editor-header': resolve(root, 'editor_pages/editor-header.html'),
+        'editor-header': resolve(root, 'html/editor-header.html'),
         // Overlay editor pages — entry points so @tauri-apps/api + overlays.js get bundled
         'f1-editor':  resolve(root, 'overlays/frame-horizontal-classic/editor.html'),
         'f2-editor':  resolve(root, 'overlays/frame-horizontal-wide/editor.html'),

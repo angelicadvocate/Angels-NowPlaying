@@ -9,6 +9,6 @@
   "editor": "editor.html",
   "preview": "preview.png",
   "description": "A fullscreen banner-style layout that includes a pseudo-music visualizer. Ideal for high impact overlays.",
-  "obsSize": { "width": 1420, "height": 110 },
+  "obsSize": { "width": 1440, "height": 110 },
   "tags": ["banner", "visualizer", "animated"]
 }
