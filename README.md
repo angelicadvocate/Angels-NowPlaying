@@ -6,6 +6,10 @@ A cross-platform desktop app for managing and displaying **Now Playing** overlay
 
 ---
 
+![Home Page](src/assets/Screenshot.png)
+
+---
+
 ## What it does
 
 - Reads the currently playing track from **Tuna** (OBS plugin) — works with any source Tuna supports, including Spotify, Last.fm, YouTube Music Desktop App, Windows Media Player, MPD, local files via VLC, and more

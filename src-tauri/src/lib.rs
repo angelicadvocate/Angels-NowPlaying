@@ -1,4 +1,5 @@
 mod backend;
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -31,6 +32,11 @@ pub fn run() {
             .level(log::LevelFilter::Info)
             .build(),
         )?;
+      }
+      if let Some(window) = app.get_webview_window("main") {
+        if let Some(icon) = app.default_window_icon() {
+          let _ = window.set_icon(icon.clone());
+        }
       }
       Ok(())
     })
