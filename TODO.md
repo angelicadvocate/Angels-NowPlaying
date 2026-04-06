@@ -6,7 +6,7 @@ Completed items are moved to CHANGELOG.md at the end of a work session.
 
 ---------------------------------------------------------------------------------
 
-## Store Page
+## Store Page (Planned for after v1.0.0)
 - [ ] Upload validation: reject submissions whose `id` already exists in the published store catalog — this is the primary guard against ID collisions and is sufficient for v1.
 - [ ] Namespace by source at the client level: bundled overlays live in `src/overlays/`, user-installed overlays go in `%APPDATA%/AngelsNowPlaying/overlays/`. Track source on each entry so collisions across namespaces can be resolved predictably if they ever occur.
 - [ ] (Future) Assign a store-generated UUID to each published overlay at upload time. Use the UUID as the internal install/update key; treat `id` in manifest.json as a human-readable slug only. This protects against authors renaming overlays breaking update tracking.
@@ -29,9 +29,11 @@ The dark mode toggle in Settings saves to `settings.json` (via `save_overlay_set
 
 ## Other To-Do Items
 - [ ] (Optional) Add onboarding or tooltips for first-time users to make the app even more user-friendly.
+- [ ] Question - Should window.onsave, onback, oncopy live in the editor-header by default and not be in each individual overlay html/js? They should technically always do the same function if an overlay/frame is packaged correctly.
 - [ ] Refine what controls are on each overlay page and what values each slider has for min/max.
 - [ ] Tests - Still need to test uploading a user created overlay as a zip file to make sure that it unpacks correctly and works with the app.
 - [ ] **User overlay editor.html compatibility** — User-installed overlay editors (in `%APPDATA%/AngelsNowPlaying/overlays/`) reference shared scripts via `../../js/tauri.js` and `../../js/editor-header-loader.js`, which resolve correctly for bundled overlays (in `dist/overlays/`) but will 404 for user overlays since they live in AppData, not alongside `dist/js/`. Before wiring up the install/store UI, decide on one of: (a) inline shared scripts into `editor.html` during `zip_overlay` export, (b) serve `dist/js/` via the tiny_http server under a `/js/` virtual path so user overlay editors can reference it, or (c) document that custom overlay editors must bundle their own scripts.
+- [ ] Update artwork on frame-program-window to allow for a new dropdown selection to change the style of the program window. This would only need to swap the background image loaded in the overlay. Could have current option be the default and add styles for retro (win95/98), fruit (apple/macos), etc. If done properly nothing should change except the background image. All existing sliders and functions should still work.
 
 ---------------------------------------------------------------------------------
 
@@ -42,6 +44,7 @@ The dark mode toggle in Settings saves to `settings.json` (via `save_overlay_set
 - [ ] Set up a GitHub Actions CI/CD pipeline that builds and signs release artifacts for Windows (`.msi`), macOS (`.dmg`), and Linux (`.AppImage`) on each tagged release.
 - [ ] Display current version and latest available version side-by-side in the settings version section once the updater is wired up.
 - [ ] Cross-platform smoke test: verify the app builds and runs correctly on macOS and Linux (Windows is already the primary test platform).
+- [ ] Consider adding a toast/popup message to the index page to show when updates are availible.
 
 ---------------------------------------------------------------------------------
 
