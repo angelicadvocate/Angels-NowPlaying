@@ -1,9 +1,17 @@
+/* Theme variable defaults — dark values used when theme.css is not loaded
+   (e.g. inside overlay editor pages). theme.css [data-theme="light"] will
+   override these if it is ever included by the hosting page. */
+:root {
+  --bg-primary:   #121212;
+  --text-primary: #f0f0f0;
+}
+
 /* Editor header: mirror index header styles (scoped to #editor-header) */
 
 #editor-header {
   width: 100%;
-  background: #121212;
-  color: #f0f0f0;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   box-shadow: 0 6px 18px rgba(0,0,0,0.16);
   font-family: "proxima-nova", sans-serif;
 }
@@ -22,7 +30,7 @@
   left: -2rem; /* extend into left body padding */
   right: -2rem; /* extend into right body padding */
   bottom: 0; /* reach to bottom of header area */
-  background: #121212;
+  background: var(--bg-primary);
   pointer-events: none;
   z-index: 0; /* sit behind header content but above page background */
 }
@@ -70,7 +78,7 @@
   padding: 0;
   font-size: 24px;
   font-weight: 600;
-  color: #f0f0f0;
+  color: var(--text-primary);
   white-space: nowrap;
 }
 
@@ -112,6 +120,7 @@
   margin: 0;
   opacity: 1;
   color: inherit;
+  text-shadow: none; /* suppress editor-common.css .button-row-label rule */
 }
 
 

@@ -64,6 +64,23 @@ export async function listAllOverlays() {
     return true
   })
 
-  const user = showUserOverlays ? await listUserOverlays() : []
+  if (!showUserOverlays) return filtered
+
+  const rawUser = await listUserOverlays()
+  // User overlay files are served via a dedicated local HTTP server that starts
+  // automatically with the app (port assigned by OS, retrieved via Tauri command).
+  // This avoids the file:// → tauri://localhost cross-origin restriction in WebView2.
+  let port = 0
+  try { port = await invoke('get_user_overlay_server_port') } catch { /* non-Tauri preview */ }
+
+  const user = rawUser.map(o => {
+    const id = o._id || o.id
+    const base = port ? `http://127.0.0.1:${port}/${id}` : null
+    return {
+      ...o,
+      editorUrl: base ? `${base}/editor.html` : null,
+      previewUrl: base ? `${base}/preview.png` : null,
+    }
+  })
   return [...filtered, ...user]
 }

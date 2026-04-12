@@ -7,6 +7,7 @@
   <title>Settings - Angel's-NowPlaying</title>
   <!-- Font Awesome (local copy required) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="../css/theme.css" />
   <link rel="stylesheet" href="../css/settings.css" />
   <script type="module" src="../js/tauri.js"></script>
 </head>
@@ -53,22 +54,22 @@
         <button class="toggle-switch active" id="dark-mode-toggle" title="Toggle Dark Mode"></button>
       </div>
 
-      <div class="settings-item" style="margin-top: 1.5rem; border-top: 1px solid #333; padding-top: 1rem; flex-direction: column; align-items: flex-start;">
+      <div class="settings-item" style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem; flex-direction: column; align-items: flex-start;">
         <p class="template-section-title">Current Version: <strong id="version-number">Loading...</strong></p>
         <button class="settings-button" onclick="checkForUpdates()" style="width: 100%;">
           <i class="fas fa-download"></i> Check for Updates
         </button>
-        <p id="update-status" style="font-size: 0.85rem; margin-top: 0.8rem; display: none; width: 100%; color: var(--text-color);"></p>
+        <p id="update-status" style="font-size: 0.85rem; margin-top: 0.8rem; display: none; width: 100%; color: var(--text-primary);"></p>
       </div>
 
       <!-- Tuna Configuration -->
-      <div class="settings-item" style="margin-top: 1.5rem; border-top: 1px solid #333; padding-top: 1rem; flex-direction: column; align-items: flex-start;">
+      <div class="settings-item" style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem; flex-direction: column; align-items: flex-start;">
         <p class="template-section-title"><i class="fas fa-music"></i> Tuna Configuration</p>
         <p style="font-size:0.85rem; opacity:0.75; margin: 0 0 0.75rem;">Set the port Tuna is broadcasting on. Default is 1608.</p>
         <label style="font-size:0.85rem; font-weight:600;">Tuna Port</label>
         <div style="display:flex; gap:0.5rem; width:100%; margin-top:0.25rem;">
           <input type="number" id="tunaPort" min="1" max="65535" value="1608" placeholder="1608"
-            style="width:120px; background:#2a2a2a; border:1px solid #444; color:#f0f0f0; padding:0.4rem 0.6rem; border-radius:4px; font-size:0.8rem;">
+            style="width:120px; background:var(--bg-input); border:1px solid var(--border-input); color:var(--text-primary); padding:0.4rem 0.6rem; border-radius:4px; font-size:0.8rem;">
         </div>
         <button class="settings-button" onclick="saveOverlaySettings()" style="width:100%; margin-top:0.75rem;"><i class="fas fa-save"></i> Save Settings</button>
         <p id="tunaStatus" style="font-size:0.85rem; margin:0.25rem 0 0; display:none;"></p>
@@ -150,7 +151,7 @@
         <div class="overlay-section">
           <p class="template-section-title"><i class="fas fa-trash-alt"></i> Remove Installed Overlay</p>
           <p style="font-size:0.85rem; opacity:0.75; margin:0.25rem 0 0.5rem;">Permanently removes an overlay you installed. Bundled overlays cannot be deleted.</p>
-          <select id="user-overlay-select" style="width:100%; background:#2a2a2a; border:1px solid #444; color:#f0f0f0; padding:0.4rem 0.6rem; border-radius:4px; font-size:0.85rem; margin-bottom:0.5rem; margin-top:auto;">
+          <select id="user-overlay-select" style="width:100%; background:var(--bg-input); border:1px solid var(--border-input); color:var(--text-primary); padding:0.4rem 0.6rem; border-radius:4px; font-size:0.85rem; margin-bottom:0.5rem; margin-top:auto;">
             <option value="" disabled selected>Loading...</option>
           </select>
           <button class="settings-button" onclick="deleteUserOverlay()" style="width:100%; background:#b91c1c;"><i class="fas fa-trash"></i> Delete Selected Overlay</button>
@@ -301,11 +302,7 @@
 
     // Apply dark mode setting
     function applyDarkMode(isDark) {
-      if (isDark) {
-        document.documentElement.style.colorScheme = 'dark';
-      } else {
-        document.documentElement.style.colorScheme = 'light';
-      }
+      document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
     }
 
     // Load settings and version on page load
@@ -455,7 +452,7 @@
     async function downloadTemplateStarter() {
       const status = document.getElementById('downloadStatus');
       status.style.display = 'block';
-      status.style.color = '#f0f0f0';
+      status.style.color = 'var(--text-primary)';
       status.textContent = 'Preparing zip...';
       try {
         const tmpPath = await window.__TAURI__.invoke('zip_overlay', { overlayId: 'frame-template-starter' });
@@ -471,7 +468,7 @@
           status.style.color = '#4ade80';
           status.textContent = 'Saved!';
         } else {
-          status.style.color = '#f0f0f0';
+          status.style.color = 'var(--text-primary)';
           status.textContent = 'Cancelled.';
         }
       } catch (e) {
@@ -494,7 +491,7 @@
         });
         if (!zipPath) return;
         status.style.display = 'block';
-        status.style.color = '#f0f0f0';
+        status.style.color = 'var(--text-primary)';
         status.textContent = 'Installing...';
         const overlayId = await window.__TAURI__.invoke('install_overlay', { zipPath });
         status.style.color = '#4ade80';

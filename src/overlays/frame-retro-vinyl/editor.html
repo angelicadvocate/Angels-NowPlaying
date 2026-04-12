@@ -99,18 +99,6 @@
       sendVar('--font-main', selectFont.value);
     });
 
-    // Parse :root block from main.css to populate sliders on load
-    function parseCSSVars(cssText) {
-      const vars = {};
-      const rootMatch = cssText.match(/:root\s*\{([^}]*)\}/s);
-      if (!rootMatch) return vars;
-      rootMatch[1].split('\n').forEach(line => {
-        const m = line.match(/^\s*(--[\w-]+)\s*:\s*(.+?)\s*;/);
-        if (m) vars[m[1]] = m[2].trim();
-      });
-      return vars;
-    }
-
     function populateSlidersFromVars(vars) {
       function px(name, fallback) {
         const v = vars[name] || '';
@@ -142,24 +130,13 @@
       sendVar('--font-main', selectFont.value);
     }
 
-    const CSS_PATH = 'src/overlays/frame-retro-vinyl/main.css';
+    document.addEventListener('headerLoaded', e => {
+      if (e.detail && e.detail.cssVars) populateSlidersFromVars(e.detail.cssVars);
+      previewFrame.addEventListener('load', sendAllVars, { once: true });
+      setTimeout(sendAllVars, 800);
+    });
 
-    async function readMainCSS() {
-      if (window.tauri && window.tauri.invoke) {
-        return window.tauri.invoke('read_text_file', { path: CSS_PATH });
-      }
-      return fetch('./main.css?raw').then(r => r.text()).catch(() => '');
-    }
-
-    readMainCSS()
-      .then(css => { if (css) populateSlidersFromVars(parseCSSVars(css)); })
-      .catch(() => {})
-      .finally(() => {
-        previewFrame.addEventListener('load', sendAllVars, { once: true });
-        setTimeout(sendAllVars, 800);
-      });
-
-    function buildRootBlock(vars) {
+    window.buildRootBlock = function buildRootBlock(vars) {
       return `:root {
   /* --- Colors --- */
   --text-color: ${pickerText.value};
@@ -180,30 +157,7 @@
 }`;
     }
 
-    window.onSave = async function () {
-      let existingCSS = '';
-      try {
-        existingCSS = await readMainCSS();
-      } catch (e) {
-        alert('Could not read main.css before saving: ' + e);
-        return;
-      }
-      const existingVars = parseCSSVars(existingCSS);
-      const newRoot = buildRootBlock(existingVars);
-      const updated = existingCSS.replace(/:root\s*\{[^}]*\}/s, newRoot);
-      if (window.tauri && window.tauri.invoke) {
-        try {
-          await window.tauri.invoke('save_css_file', { path: CSS_PATH, content: updated });
-          alert('Saved successfully!');
-        } catch (e) {
-          alert('Failed to save: ' + e);
-        }
-      } else {
-        alert('Tauri API not available. Run inside the app to save.');
-      }
-    };
 
-    window.onBack = function () { history.back(); };
   </script>
 
   <script type="module" src="../../js/editor-header-loader.js"></script>

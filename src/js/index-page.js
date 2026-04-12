@@ -28,7 +28,9 @@ async function buildGrid() {
       <img src="${overlay.previewUrl}" alt="${overlay.name} Preview" />
       <p>${overlay.description || ''}</p>
       <p>${sizeText}</p>
-      <a href="${overlay.editorUrl}"><button>Edit ${overlay.name}</button></a>
+      ${overlay.editorUrl
+        ? `<a href="${overlay.editorUrl}"><button>Edit ${overlay.name}</button></a>`
+        : `<button disabled title="No editor available">Edit ${overlay.name}</button>`}
     `
     grid.appendChild(card)
   })

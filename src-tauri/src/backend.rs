@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::{fs, io::{self, Read, Write}, path::PathBuf, sync::{Arc, Mutex}, thread};
+use tauri::Manager;
 
 /// Returns the project root directory.
 /// In debug (dev): cargo runs from `src-tauri/`, so we go up one level.
@@ -57,14 +58,36 @@ pub fn get_overlay_main_path(overlay_id: String) -> Result<String, String> {
         return Err("Invalid overlay ID".to_string());
     }
     let root = project_root().map_err(|e| e.to_string())?;
+    // Check bundled overlays first.
     // In debug (dev), source files live under src/overlays/.
     // In release, the bundled overlay files are directly under overlays/.
-    let path = if cfg!(debug_assertions) {
+    let bundled = if cfg!(debug_assertions) {
         root.join("src").join("overlays").join(&overlay_id).join("main.html")
     } else {
         root.join("overlays").join(&overlay_id).join("main.html")
     };
-    Ok(path.to_string_lossy().into_owned())
+    if bundled.exists() {
+        return Ok(bundled.to_string_lossy().into_owned());
+    }
+    // Fall back to the user overlays AppData directory.
+    let user_path = user_overlays_dir().join(&overlay_id).join("main.html");
+    if user_path.exists() {
+        return Ok(user_path.to_string_lossy().into_owned());
+    }
+    Err(format!("main.html not found for overlay '{}'", overlay_id))
+}
+
+/// Navigates the main app window back to the home/index page.
+/// Called from user overlay editors (running on http://127.0.0.1) where
+/// direct navigation to tauri:// URLs is blocked by WebView2's cross-protocol
+/// security. history.back() works because the index page is always the previous
+/// entry in the WebView2 navigation history before the editor was opened.
+#[tauri::command]
+pub fn navigate_home(app_handle: tauri::AppHandle) -> Result<(), String> {
+    if let Some(win) = app_handle.get_webview_window("main") {
+        win.eval("history.back()").map_err(|e| e.to_string())?;
+    }
+    Ok(())
 }
 
 #[tauri::command]
@@ -102,6 +125,8 @@ pub fn save_settings(settings: AppSettings) -> Result<(), String> {
 // Simple server handle stored globally so we can shut it down later if needed.
 lazy_static::lazy_static! {
     static ref SERVER_HANDLE: Arc<Mutex<Option<thread::JoinHandle<()>>>> = Arc::new(Mutex::new(None));
+    /// Port the user overlay static-file server is listening on (0 = not started).
+    static ref USER_OVERLAY_SERVER_PORT: Mutex<u16> = Mutex::new(0);
 }
 
 #[tauri::command]
@@ -141,6 +166,86 @@ pub fn start_server(settings: AppSettings) -> Result<(), String> {
 pub fn stop_server() -> Result<(), String> {
     // TODO: implement graceful shutdown by dropping server or sending interrupt
     Ok(())
+}
+
+/// Starts a lightweight HTTP server that serves static files from the user
+/// overlays directory on an OS-assigned port. Called once at app startup.
+/// The port can be retrieved via `get_user_overlay_server_port()`.
+pub fn start_user_overlay_server() {
+    let server = match tiny_http::Server::http("127.0.0.1:0") {
+        Ok(s) => s,
+        Err(e) => {
+            log::warn!("Could not start user overlay server: {e}");
+            return;
+        }
+    };
+    let port = match server.server_addr().to_ip() {
+        Some(addr) => addr.port(),
+        None => {
+            log::warn!("User overlay server: could not determine port");
+            return;
+        }
+    };
+    *USER_OVERLAY_SERVER_PORT.lock().unwrap() = port;
+    thread::spawn(move || {
+        for request in server.incoming_requests() {
+            // Strip query string — needed for URLs like main.html?edit=1.
+            let raw = request.url().trim_start_matches('/').to_string();
+            let url = raw.split_once('?').map(|(p, _)| p).unwrap_or(&raw).to_string();
+
+            // Virtual route: serve embedded jQuery for references like
+            // "../../js/vendor/jquery-3.5.1.min.js" in main.html that resolve
+            // to http://127.0.0.1:{port}/js/vendor/jquery-3.5.1.min.js.
+            if url == "js/vendor/jquery-3.5.1.min.js" {
+                let _ = request.respond(
+                    tiny_http::Response::from_data(JQUERY_JS).with_header(
+                        tiny_http::Header::from_bytes(
+                            &b"Content-Type"[..],
+                            &b"application/javascript"[..],
+                        )
+                        .unwrap(),
+                    ),
+                );
+                continue;
+            }
+
+            // URL format: {overlay_id}/{filename}  (no subdirectory nesting allowed)
+            let response: Option<tiny_http::Response<fs::File>> = (|| {
+                let (overlay_id, filename) = url.split_once('/')?;
+                // Path-traversal guard: no '..' and no path separators in filename
+                if overlay_id.contains("..")
+                    || overlay_id.contains('/')
+                    || overlay_id.contains('\\')
+                    || filename.contains("..")
+                    || filename.contains('/')
+                    || filename.contains('\\')
+                {
+                    return None;
+                }
+                let path = user_overlays_dir().join(overlay_id).join(filename);
+                let file = fs::File::open(&path).ok()?;
+                let mime = mime_guess::from_path(&path).first_or_octet_stream();
+                Some(
+                    tiny_http::Response::from_file(file).with_header(
+                        tiny_http::Header::from_bytes(&b"Content-Type"[..], mime.as_ref())
+                            .unwrap(),
+                    ),
+                )
+            })();
+            if let Some(r) = response {
+                let _ = request.respond(r);
+            } else {
+                let _ = request.respond(tiny_http::Response::empty(404));
+            }
+        }
+    });
+}
+
+/// Returns the port the user overlay static server is listening on.
+/// Returns 0 if the server is not running.
+#[tauri::command]
+pub fn get_user_overlay_server_port() -> u16 {
+    *USER_OVERLAY_SERVER_PORT.lock().unwrap()
 }
 
 #[tauri::command]
@@ -309,6 +414,77 @@ pub fn list_user_overlays() -> Result<Vec<serde_json::Value>, String> {
 
 // ── User overlay install / delete ────────────────────────────────────────────
 
+// ── Compile-time embedded app assets ─────────────────────────────────────────
+// These are inlined into user overlay editor.html files at install time so
+// that user overlays work from file:// URLs with zero external dependencies.
+
+const TAURI_SHIM_JS: &str = r#"
+// Tauri v2 IPC shim for user overlay editors.
+// Tauri injects window.__TAURI_INTERNALS__ into every managed webview page,
+// including pages served from http://127.0.0.1 (user overlay server).
+(function () {
+  function invoke(cmd, args, options) {
+    return window.__TAURI_INTERNALS__.invoke(cmd, args || {}, options);
+  }
+  window.tauri = { invoke: invoke };
+  window.__TAURI__ = { invoke: invoke };
+  window.openExternalUrl = function (url) {
+    return invoke('open_url', { url: url }).catch(function () {
+      window.open(url, '_blank');
+    });
+  };
+})();
+"#;
+
+const JQUERY_JS: &[u8] = include_bytes!("../../src/js/vendor/jquery-3.5.1.min.js");
+const EDITOR_HEADER_LOADER_JS: &str =
+    include_str!("../../src/js/editor-header-loader.js");
+
+const EDITOR_HEADER_CSS: &str =
+    include_str!("../../src/css/editor-header.css");
+
+const EDITOR_COMMON_CSS: &str =
+    include_str!("../../src/css/editor-common.css");
+
+const THEME_CSS: &str =
+    include_str!("../../src/css/theme.css");
+
+const EDITOR_HEADER_HTML: &str =
+    include_str!("../../src/html/editor-header.html");
+
+const MASCOT_PNG: &[u8] =
+    include_bytes!("../../src/assets/mascot.png");
+
+const HEADER_TEXT_PNG: &[u8] =
+    include_bytes!("../../src/assets/header-text.png");
+
+/// Returns a fully self-contained version of the editor-header fragment.
+/// CSS links are replaced with inline <style> blocks; image srcs become
+/// base64 data URIs.  This is used by user overlay editors running from
+/// file:// URLs where fetch() cannot load other file:// resources.
+#[tauri::command]
+pub fn get_editor_header_html() -> String {
+    use base64::Engine as _;
+    let mascot_b64 = base64::engine::general_purpose::STANDARD.encode(MASCOT_PNG);
+    let header_text_b64 = base64::engine::general_purpose::STANDARD.encode(HEADER_TEXT_PNG);
+
+    EDITOR_HEADER_HTML
+        // Inline the theme CSS (the only stylesheet linked from the header fragment)
+        .replace(
+            r#"<link rel="stylesheet" href="../../css/theme.css" />"#,
+            &format!("<style>{THEME_CSS}</style>"),
+        )
+        // Replace image srcs with data URIs
+        .replace(
+            r#"src="../../assets/mascot.png""#,
+            &format!(r#"src="data:image/png;base64,{mascot_b64}""#),
+        )
+        .replace(
+            r#"src="../../assets/header-text.png""#,
+            &format!(r#"src="data:image/png;base64,{header_text_b64}""#),
+        )
+}
+
 fn user_overlays_dir() -> PathBuf {
     let mut base = dirs::config_dir().unwrap_or_else(|| std::env::current_dir().unwrap());
     base.push("AngelsNowPlaying");
@@ -331,9 +507,11 @@ pub fn install_overlay(zip_path: String) -> Result<String, String> {
 
     // Determine the top-level folder name (the overlay id).
     // All entries must share the same top-level prefix.
+    // Normalize backslashes → forward slashes (PowerShell Compress-Archive uses backslashes).
     let overlay_id = {
         let first = archive.by_index(0).map_err(|e| e.to_string())?;
-        let parts: Vec<&str> = first.name().splitn(2, '/').collect();
+        let normalized = first.name().replace('\\', "/");
+        let parts: Vec<&str> = normalized.splitn(2, '/').collect();
         if parts.is_empty() || parts[0].is_empty() {
             return Err("Zip must contain a single top-level folder".to_string());
         }
@@ -348,7 +526,10 @@ pub fn install_overlay(zip_path: String) -> Result<String, String> {
     // Require manifest.json to be present inside that folder.
     let manifest_entry = format!("{}/manifest.json", overlay_id);
     let has_manifest = (0..archive.len()).any(|i| {
-        archive.by_index(i).map(|e| e.name() == manifest_entry).unwrap_or(false)
+        archive
+            .by_index(i)
+            .map(|e| e.name().replace('\\', "/") == manifest_entry)
+            .unwrap_or(false)
     });
     if !has_manifest {
         return Err(format!("Zip does not contain {manifest_entry}"));
@@ -363,7 +544,8 @@ pub fn install_overlay(zip_path: String) -> Result<String, String> {
     // Extract — skip the top-level folder entry itself.
     for i in 0..archive.len() {
         let mut file = archive.by_index(i).map_err(|e| e.to_string())?;
-        let name = file.name().to_string();
+        // Normalize backslashes so strip_prefix and path splitting work correctly.
+        let name = file.name().replace('\\', "/");
         // strip the leading "overlay_id/" prefix
         let relative = match name.strip_prefix(&format!("{}/", overlay_id)) {
             Some(r) => r.to_string(),
@@ -388,6 +570,42 @@ pub fn install_overlay(zip_path: String) -> Result<String, String> {
         }
     }
 
+    // ── Post-process editor.html ──────────────────────────────────────────────
+    // User overlays are loaded via file:// URLs so they cannot resolve the app's
+    // shared assets via relative paths (they live outside AppData).  We inline
+    // all app-side dependencies directly into editor.html so it is self-contained.
+    let editor_path = dest.join("editor.html");
+    if editor_path.exists() {
+        let html = fs::read_to_string(&editor_path).map_err(|e| e.to_string())?;
+
+        let html = html
+            // -- CSS: replace shared link tags with inline <style> blocks --
+            .replace(
+                r#"<link rel="stylesheet" href="../../css/editor-header.css" />"#,
+                &format!("<style>{EDITOR_HEADER_CSS}</style>"),
+            )
+            .replace(
+                r#"<link rel="stylesheet" href="../../css/editor-common.css" />"#,
+                &format!("<style>{EDITOR_COMMON_CSS}</style>"),
+            )
+            // theme.css may also appear in some user overlay editors
+            .replace(
+                r#"<link rel="stylesheet" href="../../css/theme.css" />"#,
+                &format!("<style>{THEME_CSS}</style>"),
+            )
+            // -- Scripts: replace shared <script src> with inline <script> --
+            .replace(
+                r#"<script type="module" src="../../js/tauri.js"></script>"#,
+                &format!("<script type=\"module\">{TAURI_SHIM_JS}</script>"),
+            )
+            .replace(
+                r#"<script type="module" src="../../js/editor-header-loader.js"></script>"#,
+                &format!("<script type=\"module\">{EDITOR_HEADER_LOADER_JS}</script>"),
+            );
+
+        fs::write(&editor_path, html).map_err(|e| e.to_string())?;
+    }
+
     Ok(overlay_id)
 }
 
@@ -406,6 +624,56 @@ pub fn delete_user_overlay(overlay_id: String) -> Result<(), String> {
 }
 
 // ── Zip a bundled overlay for download ───────────────────────────────────────
+
+/// Returns the absolute path to `main.css` for any overlay — bundled or user-installed.
+/// The JS editor loader uses this so it never has to hardcode or guess the path itself.
+/// Checks the bundled location first; if not found, checks the user AppData dir.
+#[tauri::command]
+pub fn get_overlay_css_path(overlay_id: String) -> Result<String, String> {
+    if overlay_id.contains('/') || overlay_id.contains('\\') || overlay_id.contains("..") {
+        return Err("Invalid overlay ID".to_string());
+    }
+    let root = project_root().map_err(|e| e.to_string())?;
+    let bundled = if cfg!(debug_assertions) {
+        root.join("src").join("overlays").join(&overlay_id).join("main.css")
+    } else {
+        root.join("overlays").join(&overlay_id).join("main.css")
+    };
+    if bundled.exists() {
+        return Ok(bundled.to_string_lossy().into_owned());
+    }
+    let user_path = user_overlays_dir().join(&overlay_id).join("main.css");
+    if user_path.exists() {
+        return Ok(user_path.to_string_lossy().into_owned());
+    }
+    Err(format!("main.css not found for overlay '{}'", overlay_id))
+}
+
+/// Read a file from an absolute path on disk.
+/// Used by the editor header loader when working with user-installed overlays
+/// stored in AppData (where paths cannot be expressed relative to project root).
+#[tauri::command]
+pub fn read_file_abs(path: String) -> Result<String, String> {
+    let p = std::path::PathBuf::from(&path);
+    if p.is_relative() {
+        return Err("Expected an absolute path".to_string());
+    }
+    fs::read_to_string(&p).map_err(|e| e.to_string())
+}
+
+/// Write content to a file at an absolute path on disk.
+/// Counterpart to read_file_abs; used for saving user-installed overlay CSS.
+#[tauri::command]
+pub fn save_file_abs(path: String, content: String) -> Result<(), String> {
+    let p = std::path::PathBuf::from(&path);
+    if p.is_relative() {
+        return Err("Expected an absolute path".to_string());
+    }
+    if let Some(parent) = p.parent() {
+        fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    fs::write(&p, content).map_err(|e| e.to_string())
+}
 
 /// Zip a bundled overlay folder and write it to a temp file.
 /// Returns the absolute path of the zip so the frontend can open a save dialog.

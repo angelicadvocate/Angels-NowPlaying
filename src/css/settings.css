@@ -1,14 +1,9 @@
-    :root {
-      --highlight: hsl(221, 82%, 58%);
-      --font-main: "proxima-nova", sans-serif;
-    }
-
     body {
       margin: 0;
       padding: 0.5rem 2rem 1rem 2rem;
       font-family: var(--font-main), sans-serif;
-      background-color: #121212;
-      color: #f0f0f0;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
     }
 
     html {
@@ -25,7 +20,7 @@
     }
 
     a {
-      color: #3b82f6;
+      color: var(--text-link);
       text-decoration: none;
     }
 
@@ -44,7 +39,7 @@
     }
 
     .settings-card {
-      background-color: #1e1e1e;
+      background-color: var(--bg-card);
       border-radius: 10px;
       overflow: hidden;
       box-shadow: 0 0 10px rgba(0,0,0,0.4);
@@ -69,7 +64,7 @@
     }
 
     .overlay-sections__divider {
-      background: #333;
+      background: var(--border-color);
       align-self: stretch;
     }
 
@@ -90,7 +85,7 @@
     }
 
     .card {
-      background-color: #1e1e1e;
+      background-color: var(--bg-card);
       border-radius: 10px;
       overflow: hidden;
       box-shadow: 0 0 10px rgba(0,0,0,0.4);
@@ -197,7 +192,7 @@
       position: relative;
       width: 50px;
       height: 28px;
-      background-color: #333;
+      background-color: var(--border-color);
       border-radius: 14px;
       cursor: pointer;
       transition: background-color 0.3s;
@@ -457,7 +452,7 @@
       width: 144px;
       height: 144px;
       border-radius: 50%;
-      border: 2px solid #333;
+      border: 2px solid var(--border-color);
       object-fit: cover;
       position: absolute;
       bottom: calc(1.5rem + 8px);
@@ -541,7 +536,7 @@
     /* Template Management Styles */
     .template-management {
       margin-top: 1.5rem;
-      border-top: 1px solid #333;
+      border-top: 1px solid var(--border-color);
       padding-top: 1rem;
     }
 
@@ -595,10 +590,10 @@
 
     .template-dropdown {
       padding: 10px 12px;
-      border: 1px solid #444;
+      border: 1px solid var(--border-input);
       border-radius: 8px;
-      background-color: #2a2a2a;
-      color: #f0f0f0;
+      background-color: var(--bg-input);
+      color: var(--text-primary);
       font-size: 14px;
       cursor: pointer;
       flex: 1;
@@ -647,7 +642,7 @@
     }
 
     .modal {
-      background-color: #1e1e1e;
+      background-color: var(--bg-card);
       border-radius: 12px;
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
       max-width: 850px;
@@ -677,8 +672,8 @@
       align-items: center;
       justify-content: space-between;
       padding: 16px 20px;
-      border-bottom: 1px solid #333;
-      background-color: #252525;
+      border-bottom: 1px solid var(--border-color);
+      background-color: var(--bg-modal-chrome);
       flex-shrink: 0;
       height: 60px;
     }
@@ -698,7 +693,7 @@
     .modal-close {
       background: none;
       border: none;
-      color: #f0f0f0;
+      color: var(--text-primary);
       font-size: 1.5rem;
       cursor: pointer;
       padding: 0;
@@ -720,8 +715,8 @@
       gap: 10px;
       justify-content: flex-end;
       padding: 14px 20px;
-      border-top: 1px solid #333;
-      background-color: #252525;
+      border-top: 1px solid var(--border-color);
+      background-color: var(--bg-modal-chrome);
       flex-shrink: 0;
       height: 58px;
     }
@@ -738,12 +733,12 @@
     }
 
     .btn-cancel {
-      background-color: #444;
-      color: #f0f0f0;
+      background-color: var(--btn-cancel-bg);
+      color: var(--text-primary);
     }
 
     .btn-cancel:hover {
-      background-color: #555;
+      background-color: var(--btn-cancel-hover-bg);
     }
 
     .btn-submit {
@@ -768,7 +763,7 @@
       font-size: 0.85rem;
       font-weight: 600;
       margin-bottom: 4px;
-      color: #f0f0f0;
+      color: var(--text-primary);
       letter-spacing: 0.2px;
     }
 
@@ -784,10 +779,10 @@
     .form-group textarea {
       width: 100%;
       padding: 8px 10px;
-      border: 1px solid #444;
+      border: 1px solid var(--border-input);
       border-radius: 6px;
-      background-color: #2a2a2a;
-      color: #f0f0f0;
+      background-color: var(--bg-input);
+      color: var(--text-primary);
       font-family: inherit;
       font-size: 13px;
       transition: border-color 0.2s;
@@ -813,10 +808,10 @@
       display: block;
       width: 100%;
       padding: 10px;
-      border: 2px dashed #444;
+      border: 2px dashed var(--border-input);
       border-radius: 6px;
-      background-color: #2a2a2a;
-      color: #b0b0b0;
+      background-color: var(--bg-input);
+      color: var(--text-muted);
       cursor: pointer;
       font-size: 12px;
       transition: border-color 0.2s;
@@ -829,7 +824,7 @@
 
     .file-upload-hint {
       font-size: 0.75rem;
-      color: #888;
+      color: var(--text-subtle);
       margin-top: 3px;
     }
 

@@ -152,17 +152,6 @@
     });
 
     // --- Parse :root block from main.css and populate sliders ---
-    function parseCSSVars(cssText) {
-      const vars = {};
-      const rootMatch = cssText.match(/:root\s*\{([^}]*)\}/s);
-      if (!rootMatch) return vars;
-      rootMatch[1].split('\n').forEach(line => {
-        const m = line.match(/^\s*(--[\w-]+)\s*:\s*(.+?)\s*;/);
-        if (m) vars[m[1]] = m[2].trim();
-      });
-      return vars;
-    }
-
     function populateSlidersFromVars(vars) {
       function px(name, fallback) {
         const m = (vars[name] || '').match(/(-?\d+\.?\d*)/);
@@ -203,25 +192,14 @@
       sendVar('--font-main', selectFont.value);
     }
 
-    const CSS_PATH = 'src/overlays/frame-banner-visualizer/main.css';
-
-    async function readMainCSS() {
-      if (window.tauri && window.tauri.invoke) {
-        return window.tauri.invoke('read_text_file', { path: CSS_PATH });
-      }
-      return fetch('./main.css?raw').then(r => r.text()).catch(() => '');
-    }
-
-    readMainCSS()
-      .then(css => { if (css) populateSlidersFromVars(parseCSSVars(css)); })
-      .catch(() => { /* keep slider defaults */ })
-      .finally(() => {
-        previewFrame.addEventListener('load', sendAllVars, { once: true });
-        setTimeout(sendAllVars, 800);
-      });
+    document.addEventListener('headerLoaded', e => {
+      if (e.detail && e.detail.cssVars) populateSlidersFromVars(e.detail.cssVars);
+      previewFrame.addEventListener('load', sendAllVars, { once: true });
+      setTimeout(sendAllVars, 800);
+    });
 
     // --- Build updated :root block from current slider/picker values ---
-    function buildRootBlock(existingVars) {
+    window.buildRootBlock = function buildRootBlock(existingVars) {
       const [h, s, l] = hexToHsl(pickerAccent.value);
       const hsl = `hsl(${h}, ${s}%, ${l}%)`;
       return `:root{
@@ -248,39 +226,9 @@
 }`;
     }
 
-    // --- Save: rewrite only the :root block in main.css ---
-    window.onSave = async function () {
-      let existingCSS = '';
-      try {
-        existingCSS = await readMainCSS();
-      } catch (e) {
-        alert('Could not read main.css before saving: ' + e);
-        return;
-      }
 
-      const existingVars = parseCSSVars(existingCSS);
-      const newRoot = buildRootBlock(existingVars);
-      const updated = existingCSS.replace(/:root\s*\{[^}]*\}/s, newRoot);
-
-      if (window.tauri && window.tauri.invoke) {
-        try {
-          await window.tauri.invoke('save_css_file', { path: CSS_PATH, content: updated });
-          alert('Saved successfully!');
-        } catch (e) {
-          alert('Failed to save: ' + e);
-        }
-      } else {
-        alert('Tauri API not available. Please run inside the app.');
-      }
-    };
-
-    window.onBack = function () { history.back(); };
   </script>
 
-  <!--
-    IMPORTANT: editor-header-loader.js must remain the last script in <body>.
-    It injects the header HTML and wires up window.onSave / window.onBack.
-  -->
   <script type="module" src="../../js/editor-header-loader.js"></script>
 </body>
 </html>

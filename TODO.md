@@ -17,22 +17,23 @@ Completed items are moved to CHANGELOG.md at the end of a work session.
 
 The dark mode toggle in Settings saves to `settings.json` (via `save_overlay_settings`) but light mode is currently a no-op — `applyDarkMode(false)` only sets `colorScheme: light` which does nothing visually since the CSS is hardcoded dark.
 
-- [ ] Audit all app-side CSS files (`settings.css`, `index.css`, `store.css`, `instructions.css`, `editor-common.css`, `editor-header.css`) and identify every hardcoded dark colour (backgrounds, borders, text, inputs).
-- [ ] Define a CSS custom property palette for both themes on `:root` (e.g. `--bg-primary`, `--bg-card`, `--text-primary`, `--border-color`, `--input-bg`).
-- [ ] Replace all hardcoded dark values in the app CSS files with the new custom properties.
-- [ ] Add a `[data-theme="light"]` selector block (or toggle a class on `<html>`) that overrides the palette to light values.
-- [ ] Update `applyDarkMode()` in `settings.html` (and any other pages that need it) to set `document.documentElement.dataset.theme = isDark ? 'dark' : 'light'` instead of `colorScheme`.
-- [ ] On startup in each app page, read `settings.json` (or pass the value via Tauri's window state) and apply the correct theme before first paint to avoid a flash of dark content.
-- [ ] Verify editor header and modal components also respect the theme.
+- [x] Audit all app-side CSS files (`settings.css`, `index.css`, `store.css`, `instructions.css`, `editor-common.css`, `editor-header.css`) and identify every hardcoded dark colour (backgrounds, borders, text, inputs).
+- [x] Define a CSS custom property palette for both themes on `:root` (e.g. `--bg-primary`, `--bg-card`, `--text-primary`, `--border-color`, `--input-bg`).
+- [x] Replace all hardcoded dark values in the app CSS files with the new custom properties.
+- [x] Add a `[data-theme="light"]` selector block (or toggle a class on `<html>`) that overrides the palette to light values.
+- [x] Update `applyDarkMode()` in `settings.html` (and any other pages that need it) to set `document.documentElement.dataset.theme = isDark ? 'dark' : 'light'` instead of `colorScheme`.
+- [x] On startup in each app page, read `settings.json` (or pass the value via Tauri's window state) and apply the correct theme before first paint to avoid a flash of dark content.
+- [x] Verify editor header and modal components also respect the theme.
 
 ---------------------------------------------------------------------------------
 
 ## Other To-Do Items
 - [ ] (Optional) Add onboarding or tooltips for first-time users to make the app even more user-friendly.
-- [ ] Question - Should window.onsave, onback, oncopy live in the editor-header by default and not be in each individual overlay html/js? They should technically always do the same function if an overlay/frame is packaged correctly.
+- [x] Question - Should window.onsave, onback, oncopy live in the editor-header by default and not be in each individual overlay html/js? They should technically always do the same function if an overlay/frame is packaged correctly.
 - [ ] Refine what controls are on each overlay page and what values each slider has for min/max.
 - [ ] Tests - Still need to test uploading a user created overlay as a zip file to make sure that it unpacks correctly and works with the app.
-- [ ] **User overlay editor.html compatibility** — User-installed overlay editors (in `%APPDATA%/AngelsNowPlaying/overlays/`) reference shared scripts via `../../js/tauri.js` and `../../js/editor-header-loader.js`, which resolve correctly for bundled overlays (in `dist/overlays/`) but will 404 for user overlays since they live in AppData, not alongside `dist/js/`. Before wiring up the install/store UI, decide on one of: (a) inline shared scripts into `editor.html` during `zip_overlay` export, (b) serve `dist/js/` via the tiny_http server under a `/js/` virtual path so user overlay editors can reference it, or (c) document that custom overlay editors must bundle their own scripts.
+- [x] **User overlay editor.html compatibility** — Solved with inline-at-install-time strategy: `install_overlay()` now post-processes `editor.html` by replacing all `../../css/` and `../../js/` app references with inline `<style>`/`<script>` blocks (CSS and scripts are `include_str!`-embedded in the binary). `editor-header-loader.js` detects `file://` protocol and calls the `get_editor_header_html` Tauri command (returns header HTML with CSS inlined and images as base64 data URIs) instead of `fetch()`, which is blocked in WebView2 for cross-`file://` loads. `overlays.js` now sets `editorUrl = file:///...` for user overlays; `index-page.js` handles null `editorUrl` gracefully.
+- [~] **Bundle Font Awesome locally** — Won't fix. WebView2 tracking prevention produces console noise for CDN font loads from `http://127.0.0.1` (user overlay server), but functionality is unaffected. User-created overlays may also reference arbitrary CDN assets we can't predict, so there's no general fix worth pursuing here.
 - [ ] Update artwork on frame-program-window to allow for a new dropdown selection to change the style of the program window. This would only need to swap the background image loaded in the overlay. Could have current option be the default and add styles for retro (win95/98), fruit (apple/macos), etc. If done properly nothing should change except the background image. All existing sliders and functions should still work.
 
 ---------------------------------------------------------------------------------

@@ -24,8 +24,15 @@ pub fn run() {
       backend::install_overlay,
       backend::delete_user_overlay,
       backend::zip_overlay,
+      backend::get_overlay_css_path,
+      backend::read_file_abs,
+      backend::save_file_abs,
+      backend::get_editor_header_html,
+      backend::get_user_overlay_server_port,
+      backend::navigate_home,
     ])
     .setup(|app| {
+      backend::start_user_overlay_server();
       if cfg!(debug_assertions) {
         app.handle().plugin(
           tauri_plugin_log::Builder::default()

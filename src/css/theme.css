@@ -1,0 +1,89 @@
+/* ============================================================
+   Theme — application-wide colour tokens
+   Default palette is dark. Light tokens are applied when
+   <html data-theme="light"> is set by applyDarkMode() / theme.js.
+
+   Scope: app pages only (index, settings, store, instructions,
+          and editor-header via its own :root fallbacks).
+          Overlay inner pages define their own colours independently.
+   ============================================================ */
+
+:root {
+  /* Accent & font */
+  --highlight:   hsl(221, 82%, 58%);
+  --font-main:   "proxima-nova", sans-serif;
+
+  /* Backgrounds */
+  --bg-primary:       #121212;
+  --bg-card:          #1e1e1e;
+  --bg-modal-chrome:  #252525;
+  --bg-input:         #2a2a2a;
+
+  /* Borders */
+  --border-color:  #333333;
+  --border-input:  #444444;
+
+  /* Neutral button (cancel / secondary) */
+  --btn-cancel-bg:        #444444;
+  --btn-cancel-hover-bg:  #555555;
+
+  /* Text */
+  --text-primary:  #f0f0f0;
+  --text-muted:    #b0b0b0;
+  --text-subtle:   #888888;
+  --text-link:     #3b82f6;
+}
+
+/* ── Light theme overrides ──────────────────────────────── */
+[data-theme="light"] {
+  --bg-primary:       #f4f4f5;
+  --bg-card:          #ffffff;
+  --bg-modal-chrome:  #e8e8ec;
+  --bg-input:         #f0f0f2;
+
+  --border-color:  #d1d5db;
+  --border-input:  #c4c4cc;
+
+  --btn-cancel-bg:        #e5e7eb;
+  --btn-cancel-hover-bg:  #d1d5db;
+
+  --text-primary:  #111827;
+  --text-muted:    #6b7280;
+  --text-subtle:   #9ca3af;
+  --text-link:     #2563eb;
+}
+
+/* ── Light mode: invert tip / social buttons so they don't wash out ── */
+/* In dark mode these are white-bg + blue-text; in light mode flip to  */
+/* blue-bg + white-text so they remain visible against the light page. */
+/* The #editor-header variants are needed to beat the ID-scoped rules  */
+/* in editor-header.css (specificity 1,2,0 vs theme.css's 0,3,0).     */
+[data-theme="light"] .action-button.tip-button,
+[data-theme="light"] .action-button.social-button,
+[data-theme="light"] #editor-header .action-button.tip-button,
+[data-theme="light"] #editor-header .action-button.social-button {
+  background-color: var(--highlight);
+  color: white;
+}
+
+[data-theme="light"] .action-button.tip-button i,
+[data-theme="light"] .action-button.social-button i,
+[data-theme="light"] #editor-header .action-button.tip-button i,
+[data-theme="light"] #editor-header .action-button.social-button i {
+  color: white;
+}
+
+[data-theme="light"] .action-button.tip-button:hover,
+[data-theme="light"] .action-button.social-button:hover,
+[data-theme="light"] #editor-header .action-button.tip-button:hover,
+[data-theme="light"] #editor-header .action-button.social-button:hover {
+  background-color: hsl(221, 82%, 65%);
+  color: white;
+}
+
+[data-theme="light"] .action-button.tip-button:hover i,
+[data-theme="light"] .action-button.social-button:hover i,
+[data-theme="light"] #editor-header .action-button.tip-button:hover i,
+[data-theme="light"] #editor-header .action-button.social-button:hover i {
+  color: white;
+}

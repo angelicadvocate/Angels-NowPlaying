@@ -1,8 +1,3 @@
-:root {
-  --highlight: hsl(221, 82%, 58%);
-  --font-main: "proxima-nova", sans-serif;
-}
-
 html {
   overflow-y: scroll;
 }
@@ -20,12 +15,12 @@ body {
   margin: 0;
   padding: 0.5rem 2rem 1rem 2rem;
   font-family: var(--font-main), sans-serif;
-  background-color: #121212;
-  color: #f0f0f0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 a {
-  color: #3b82f6;
+  color: var(--text-link);
   text-decoration: none;
 }
 
@@ -50,8 +45,8 @@ li {
 }
 
 .note {
-  background-color: #2a2a2a;
-  border-left: 4px solid #3b82f6;
+  background-color: var(--bg-input);
+  border-left: 4px solid var(--text-link);
   padding: 1rem;
   margin-bottom: 1.5rem;
   font-style: italic;
@@ -59,7 +54,7 @@ li {
 
 .section-divider {
   border: none;
-  border-top: 1px solid #333;
+  border-top: 1px solid var(--border-color);
   margin: 1.75rem 0;
 }
 
@@ -68,7 +63,7 @@ li {
   width: fit-content;
   margin: 2rem 0 0 0;
   padding: 0.75rem 1.5rem;
-  background-color: #3b82f6;
+  background-color: var(--highlight);
   border: none;
   border-radius: 8px;
   color: white;
@@ -230,11 +225,11 @@ li {
 }
 
 .card {
-  background-color: #1e1e1e;
+  background-color: var(--bg-card);
   border-radius: 10px;
   padding: 1.5rem;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
-  color: #f0f0f0;
+  color: var(--text-primary);
   overflow-wrap: break-word;
 }
 

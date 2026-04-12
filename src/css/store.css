@@ -1,14 +1,9 @@
-    :root {
-      --highlight: hsl(221, 82%, 58%);
-      --font-main: "proxima-nova", sans-serif;
-    }
-
     body {
       margin: 0;
       padding: 0.5rem 2rem 1rem 2rem;
       font-family: var(--font-main), sans-serif;
-      background-color: #121212;
-      color: #f0f0f0;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
     }
 
     html {
@@ -25,7 +20,7 @@
     }
 
     a {
-      color: #3b82f6;
+      color: var(--text-link);
       text-decoration: none;
     }
 
@@ -168,7 +163,7 @@
       width: 100%;
       margin: 0 -2rem -1rem -2rem;
       padding: 2rem;
-      background-color: #1e1e1e;
+      background-color: var(--bg-card);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -184,7 +179,7 @@
 
     .coming-soon-text {
       font-size: 2.4rem;
-      color: #b0b0b0;
+      color: var(--text-muted);
       margin-top: 1rem;
     }
 
