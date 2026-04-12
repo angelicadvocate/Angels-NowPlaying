@@ -53,23 +53,20 @@ pub fn resolve_path(relative_path: String) -> Result<String, String> {
 
 #[tauri::command]
 pub fn get_overlay_main_path(overlay_id: String) -> Result<String, String> {
-    // Reject anything that looks like a path traversal attempt
     if overlay_id.contains('/') || overlay_id.contains('\\') || overlay_id.contains("..") {
         return Err("Invalid overlay ID".to_string());
     }
-    let root = project_root().map_err(|e| e.to_string())?;
-    // Check bundled overlays first.
-    // In debug (dev), source files live under src/overlays/.
-    // In release, the bundled overlay files are directly under overlays/.
+    // dev: source tree; release: AppData copy extracted by extract_bundled_overlays
     let bundled = if cfg!(debug_assertions) {
-        root.join("src").join("overlays").join(&overlay_id).join("main.html")
+        project_root()
+            .map_err(|e| e.to_string())?
+            .join("src").join("overlays").join(&overlay_id).join("main.html")
     } else {
-        root.join("overlays").join(&overlay_id).join("main.html")
+        bundled_overlays_dir().join(&overlay_id).join("main.html")
     };
     if bundled.exists() {
         return Ok(bundled.to_string_lossy().into_owned());
     }
-    // Fall back to the user overlays AppData directory.
     let user_path = user_overlays_dir().join(&overlay_id).join("main.html");
     if user_path.exists() {
         return Ok(user_path.to_string_lossy().into_owned());
@@ -268,10 +265,7 @@ pub fn save_css_file(path: String, content: String) -> Result<(), String> {
 
 #[tauri::command]
 pub fn get_version() -> Result<String, String> {
-    let root = project_root().map_err(|e| e.to_string())?;
-    let version = fs::read_to_string(root.join("VERSION"))
-        .unwrap_or_else(|_| "Unknown".to_string());
-    Ok(version.trim().to_string())
+    Ok(env!("CARGO_PKG_VERSION").to_string())
 }
 
 // ── Overlay settings (shared by all overlays via ../settings.json) ───────────
@@ -299,13 +293,14 @@ impl Default for OverlaySettings {
 }
 
 fn overlay_settings_path() -> Result<PathBuf, String> {
-    let root = project_root().map_err(|e| e.to_string())?;
-    let dir = if cfg!(debug_assertions) {
-        root.join("src").join("overlays")
+    if cfg!(debug_assertions) {
+        let root = project_root().map_err(|e| e.to_string())?;
+        Ok(root.join("src").join("overlays").join("settings.json"))
     } else {
-        root.join("overlays")
-    };
-    Ok(dir.join("settings.json"))
+        // In release: write alongside the extracted bundled overlays so that
+        // OBS-loaded overlays can resolve it via '../settings.json'.
+        Ok(bundled_overlays_dir().join("settings.json"))
+    }
 }
 
 #[tauri::command]
@@ -378,9 +373,7 @@ pub fn move_file(src: String, dest: String) -> Result<(), String> {
 ///   _id: the folder name (stable overlay slug)
 #[tauri::command]
 pub fn list_user_overlays() -> Result<Vec<serde_json::Value>, String> {
-    let mut base = dirs::config_dir().unwrap_or_else(|| std::env::current_dir().unwrap());
-    base.push("AngelsNowPlaying");
-    base.push("overlays");
+    let base = user_overlays_dir();
 
     if !base.exists() {
         return Ok(vec![]);
@@ -485,11 +478,85 @@ pub fn get_editor_header_html() -> String {
         )
 }
 
-fn user_overlays_dir() -> PathBuf {
+fn app_data_dir() -> PathBuf {
     let mut base = dirs::config_dir().unwrap_or_else(|| std::env::current_dir().unwrap());
     base.push("AngelsNowPlaying");
-    base.push("overlays");
     base
+}
+
+/// Bundled overlays extracted to AppData on each version change.
+fn bundled_overlays_dir() -> PathBuf {
+    app_data_dir().join("overlays")
+}
+
+/// User-installed overlays (zip installs via Settings).
+fn user_overlays_dir() -> PathBuf {
+    app_data_dir().join("user-overlays")
+}
+
+fn copy_dir_all(src: &PathBuf, dst: &PathBuf) -> io::Result<()> {
+    fs::create_dir_all(dst)?;
+    for entry in fs::read_dir(src)? {
+        let entry = entry?;
+        let ty = entry.file_type()?;
+        if ty.is_dir() {
+            copy_dir_all(&entry.path(), &dst.join(entry.file_name()))?;
+        } else {
+            fs::copy(entry.path(), dst.join(entry.file_name()))?;
+        }
+    }
+    Ok(())
+}
+
+/// Extracts all bundled overlay files from the Tauri resource directory into
+/// AppData/AngelsNowPlaying/overlays/, gated by a .bundle_version stamp.
+/// Only runs in release builds — dev reads from src/overlays/ directly.
+/// Re-extracts (overwriting) whenever the app version changes.
+pub fn extract_bundled_overlays(app_handle: &tauri::AppHandle) -> Result<(), String> {
+    if cfg!(debug_assertions) {
+        return Ok(());
+    }
+
+    let current_version = env!("CARGO_PKG_VERSION");
+    let app_dir = app_data_dir();
+    fs::create_dir_all(&app_dir).map_err(|e| e.to_string())?;
+
+    let version_file = app_dir.join(".bundle_version");
+    if version_file.exists() {
+        let stored = fs::read_to_string(&version_file).unwrap_or_default();
+        if stored.trim() == current_version {
+            return Ok(());
+        }
+    }
+
+    let resource_overlays = app_handle
+        .path()
+        .resource_dir()
+        .map_err(|e| e.to_string())?
+        .join("overlays");
+
+    if !resource_overlays.exists() {
+        return Err(format!(
+            "Bundled overlays resource directory not found: {}",
+            resource_overlays.display()
+        ));
+    }
+
+    let dest = bundled_overlays_dir();
+    fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
+
+    for entry in fs::read_dir(&resource_overlays).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let src = entry.path();
+        if !src.is_dir() {
+            continue;
+        }
+        let dst = dest.join(entry.file_name());
+        copy_dir_all(&src, &dst).map_err(|e| e.to_string())?;
+    }
+
+    fs::write(&version_file, current_version).map_err(|e| e.to_string())?;
+    Ok(())
 }
 
 /// Install a user overlay from a zip file path.
@@ -627,17 +694,18 @@ pub fn delete_user_overlay(overlay_id: String) -> Result<(), String> {
 
 /// Returns the absolute path to `main.css` for any overlay — bundled or user-installed.
 /// The JS editor loader uses this so it never has to hardcode or guess the path itself.
-/// Checks the bundled location first; if not found, checks the user AppData dir.
 #[tauri::command]
 pub fn get_overlay_css_path(overlay_id: String) -> Result<String, String> {
     if overlay_id.contains('/') || overlay_id.contains('\\') || overlay_id.contains("..") {
         return Err("Invalid overlay ID".to_string());
     }
-    let root = project_root().map_err(|e| e.to_string())?;
+    // dev: source tree; release: AppData copy extracted by extract_bundled_overlays
     let bundled = if cfg!(debug_assertions) {
-        root.join("src").join("overlays").join(&overlay_id).join("main.css")
+        project_root()
+            .map_err(|e| e.to_string())?
+            .join("src").join("overlays").join(&overlay_id).join("main.css")
     } else {
-        root.join("overlays").join(&overlay_id).join("main.css")
+        bundled_overlays_dir().join(&overlay_id).join("main.css")
     };
     if bundled.exists() {
         return Ok(bundled.to_string_lossy().into_owned());
@@ -683,11 +751,12 @@ pub fn zip_overlay(overlay_id: String) -> Result<String, String> {
     if overlay_id.contains("..") || overlay_id.contains('/') || overlay_id.contains('\\') {
         return Err("Invalid overlay id".to_string());
     }
-    let root = project_root().map_err(|e| e.to_string())?;
     let src_dir = if cfg!(debug_assertions) {
-        root.join("src").join("overlays").join(&overlay_id)
+        project_root()
+            .map_err(|e| e.to_string())?
+            .join("src").join("overlays").join(&overlay_id)
     } else {
-        root.join("overlays").join(&overlay_id)
+        bundled_overlays_dir().join(&overlay_id)
     };
     if !src_dir.exists() {
         return Err(format!("Overlay '{}' not found", overlay_id));

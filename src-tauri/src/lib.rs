@@ -32,6 +32,9 @@ pub fn run() {
       backend::navigate_home,
     ])
     .setup(|app| {
+      if let Err(e) = backend::extract_bundled_overlays(&app.handle()) {
+        log::warn!("Failed to extract bundled overlays: {e}");
+      }
       backend::start_user_overlay_server();
       if cfg!(debug_assertions) {
         app.handle().plugin(

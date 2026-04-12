@@ -28,6 +28,7 @@ Completed items are moved to CHANGELOG.md at the end of a work session.
 - [ ] Display current version and latest available version side-by-side in the settings version section once the updater is wired up.
 - [ ] Cross-platform smoke test: verify the app builds and runs correctly on macOS and Linux (Windows is already the primary test platform).
 - [ ] Consider adding a toast/popup message to the index page to show when updates are available.
+- [ ] Show a toast/warning when the app updates informing the user that bundled overlay customizations were reset to defaults. Hook this into the auto-updater flow once it is implemented. (Long-term: the planned config backup/restore system should automatically preserve and restore customizations across updates.)
 
 ---------------------------------------------------------------------------------
 
@@ -35,5 +36,5 @@ Completed items are moved to CHANGELOG.md at the end of a work session.
 
 - [ ] Build a community overlay "store" where users can browse, contribute, and install custom now playing overlays. Host this as a separate site and embed it in the app (e.g., via iframe) so store updates are independent of app releases.
 - [ ] Preset theme library: ship a set of named color palettes that users can apply to any overlay in one click from the editor.
-- [ ] Import/export overlay configs between machines: let users export a config bundle (JSON + CSS) and import it on another install.
+- [ ] Import/export overlay configs between machines: let users export a config bundle (JSON + CSS) and import it on another install. (Can also be used during the update step to backup/restore across updates)
 - [ ] Keyboard shortcuts and accessibility improvements across the app UI.
