@@ -16,7 +16,6 @@ Completed items are moved to CHANGELOG.md at the end of a work session.
 ## Other To-Do Items
 - [ ] (Optional) Add onboarding or tooltips for first-time users to make the app even more user-friendly.
 - [ ] Refine what controls are on each overlay page and what values each slider has for min/max.
-- [~] **Bundle Font Awesome locally** — Won't fix. WebView2 tracking prevention produces console noise for CDN font loads from `http://127.0.0.1` (user overlay server), but functionality is unaffected. User-created overlays may also reference arbitrary CDN assets we can't predict, so there's no general fix worth pursuing here.
 - [ ] Update artwork on frame-program-window to allow for a new dropdown selection to change the style of the program window. This would only need to swap the background image loaded in the overlay. Could have current option be the default and add styles for retro (win95/98), fruit (apple/macos), etc. If done properly nothing should change except the background image. All existing sliders and functions should still work.
 
 ---------------------------------------------------------------------------------
