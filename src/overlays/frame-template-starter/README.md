@@ -63,24 +63,39 @@ Declare these in `main.css` `:root {}` to enable scroller tuning:
 
 ---
 
-## Editor controls — sending CSS variable updates to the preview
+## Editor controls — wiring up the header and Save behaviour
 
-The editor uses a `sendVar(name, value)` helper defined in `editor.html` that posts a message to the preview iframe:
+`editor-header-loader.js` owns the Save, Copy URL, and Back buttons. Your editor page does **not** implement these directly. Instead you expose one function:
 
 ```js
-function sendVar(name, value) {
-  previewFrame.contentWindow.postMessage({ type: 'setCSSVar', name, value }, '*');
-}
+window.buildRootBlock = function buildRootBlock(vars) {
+  // vars — object of current CSS custom property values parsed from main.css
+  // Return the new :root { ... } string that should be written back to main.css
+  return `:root {
+  --my-color: ${colorInput.value};
+  --my-size: ${sizeSlider.value}px;
+  /* ... all other vars ... */
+}`;
+};
+```
 
-// Wire each control input like this:
-colorInput.addEventListener('input', e => {
-  sendVar('--color-primary', e.target.value);
+When the user clicks Save, `editor-header-loader.js` calls `window.buildRootBlock(currentVars)` and writes the result to `main.css` automatically.
+
+To initialise your controls from the current saved values, listen for the `headerLoaded` event:
+
+```js
+document.addEventListener('headerLoaded', ({ detail: { cssVars } }) => {
+  // cssVars is an object: { '--my-color': '#ff0000', '--my-size': '16px', ... }
+  colorInput.value = cssVars['--my-color'] || '#ffffff';
+  sizeSlider.value = parseInt(cssVars['--my-size']) || 16;
+  // update the preview iframe with initial values
+  sendAllVars();
 });
 ```
 
-`common.js` listens for these messages in `?edit=1` mode and applies them to `document.documentElement.style`, so the iframe preview updates live without a reload.
+The loader also fires `headerLoaded` with `{ cssPath }` — the absolute path to `main.css`. You do not need to use this directly; it is used internally by the Save handler.
 
-See `editor-header-loader.js` in `src/js/` for the shared header wiring (`window.onSave`, `window.onBack`, `window.onCopy`).
+See `src/js/editor-header-loader.js` for the full implementation.
 
 ---
 

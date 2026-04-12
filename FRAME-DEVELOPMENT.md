@@ -86,13 +86,30 @@ Then work through each file:
 
 ## 4. Test in the App
 
-1. Open Angels-NowPlaying and go to **Settings**.
-2. Use the **Upload Custom Template** option to load your overlay folder into the app.
-3. Your overlay will appear alongside the built-in overlays on the home page.
-4. Open the editor from the overlay card to verify sliders and controls update the live preview correctly.
-5. Add the overlay's `main.html` as a Browser Source in OBS at the size specified in your `manifest.json` and confirm it behaves as expected with Tuna running.
+1. Package your overlay folder as a zip. The zip **must** contain a single top-level folder named with your overlay's `id`:
+   ```
+   my-overlay-name/
+     manifest.json
+     main.html
+     main.css
+     editor.html
+     editor.css
+     common.js
+     preview.png
+   ```
+   On Windows with PowerShell:
+   ```powershell
+   Compress-Archive -Path "my-overlay-name" -DestinationPath "my-overlay-name.zip"
+   ```
+2. Open Angels-NowPlaying and go to **Settings → Overlay Management**.
+3. Click **Install Overlay from Zip** and select your zip file.
+4. The app installs the overlay to `%APPDATA%/AngelsNowPlaying/overlays/my-overlay-name/` and post-processes `editor.html` to inline all shared app assets (CSS, scripts) so the editor works correctly when served from the app's local HTTP server.
+5. Your overlay now appears on the home page. Open the editor from the overlay card to verify sliders and controls update the live preview correctly.
+6. Add the overlay's `main.html` as a Browser Source in OBS at the size specified in your `manifest.json` and confirm it behaves as expected with Tuna running.
 
 > If you have Tuna running on a non-default port, update the port in **Settings → Tuna Configuration** and restart OBS so the new port takes effect.
+
+> To iterate on your overlay after install, delete it from **Settings → Overlay Management**, edit your source files, repackage the zip, and reinstall.
 
 ---
 
@@ -106,6 +123,6 @@ In the meantime, you can share your overlay by zipping the folder and distributi
 
 ## Further Reading
 
-- `frame-template-starter/README.md` — per-file conventions, DOM IDs, CSS variable reference, manifest schema
-- `src/js/editor-header-loader.js` — shared editor header wiring (`window.onSave`, `window.onBack`, `window.onCopy`)
-- `src-tauri/src/backend.rs` — Tauri commands available to editor pages (`read_text_file`, `save_css_file`, `get_overlay_settings`, etc.)
+- `frame-template-starter/README.md` — per-file conventions, DOM IDs, CSS variable reference, manifest schema, editor wiring
+- `src/js/editor-header-loader.js` — shared editor header implementation (Save, Copy URL, Back buttons; `headerLoaded` event; `window.buildRootBlock` contract)
+- `src-tauri/src/backend.rs` — Tauri commands available to editor pages (`get_overlay_css_path`, `read_file_abs`, `save_file_abs`, `get_overlay_settings`, etc.)

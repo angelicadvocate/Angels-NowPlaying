@@ -91,21 +91,28 @@ Angels-NowPlaying/
 
 ## Key Tauri commands (backend.rs)
 
-These are the commands available to frontend JS via `window.__TAURI__.invoke(...)`:
+These are the commands available to frontend JS via `window.__TAURI__.invoke(...)` (or `window.tauri.invoke(...)` in user overlay editors):
 
 | Command | Purpose |
 |---|---|
-| `get_overlay_settings` | Read `src/overlays/settings.json` (tuna_port, dark_mode) |
+| `get_overlay_settings` | Read `src/overlays/settings.json` (tuna_port, dark_mode, show_user_overlays) |
 | `save_overlay_settings` | Write `src/overlays/settings.json` |
-| `read_text_file` | Read any project file as raw text (used by editors to load CSS) |
-| `save_css_file` | Write a CSS file back to disk (used by editors on Save) |
-| `list_user_overlays` | Discover installed overlays from `src/overlays/` (dev) or AppData (release) |
-| `get_overlay_main_path` | Resolve the absolute path to an overlay's `main.html` |
+| `get_overlay_css_path` | Resolve absolute path to an overlay's `main.css` (checks bundled then AppData) |
+| `get_overlay_main_path` | Resolve absolute path to an overlay's `main.html` (checks bundled then AppData) |
+| `read_file_abs` | Read a file at an absolute path (used by editor header loader) |
+| `save_file_abs` | Write a file at an absolute path (used by editor header loader Save button) |
+| `list_user_overlays` | Scan `%APPDATA%/AngelsNowPlaying/overlays/` and return parsed manifests |
+| `install_overlay` | Extract a zip to the user overlays AppData dir; post-processes `editor.html` to inline shared app assets |
+| `delete_user_overlay` | Remove a user-installed overlay from AppData |
+| `zip_overlay` | Package a bundled overlay as a zip for download |
+| `get_editor_header_html` | Return the editor header HTML fragment with CSS and images inlined (used by user overlay editors served from `http://127.0.0.1`) |
+| `get_user_overlay_server_port` | Return the port the user overlay static-file server is listening on |
+| `navigate_home` | Navigate the main window back to the index page via `history.back()` eval (used by user overlay editors) |
 | `get_version` | Read `VERSION` file |
-| `start_server` / `stop_server` | Control the embedded HTTP server (tiny_http) |
+| `start_server` / `stop_server` | Control the OBS-facing HTTP server (tiny_http) |
 | `open_url` | Open a URL in the system browser |
 | `resolve_path` | Resolve a project-relative path to absolute |
-| `pick_file` | Native file-picker dialog (rfd) |
+| `pick_file` / `pick_save_file` | Native file-picker dialogs (rfd) |
 
 ---
 
@@ -136,7 +143,34 @@ Standard HTML/CSS/JS. Tauri APIs are available via `window.__TAURI__.invoke(...)
 
 ### Overlay editors (`src/overlays/*/editor.html`)
 
-Also plain HTML/CSS/JS. Use `invoke('read_text_file', ...)` and `invoke('save_css_file', ...)` for disk access — do **not** use `fetch('./main.css')` in editors since Vite's dev server transforms CSS files and writing the result back will corrupt them.
+Also plain HTML/CSS/JS. Each editor page must expose one function:
+
+```js
+window.buildRootBlock = function buildRootBlock(vars) {
+  // vars — object with the current CSS custom property values
+  // Return an updated :root { ... } string with the new values
+  return `:root {\n  --my-var: ${someInput.value};\n  // ...
+}`;
+};
+```
+
+The shared `editor-header-loader.js` owns all three action buttons (Save, Copy URL, Back). It:
+- Injects the `editor-header.html` fragment into `#header-root`
+- Reads the overlay's `main.css` via `get_overlay_css_path` + `read_file_abs`
+- Fires a `headerLoaded` CustomEvent with `{ pageTitle, cssVars, cssPath }` when ready
+- On Save: calls `window.buildRootBlock(cssVars)` and writes the result via `save_file_abs`
+- On Copy URL: resolves `main.html` via `get_overlay_main_path` and writes to clipboard
+- On Back: `history.back()`
+
+Your editor script should initialise controls inside a `headerLoaded` listener:
+
+```js
+document.addEventListener('headerLoaded', ({ detail: { cssVars } }) => {
+  // populate controls from cssVars['--my-var'] etc.
+});
+```
+
+Do **not** use `fetch('./main.css')` in editors — Vite's dev server transforms CSS files and writing the result back will corrupt them. Use the Tauri commands instead (handled automatically by `editor-header-loader.js`).
 
 The editor preview is an `<iframe src="./main.html?edit=1">`. CSS variable updates are sent to it via `postMessage({ type: 'setCSSVar', name, value })`.
 
@@ -157,8 +191,6 @@ Add new commands here, register them in the `tauri::generate_handler![]` call in
 
 See [TODO.md](TODO.md) for the full list. High-impact areas:
 
-- **Roll out the iframe editor pattern** to the remaining overlay editors (they still use a static mock DOM — see the `frame-template-starter` editor for the target pattern)
-- **Light mode implementation** — the CSS currently hardcodes dark colours; a CSS custom property palette is needed
 - **Pre-ship QA** — test each bundled overlay in OBS end-to-end with Tuna running
 - **Auto-update wiring** — replace the mock `setTimeout` in settings with a real Tauri updater call
 - **CI/CD pipeline** — GitHub Actions build for Windows `.msi`, macOS `.dmg`, Linux `.AppImage`

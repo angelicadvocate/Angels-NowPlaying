@@ -18,6 +18,10 @@ src/js/vendor/jquery-3.5.1.min.js
 # Overlay settings — written at runtime by the app, not checked in
 src/overlays/settings.json
 
+# Test artifacts — not for distribution
+test-overlay/
+test-overlay.zip
+
 # OS and editor files
 *.log
 *.tmp

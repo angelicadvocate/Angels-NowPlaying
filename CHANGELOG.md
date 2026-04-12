@@ -10,6 +10,56 @@ Please be sure to add date, completed tag, `github:[username]`, and version numb
 
 ---------------------------------------------------------------------------------
 
+## v0.9.0 – 2026-04-11
+
+* [x] **User overlay install flow end-to-end + full editor compatibility** ✨ *COMPLETED* `github:AngelicAdvocate`
+
+  **User overlay HTTP server**
+  * Added a dedicated `start_user_overlay_server()` that binds to `127.0.0.1:0` (OS-assigned port) at app startup, serving static files from `%APPDATA%/AngelsNowPlaying/overlays/`
+  * New `get_user_overlay_server_port` Tauri command exposes the port to JS
+  * Virtual route serves embedded jQuery bytes at `js/vendor/jquery-3.5.1.min.js` so overlay `main.html` files resolve their script reference correctly
+  * Query-string stripping (`?edit=1`) added to server file lookup so `main.html?edit=1` correctly opens `main.html`
+  * `overlays.js` now builds `editorUrl` and `previewUrl` for user overlays using `http://127.0.0.1:{port}/{id}/...` instead of `file://` URLs, avoiding WebView2's cross-origin restriction that blocked loading from `tauri://localhost`
+  * `index-page.js` handles null `editorUrl` gracefully (renders disabled button instead of broken anchor)
+
+  **`install_overlay()` post-processing**
+  * On install, `editor.html` is post-processed: all `../../css/` link tags replaced with inline `<style>` blocks, all `../../js/` script tags replaced with inline `<script>` blocks
+  * App CSS (`editor-header.css`, `editor-common.css`, `theme.css`) and scripts (`tauri.js` shim, `editor-header-loader.js`) embedded in the Rust binary via `include_str!` / `include_bytes!`
+  * `base64 = "0.22"` added to `Cargo.toml`
+  * New `get_editor_header_html` Tauri command returns the editor header HTML with CSS inlined and images converted to base64 data URIs — used by user overlay editors (HTTP origin) where `fetch()` of a `tauri://localhost` URL is blocked
+  * `TAURI_SHIM_JS` constant provides a self-contained replacement for `tauri.js` using `window.__TAURI_INTERNALS__.invoke()` (the correct Tauri v2 IPC API)
+  * Zip entry names normalised from backslashes to forward slashes so `Compress-Archive`-generated zips (Windows PowerShell) install correctly
+
+  **`editor-header-loader.js` consolidation**
+  * All 12 overlay editors updated: removed per-editor `parseCSSVars`, `CSS_PATH`, `readMainCSS`, `window.onSave`, `window.onBack` implementations
+  * Each editor now exposes `window.buildRootBlock(vars)` and listens for the `headerLoaded` CustomEvent to initialise controls from saved CSS values
+  * `editor-header-loader.js` is now the single owner of Save, Copy URL, and Back button behaviour
+  * Protocol detection: uses `get_editor_header_html` Tauri command for non-`tauri:` origins (HTTP server); falls back to `fetch()` for bundled overlays on `tauri://localhost`
+  * `extractOverlayId()` regex updated to match both `/overlays/{id}/editor.html` (bundled) and `/{id}/editor.html` (user overlay HTTP server)
+  * Back button: `history.back()` for non-`tauri:` origins; `window.location.href = '../../index.html'` for `tauri:` origin
+  * Fixed missing `</script>` closing tag in `frame-template-starter/editor.html`
+
+  **Editor header HTML fix**
+  * Home button changed from `<a href="../../index.html"><button>` to `<button id="back-btn">` so `editor-header-loader.js` can wire it up correctly — the anchor was navigating to `http://127.0.0.1:{port}/index.html` (404) instead of returning to the app home page
+
+  **Navigation commands**
+  * New `navigate_home` Tauri command (uses `history.back()` eval) — preserved for potential future use
+  * `get_overlay_main_path` now falls back to user overlays AppData dir if not found in bundled paths, so Copy URL returns the correct AppData path for user-installed overlays
+  * `use tauri::Manager` added to `backend.rs`
+
+  **Light mode**
+  * Full light/dark theme implemented across all app CSS files (`index.css`, `settings.css`, `store.css`, `instructions.css`, `editor-common.css`, `editor-header.css`) using CSS custom properties
+  * New `src/css/theme.css` defines `--bg-primary`, `--bg-card`, `--text-primary`, `--border-color`, `--input-bg` etc. for both `[data-theme="dark"]` and `[data-theme="light"]`
+  * `applyDarkMode()` updated across all pages to set `document.documentElement.dataset.theme`
+  * Theme applied before first paint on every page to eliminate flash of dark content
+
+  **Documentation**
+  * `DEVELOPMENT.md`: command table fully updated, editor section rewritten to document `window.buildRootBlock` / `headerLoaded` contract, stale "Roll out iframe editor pattern" removed from contributing section
+  * `FRAME-DEVELOPMENT.md`: install workflow updated (zip format, `Compress-Archive`, delete → edit → reinstall iteration loop), Further Reading updated
+  * `frame-template-starter/README.md`: editor controls section rewritten for new `window.buildRootBlock` / `headerLoaded` pattern
+
+---------------------------------------------------------------------------------
+
 ## v0.8.2 – 2026-04-05
 
 * [x] **Flatten `src/` directory structure** ✨ *COMPLETED* `github:AngelicAdvocate`
