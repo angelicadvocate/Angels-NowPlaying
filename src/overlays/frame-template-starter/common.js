@@ -396,6 +396,12 @@
   // You should not need to modify this function. Change the Tuna port in the
   // Angels-NowPlaying app under Settings → Tuna Configuration instead.
   function loadTunaConfig(callback) {
+    var urlPort = new URLSearchParams(location.search).get('tunaPort');
+    if (urlPort) {
+      TUNA_BASE_URL = 'http://localhost:' + urlPort;
+      callback();
+      return;
+    }
     $.getJSON('../settings.json?t=' + Date.now())
       .done(function (cfg) {
         if (cfg && cfg.tuna_port) TUNA_BASE_URL = 'http://localhost:' + cfg.tuna_port;
