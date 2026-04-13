@@ -256,19 +256,8 @@
   }
 
   function loadTunaConfig(callback) {
-    // Prefer ?tunaPort=XXXX URL param injected by the app's Copy URL button.
-    // OBS Browser Source blocks file:// XHR so $.getJSON('../settings.json') fails there.
-    var urlPort = new URLSearchParams(location.search).get('tunaPort');
-    if (urlPort) {
-      TUNA_BASE_URL = 'http://localhost:' + urlPort;
-      callback();
-      return;
-    }
-    $.getJSON('../settings.json?t=' + Date.now())
-      .done(function (cfg) {
-        if (cfg && cfg.tuna_port) TUNA_BASE_URL = 'http://localhost:' + cfg.tuna_port;
-      })
-      .always(callback);
+    if (window.TUNA_PORT) TUNA_BASE_URL = 'http://localhost:' + window.TUNA_PORT;
+    callback();
   }
 
   // ── ?edit=1 mode ──────────────────────────────────────────────────────────────

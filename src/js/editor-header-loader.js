@@ -141,13 +141,6 @@ async function loadHeader() {
         let obsPath;
         if (overlayId && window.tauri) {
           obsPath = await window.tauri.invoke('get_overlay_main_path', { overlayId });
-          // Append the tuna port as a URL param so OBS can read it without
-          // needing a file:// XHR to settings.json (which Chromium/OBS blocks).
-          try {
-            const settings = await window.tauri.invoke('get_overlay_settings');
-            const port = settings?.tuna_port || 1608;
-            obsPath = `${obsPath}?tunaPort=${port}`;
-          } catch { /* leave path without param if settings unavailable */ }
         } else {
           obsPath = window.location.href.replace(/\/editor\.html([?#].*)?$/, '/main.html$1');
         }

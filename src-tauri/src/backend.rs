@@ -321,6 +321,22 @@ pub fn get_overlay_settings() -> Result<OverlaySettings, String> {
     })
 }
 
+/// Writes a tiny JS file to the bundled and user-overlay directories that
+/// sets window.TUNA_PORT so common.js can read the Tuna port without XHR.
+/// Called on settings save and after bundle extraction.
+fn write_tuna_port_files(port: u16) {
+    let content = format!("window.TUNA_PORT = {};\n", port);
+    for dir in [bundled_overlays_dir(), user_overlays_dir()] {
+        if let Err(e) = fs::create_dir_all(&dir) {
+            log::warn!("write_tuna_port_files: could not create {}: {e}", dir.display());
+            continue;
+        }
+        if let Err(e) = fs::write(dir.join("tuna-port.js"), &content) {
+            log::warn!("write_tuna_port_files: could not write tuna-port.js: {e}");
+        }
+    }
+}
+
 #[tauri::command]
 pub fn save_overlay_settings(tuna_port: u16, dark_mode: bool, show_user_overlays: bool, show_template_starter: bool) -> Result<(), String> {
     let config = OverlaySettings { tuna_port, dark_mode, show_user_overlays, show_template_starter };
@@ -329,7 +345,11 @@ pub fn save_overlay_settings(tuna_port: u16, dark_mode: bool, show_user_overlays
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|e| e.to_string())?;
     }
-    fs::write(path, content).map_err(|e| e.to_string())
+    fs::write(path, content).map_err(|e| e.to_string())?;
+    if !cfg!(debug_assertions) {
+        write_tuna_port_files(tuna_port);
+    }
+    Ok(())
 }
 
 /// Open a native file-picker dialog and return the selected path (or None if cancelled).
@@ -569,6 +589,11 @@ pub fn extract_bundled_overlays(app_handle: &tauri::AppHandle) -> Result<(), Str
     fs::create_dir_all(&assets_dir).map_err(|e| e.to_string())?;
     fs::write(assets_dir.join("mascot.png"), MASCOT_PNG).map_err(|e| e.to_string())?;
     fs::write(assets_dir.join("header-text.png"), HEADER_TEXT_PNG).map_err(|e| e.to_string())?;
+
+    // Read current tuna port from saved settings (or default 1608) and write
+    // tuna-port.js so OBS-loaded main.html files can find the port without XHR.
+    let tuna_port = get_overlay_settings().map(|s| s.tuna_port).unwrap_or(1608);
+    write_tuna_port_files(tuna_port);
 
     fs::write(&version_file, current_version).map_err(|e| e.to_string())?;
     Ok(())
