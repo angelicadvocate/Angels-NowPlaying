@@ -555,6 +555,21 @@ pub fn extract_bundled_overlays(app_handle: &tauri::AppHandle) -> Result<(), Str
         copy_dir_all(&src, &dst).map_err(|e| e.to_string())?;
     }
 
+    // Write jQuery so that main.html files loaded by OBS as file:// URLs can
+    // resolve '../../js/vendor/jquery-3.5.1.min.js' from the overlay directory.
+    let jquery_path = app_dir.join("js").join("vendor").join("jquery-3.5.1.min.js");
+    if let Some(parent) = jquery_path.parent() {
+        fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    fs::write(&jquery_path, JQUERY_JS).map_err(|e| e.to_string())?;
+
+    // Write header image assets so all overlay editors can reference them
+    // consistently via the HTTP server or absolute file paths.
+    let assets_dir = app_dir.join("assets");
+    fs::create_dir_all(&assets_dir).map_err(|e| e.to_string())?;
+    fs::write(assets_dir.join("mascot.png"), MASCOT_PNG).map_err(|e| e.to_string())?;
+    fs::write(assets_dir.join("header-text.png"), HEADER_TEXT_PNG).map_err(|e| e.to_string())?;
+
     fs::write(&version_file, current_version).map_err(|e| e.to_string())?;
     Ok(())
 }

@@ -32,10 +32,13 @@ async function loadHeader() {
   if (!root) return;
   try {
     let html;
-    // Non-tauri: origins (http://127.0.0.1 user overlay server, or file://) cannot
-    // resolve '../html/editor-header.html' relative to tauri://localhost. Use the
-    // Tauri command which returns the header HTML with CSS and images inlined.
-    if (window.location.protocol !== 'tauri:' && window.tauri) {
+    // Always use the Tauri command when available: it returns a fully self-contained
+    // HTML fragment with CSS inlined and images as base64 data URIs. This avoids
+    // relative-path resolution issues that arise when the fragment is injected as
+    // innerHTML into a page at a different URL (e.g. bundled overlays at
+    // tauri://localhost vs user overlays at http://127.0.0.1:{port}).
+    // Fall back to fetch() only for browser-only preview (no Tauri runtime).
+    if (window.tauri) {
       html = await window.tauri.invoke('get_editor_header_html');
     } else {
       const resp = await fetch(root.dataset.src || '../html/editor-header.html');
