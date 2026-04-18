@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Frame Editor</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/editor-header.css" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      background: #424242;
+    }
+    #overlay-frame {
+      flex: 1;
+      border: none;
+      width: 100%;
+      min-height: 0;
+    }
+  </style>
+</head>
+<body>
+  <header id="editor-header">
+    <div class="header-container">
+      <!-- Center Mascot/Title -->
+      <div class="header-center">
+        <img src="/assets/mascot.png" alt="Mascot" class="floating-mascot" />
+        <img src="/assets/header-text.png" alt="Header Text" class="header-text" />
+      </div>
+
+      <!-- Page title -->
+      <div class="header-middle">
+        <h1 id="page-title"></h1>
+      </div>
+
+      <!-- Right Action Buttons -->
+      <div class="header-actions">
+        <!-- Support Development Row -->
+        <div class="button-row">
+          <p class="button-row-label">Support Development:</p>
+          <a href="https://streamelements.com/angelicadvocate/tip" target="_blank"><button class="action-button tip-button" title="Buy Me a Coffee"><i class="fas fa-heart"></i> Buy Me a Coffee</button></a>
+        </div>
+
+        <!-- Share this Widget Row -->
+        <div class="button-row">
+          <p class="button-row-label">Share this widget:</p>
+          <a href="#" onclick="return false;"><button class="action-button social-button" title="Share on Twitter"><i class="fab fa-twitter"></i></button></a>
+          <a href="#" onclick="return false;"><button class="action-button social-button" title="Share on Facebook"><i class="fab fa-facebook"></i></button></a>
+          <a href="#" onclick="return false;"><button class="action-button social-button" title="Share on Reddit"><i class="fab fa-reddit"></i></button></a>
+          <a href="#" onclick="return false;"><button class="action-button social-button" title="Share on Discord"><i class="fab fa-discord"></i></button></a>
+        </div>
+
+        <div class="button-row">
+          <button id="back-btn" class="action-button" title="Home"><i class="fas fa-home"></i> Home</button>
+          <button id="copy-url-btn" class="action-button" title="Copy URL to Clipboard"><i class="fas fa-clipboard"></i> Copy URL</button>
+          <button id="save-btn" class="action-button primary" title="Save Configuration"><i class="fas fa-save"></i> Save</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <iframe id="overlay-frame" src="" scrolling="auto" title="Overlay Editor"></iframe>
+
+  <script type="module" src="../js/tauri.js"></script>
+  <script type="module" src="../js/editor-shell.js"></script>
+</body>
+</html>

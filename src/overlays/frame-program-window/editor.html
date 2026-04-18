@@ -4,15 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Program Window — Editor</title>
-  <link rel="stylesheet" href="../../css/editor-header.css" />
   <link rel="stylesheet" href="./editor.css" />
   <link rel="stylesheet" href="../../css/editor-common.css" />
-  <script type="module" src="../../js/tauri.js"></script>
 </head>
 <body>
-    <!-- Dynamic header placeholder -->
-    <div id="header-root" data-src="../../html/editor-header.html" data-page-title="Program Window"></div>
-
     <main id="site">
     <section id="controls">
       <label for="fontFamily" class="info">Font Family</label>
@@ -320,10 +315,16 @@
       applyFilters();
     }
 
-    document.addEventListener('headerLoaded', e => {
-      if (e.detail && e.detail.cssVars) populateSlidersFromVars(e.detail.cssVars);
-      previewFrame.addEventListener('load', sendAllVars, { once: true });
-      setTimeout(sendAllVars, 800);
+    window.addEventListener('message', e => {
+      if (e.data.type === 'init') {
+        if (e.data.cssVars) populateSlidersFromVars(e.data.cssVars);
+        previewFrame.addEventListener('load', sendAllVars, { once: true });
+        setTimeout(sendAllVars, 800);
+      }
+      if (e.data.type === 'request-root-block') {
+        const css = window.buildRootBlock(e.data.existingVars || {});
+        e.source.postMessage({ type: 'root-block', css }, '*');
+      }
     });
 
     // --- Build :root block for saving ---
@@ -356,6 +357,5 @@
 
   </script>
 
-  <script type="module" src="../../js/editor-header-loader.js"></script>
 </body>
 </html>

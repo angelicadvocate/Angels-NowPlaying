@@ -4,14 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Banner Visualizer — Editor</title>
-  <link rel="stylesheet" href="../../css/editor-header.css" />
   <link rel="stylesheet" href="../../css/editor-common.css" />
   <link rel="stylesheet" href="./editor.css" />
-  <script type="module" src="../../js/tauri.js"></script>
 </head>
 <body>
-  <div id="header-root" data-src="../../html/editor-header.html" data-page-title="Banner Visualizer"></div>
-
   <main id="site">
     <div class="controls-grid">
       <div class="controls-column">
@@ -192,10 +188,16 @@
       sendVar('--font-main', selectFont.value);
     }
 
-    document.addEventListener('headerLoaded', e => {
-      if (e.detail && e.detail.cssVars) populateSlidersFromVars(e.detail.cssVars);
-      previewFrame.addEventListener('load', sendAllVars, { once: true });
-      setTimeout(sendAllVars, 800);
+    window.addEventListener('message', e => {
+      if (e.data.type === 'init') {
+        if (e.data.cssVars) populateSlidersFromVars(e.data.cssVars);
+        previewFrame.addEventListener('load', sendAllVars, { once: true });
+        setTimeout(sendAllVars, 800);
+      }
+      if (e.data.type === 'request-root-block') {
+        const css = window.buildRootBlock(e.data.existingVars || {});
+        e.source.postMessage({ type: 'root-block', css }, '*');
+      }
     });
 
     // --- Build updated :root block from current slider/picker values ---
@@ -229,6 +231,5 @@
 
   </script>
 
-  <script type="module" src="../../js/editor-header-loader.js"></script>
 </body>
 </html>

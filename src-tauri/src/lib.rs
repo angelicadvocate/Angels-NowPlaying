@@ -30,6 +30,7 @@ pub fn run() {
       backend::get_editor_header_html,
       backend::get_user_overlay_server_port,
       backend::navigate_home,
+      backend::get_overlay_editor_url,
     ])
     .setup(|app| {
       if let Err(e) = backend::extract_bundled_overlays(&app.handle()) {

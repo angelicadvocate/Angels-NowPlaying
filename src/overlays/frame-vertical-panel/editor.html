@@ -4,16 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Vertical Panel — Editor</title>
-  <link rel="stylesheet" href="../../css/editor-header.css" />
   <link rel="stylesheet" href="../../css/editor-common.css" />
   <link rel="stylesheet" href="./editor.css" />
-  <script type="module" src="../../js/tauri.js"></script>
 </head>
 <body>
-    <!-- Header Module -->
-    <!-- Dynamic header placeholder -->
-    <div id="header-root" data-src="../../html/editor-header.html" data-page-title="Vertical Panel"></div>
-
   <main id="site">
     <div id="controls">
       <!-- Left controls column -->
@@ -212,10 +206,16 @@
       sendVar('--text-align', selectTextAlign.value);
     }
 
-    document.addEventListener('headerLoaded', e => {
-      if (e.detail && e.detail.cssVars) populateSlidersFromVars(e.detail.cssVars);
-      previewFrame.addEventListener('load', sendAllVars, { once: true });
-      setTimeout(sendAllVars, 800);
+    window.addEventListener('message', e => {
+      if (e.data.type === 'init') {
+        if (e.data.cssVars) populateSlidersFromVars(e.data.cssVars);
+        previewFrame.addEventListener('load', sendAllVars, { once: true });
+        setTimeout(sendAllVars, 800);
+      }
+      if (e.data.type === 'request-root-block') {
+        const css = window.buildRootBlock(e.data.existingVars || {});
+        e.source.postMessage({ type: 'root-block', css }, '*');
+      }
     });
 
     window.buildRootBlock = function buildRootBlock(vars) {
@@ -253,6 +253,5 @@
 
   </script>
 
-  <script type="module" src="../../js/editor-header-loader.js"></script>
 </body>
 </html>

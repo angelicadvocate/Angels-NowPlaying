@@ -74,6 +74,24 @@ pub fn get_overlay_main_path(overlay_id: String) -> Result<String, String> {
     Err(format!("main.html not found for overlay '{}'", overlay_id))
 }
 
+/// Returns the URL to load a specific overlay's editor controls in an iframe.
+/// In dev mode, returns the Vite dev server URL; in release, the overlay HTTP server URL.
+#[tauri::command]
+pub fn get_overlay_editor_url(overlay_id: String) -> Result<String, String> {
+    if overlay_id.contains('/') || overlay_id.contains('\\') || overlay_id.contains("..") {
+        return Err("Invalid overlay ID".to_string());
+    }
+    if cfg!(debug_assertions) {
+        Ok(format!("http://localhost:5173/overlays/{}/editor.html", overlay_id))
+    } else {
+        let port = *USER_OVERLAY_SERVER_PORT.lock().unwrap();
+        if port == 0 {
+            return Err("Overlay server not running".to_string());
+        }
+        Ok(format!("http://127.0.0.1:{}/{}/editor.html", port, overlay_id))
+    }
+}
+
 /// Navigates the main app window back to the home/index page.
 /// Called from user overlay editors (running on http://127.0.0.1) where
 /// direct navigation to tauri:// URLs is blocked by WebView2's cross-protocol
@@ -206,7 +224,45 @@ pub fn start_user_overlay_server() {
                 continue;
             }
 
+            // Serve CSS shared files (e.g. /css/editor-common.css) from the
+            // bundled overlays css/ subdir.  editor.html files reference
+            // "../../css/editor-common.css" which resolves to /css/... here.
+            if let Some(css_file) = url.strip_prefix("css/") {
+                if !css_file.contains("..") && !css_file.contains('/') && !css_file.contains('\\') {
+                    let path = bundled_overlays_dir().join("css").join(css_file);
+                    if let Ok(file) = fs::File::open(&path) {
+                        let mime = mime_guess::from_path(&path).first_or_octet_stream();
+                        let _ = request.respond(
+                            tiny_http::Response::from_file(file).with_header(
+                                tiny_http::Header::from_bytes(&b"Content-Type"[..], mime.as_ref()).unwrap(),
+                            ),
+                        );
+                    } else {
+                        let _ = request.respond(tiny_http::Response::empty(404));
+                    }
+                } else {
+                    let _ = request.respond(tiny_http::Response::empty(400));
+                }
+                continue;
+            }
+
+            // Serve tuna-port.js from bundled overlays dir root.
+            if url == "tuna-port.js" {
+                let path = bundled_overlays_dir().join("tuna-port.js");
+                if let Ok(file) = fs::File::open(&path) {
+                    let _ = request.respond(
+                        tiny_http::Response::from_file(file).with_header(
+                            tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"application/javascript"[..]).unwrap(),
+                        ),
+                    );
+                } else {
+                    let _ = request.respond(tiny_http::Response::empty(404));
+                }
+                continue;
+            }
+
             // URL format: {overlay_id}/{filename}  (no subdirectory nesting allowed)
+            // Check user overlays dir first; fall back to bundled overlays dir.
             let response: Option<tiny_http::Response<fs::File>> = (|| {
                 let (overlay_id, filename) = url.split_once('/')?;
                 // Path-traversal guard: no '..' and no path separators in filename
@@ -219,7 +275,9 @@ pub fn start_user_overlay_server() {
                 {
                     return None;
                 }
-                let path = user_overlays_dir().join(overlay_id).join(filename);
+                let user_path = user_overlays_dir().join(overlay_id).join(filename);
+                let bundled_path = bundled_overlays_dir().join(overlay_id).join(filename);
+                let path = if user_path.exists() { user_path } else { bundled_path };
                 let file = fs::File::open(&path).ok()?;
                 let mime = mime_guess::from_path(&path).first_or_octet_stream();
                 Some(
@@ -431,30 +489,7 @@ pub fn list_user_overlays() -> Result<Vec<serde_json::Value>, String> {
 // These are inlined into user overlay editor.html files at install time so
 // that user overlays work from file:// URLs with zero external dependencies.
 
-const TAURI_SHIM_JS: &str = r#"
-// Tauri v2 IPC shim for user overlay editors.
-// Tauri injects window.__TAURI_INTERNALS__ into every managed webview page,
-// including pages served from http://127.0.0.1 (user overlay server).
-(function () {
-  function invoke(cmd, args, options) {
-    return window.__TAURI_INTERNALS__.invoke(cmd, args || {}, options);
-  }
-  window.tauri = { invoke: invoke };
-  window.__TAURI__ = { invoke: invoke };
-  window.openExternalUrl = function (url) {
-    return invoke('open_url', { url: url }).catch(function () {
-      window.open(url, '_blank');
-    });
-  };
-})();
-"#;
-
 const JQUERY_JS: &[u8] = include_bytes!("../../src/js/vendor/jquery-3.5.1.min.js");
-const EDITOR_HEADER_LOADER_JS: &str =
-    include_str!("../../src/js/editor-header-loader.js");
-
-const EDITOR_HEADER_CSS: &str =
-    include_str!("../../src/css/editor-header.css");
 
 const EDITOR_COMMON_CSS: &str =
     include_str!("../../src/css/editor-common.css");
@@ -590,6 +625,12 @@ pub fn extract_bundled_overlays(app_handle: &tauri::AppHandle) -> Result<(), Str
     fs::write(assets_dir.join("mascot.png"), MASCOT_PNG).map_err(|e| e.to_string())?;
     fs::write(assets_dir.join("header-text.png"), HEADER_TEXT_PNG).map_err(|e| e.to_string())?;
 
+    // Write editor-common.css to css/ subdir so the overlay HTTP server can serve
+    // it at /css/editor-common.css (referenced by editor.html as "../../css/editor-common.css").
+    let css_dir = bundled_overlays_dir().join("css");
+    fs::create_dir_all(&css_dir).map_err(|e| e.to_string())?;
+    fs::write(css_dir.join("editor-common.css"), EDITOR_COMMON_CSS).map_err(|e| e.to_string())?;
+
     // Read current tuna port from saved settings (or default 1608) and write
     // tuna-port.js so OBS-loaded main.html files can find the port without XHR.
     let tuna_port = get_overlay_settings().map(|s| s.tuna_port).unwrap_or(1608);
@@ -678,38 +719,17 @@ pub fn install_overlay(zip_path: String) -> Result<String, String> {
     }
 
     // ── Post-process editor.html ──────────────────────────────────────────────
-    // User overlays are loaded via file:// URLs so they cannot resolve the app's
-    // shared assets via relative paths (they live outside AppData).  We inline
-    // all app-side dependencies directly into editor.html so it is self-contained.
+    // User overlay editors are now served via the overlay HTTP server, so all
+    // relative asset paths resolve correctly.  Strip legacy references to
+    // app-side scripts/styles (present in old overlay packages) so they don't
+    // produce 404s on the new HTTP-served path.
     let editor_path = dest.join("editor.html");
     if editor_path.exists() {
         let html = fs::read_to_string(&editor_path).map_err(|e| e.to_string())?;
-
         let html = html
-            // -- CSS: replace shared link tags with inline <style> blocks --
-            .replace(
-                r#"<link rel="stylesheet" href="../../css/editor-header.css" />"#,
-                &format!("<style>{EDITOR_HEADER_CSS}</style>"),
-            )
-            .replace(
-                r#"<link rel="stylesheet" href="../../css/editor-common.css" />"#,
-                &format!("<style>{EDITOR_COMMON_CSS}</style>"),
-            )
-            // theme.css may also appear in some user overlay editors
-            .replace(
-                r#"<link rel="stylesheet" href="../../css/theme.css" />"#,
-                &format!("<style>{THEME_CSS}</style>"),
-            )
-            // -- Scripts: replace shared <script src> with inline <script> --
-            .replace(
-                r#"<script type="module" src="../../js/tauri.js"></script>"#,
-                &format!("<script type=\"module\">{TAURI_SHIM_JS}</script>"),
-            )
-            .replace(
-                r#"<script type="module" src="../../js/editor-header-loader.js"></script>"#,
-                &format!("<script type=\"module\">{EDITOR_HEADER_LOADER_JS}</script>"),
-            );
-
+            .replace(r#"<link rel="stylesheet" href="../../css/editor-header.css" />"#, "")
+            .replace(r#"<script type="module" src="../../js/tauri.js"></script>"#, "")
+            .replace(r#"<script type="module" src="../../js/editor-header-loader.js"></script>"#, "");
         fs::write(&editor_path, html).map_err(|e| e.to_string())?;
     }
 

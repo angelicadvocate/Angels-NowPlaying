@@ -21,7 +21,7 @@ export const builtinOverlays = Object.entries(_builtinModules).map(([path, manif
     ...manifest,
     id,
     _source: 'builtin',
-    editorUrl: `/overlays/${id}/editor.html`,
+    editorUrl: `/html/editor-shell.html?overlay=${id}`,
     mainUrl: `/overlays/${id}/main.html`,
     previewUrl: `/overlays/${id}/preview.png`
   }
@@ -78,7 +78,7 @@ export async function listAllOverlays() {
     const base = port ? `http://127.0.0.1:${port}/${id}` : null
     return {
       ...o,
-      editorUrl: base ? `${base}/editor.html` : null,
+      editorUrl: `/html/editor-shell.html?overlay=${id}`,
       previewUrl: base ? `${base}/preview.png` : null,
     }
   })

@@ -4,46 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Template Starter — Editor</title>
-  <link rel="stylesheet" href="../../css/editor-header.css" />
   <link rel="stylesheet" href="./editor.css" />
   <link rel="stylesheet" href="../../css/editor-common.css" />
-  <script type="module" src="../../js/tauri.js"></script>
 </head>
 <body>
-  <!--
-    EDITOR HEADER
-    =============
-    The shared editor header provides the Save, Copy URL, and Back buttons that
-    appear at the top of every overlay editor in the app. It is loaded at runtime
-    by editor-header-loader.js (see the <script> tag at the bottom of <body>).
-
-    Required pieces — keep all three of these in any editor you build:
-
-    1. CSS link in <head>:
-         <link rel="stylesheet" href="../../css/editor-header.css" />
-
-    2. This placeholder div (adjust data-page-title to your overlay name):
-         <div id="header-root"
-              data-src="../../html/editor-header.html"
-              data-page-title="Your Overlay Name">
-         </div>
-
-    3. The loader script at the very end of <body>:
-         <script type="module" src="../../js/editor-header-loader.js"></script>
-
-    The loader injects the header HTML into #header-root and wires up three
-    optional window-level hooks you can override in your own <script> block:
-
-      window.onSave  — called when the user clicks Save.
-                       Default: no-op. Override this to write CSS or config.
-      window.onCopy  — called when the user clicks Copy URL.
-                       Default: copies main.html path to clipboard.
-      window.onBack  — called when the user clicks Back.
-                       Default: history.back().
-
-    See src/js/editor-header-loader.js for the full implementation.
-  -->
-  <div id="header-root" data-src="../../html/editor-header.html" data-page-title="Template Starter"></div>
 
   <main id="site">
     <div class="controls-grid">
@@ -248,12 +212,16 @@
       sendVar('--font-main', selectFont.value);
     }
 
-    document.addEventListener('headerLoaded', e => {
-      if (e.detail && e.detail.cssVars) populateSlidersFromVars(e.detail.cssVars);
-      // Send vars after iframe loads. The iframe fires a 'load' event;
-      // we also set a small timeout as fallback for slow loads.
-      previewFrame.addEventListener('load', sendAllVars, { once: true });
-      setTimeout(sendAllVars, 800);
+    window.addEventListener('message', e => {
+      if (e.data.type === 'init') {
+        if (e.data.cssVars) populateSlidersFromVars(e.data.cssVars);
+        previewFrame.addEventListener('load', sendAllVars, { once: true });
+        setTimeout(sendAllVars, 800);
+      }
+      if (e.data.type === 'request-root-block') {
+        const css = window.buildRootBlock(e.data.existingVars || {});
+        e.source.postMessage({ type: 'root-block', css }, '*');
+      }
     });
 
     // --- Build updated :root block from current slider/picker values ---
@@ -288,6 +256,5 @@
     }
   </script>
 
-  <script type="module" src="../../js/editor-header-loader.js"></script>
 </body>
 </html>
