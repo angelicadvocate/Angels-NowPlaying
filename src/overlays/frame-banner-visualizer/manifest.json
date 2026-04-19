@@ -10,5 +10,17 @@
   "preview": "preview.png",
   "description": "A fullscreen banner-style layout that includes a pseudo-music visualizer. Ideal for high impact overlays.",
   "obsSize": { "width": 1440, "height": 110 },
-  "tags": ["banner", "visualizer", "animated"]
+  "tags": ["banner", "visualizer", "animated"],
+  "defaults": {
+    "--accent-hex": "#3b82f6",
+    "--font-main": "proxima-nova, sans-serif",
+    "--artist-size": "27px",
+    "--song-size": "38px",
+    "--text-spacing": "8px",
+    "--image-size": "120px",
+    "--image-padding": "15px",
+    "--content-padding-left": "30px",
+    "--text-vertical-offset": "0px",
+    "--visualizer-opacity": "0.70"
+  }
 }

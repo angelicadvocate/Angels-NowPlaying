@@ -10,5 +10,23 @@
   "preview": "preview.png",
   "description": "An animated equalizer bars visualizer with colorful spectrum display and dynamic moving bars.",
   "obsSize": { "width": 800, "height": 600 },
-  "tags": ["visualizer", "animated", "equalizer"]
+  "tags": ["visualizer", "animated", "equalizer"],
+  "defaults": {
+    "--accent-hex": "#db0000",
+    "--font-main": "proxima-nova, sans-serif",
+    "--artist-size": "32px",
+    "--song-size": "48px",
+    "--text-spacing": "2px",
+    "--image-size": "140px",
+    "--image-margin-left": "60px",
+    "--image-vertical-offset": "0px",
+    "--content-padding-left": "19px",
+    "--text-vertical-offset": "-20px",
+    "--progress-bar-offset": "21px",
+    "--frame-hue": "0deg",
+    "--frame-brightness": "1.00",
+    "--frame-saturation": "1.00",
+    "--frame-opacity": "1.00",
+    "--auto-rotate-mode": "no"
+  }
 }

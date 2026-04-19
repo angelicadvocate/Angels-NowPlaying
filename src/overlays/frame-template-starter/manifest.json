@@ -11,5 +11,19 @@
   "preview": "preview.png",
   "description": "Developer starter template. Copy this overlay as a base for building your own Angels-NowPlaying overlays.",
   "obsSize": { "width": 728, "height": 180 },
-  "tags": ["template", "developer", "starter"]
+  "tags": ["template", "developer", "starter"],
+  "defaults": {
+    "--accent-hex": "#3b82f6",
+    "--song-color": "#ffffff",
+    "--font-main": "proxima-nova, sans-serif",
+    "--artist-size": "32px",
+    "--song-size": "48px",
+    "--text-spacing": "16px",
+    "--image-size": "155px",
+    "--image-padding": "56px",
+    "--image-vertical": "0px",
+    "--content-padding-left": "14px",
+    "--text-vertical-offset": "-10px",
+    "--progress-bar-offset": "0px"
+  }
 }

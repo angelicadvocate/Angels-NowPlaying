@@ -10,5 +10,19 @@
   "preview": "preview.png",
   "description": "A frosted glass style layout with large album artwork, a subtle blurred background effect, and a progress bar.",
   "obsSize": { "width": 920, "height": 250 },
-  "tags": ["glassmorphism", "frosted", "progress-bar"]
+  "tags": ["glassmorphism", "frosted", "progress-bar"],
+  "defaults": {
+    "--text-color": "#ffffff",
+    "--progress-bar-color": "#ffffff",
+    "--font-main": "proxima-nova, sans-serif",
+    "--artist-size": "40px",
+    "--song-size": "49px",
+    "--text-spacing": "2px",
+    "--image-size": "242px",
+    "--content-padding-left": "10px",
+    "--image-margin-left": "-113px",
+    "--image-vertical-offset": "0px",
+    "--text-vertical-offset": "-10px",
+    "--progress-bar-offset": "20px"
+  }
 }

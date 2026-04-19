@@ -10,5 +10,28 @@
   "preview": "preview.png",
   "description": "A desktop interface theme inspired by UI elements, window frames, and system fonts. Perfect for retro PC gaming.",
   "obsSize": { "width": 920, "height": 440 },
-  "tags": ["retro", "desktop", "windows"]
+  "tags": ["retro", "desktop", "windows"],
+  "defaults": {
+    "--font-main": "proxima-nova, sans-serif",
+    "--artist-color": "#ff8c00",
+    "--artist-size": "47px",
+    "--track-color": "#8b4513",
+    "--song-size": "57px",
+    "--text-spacing": "30px",
+    "--content-padding-left": "33px",
+    "--content-margin-top": "0px",
+    "--now-playing-color": "#8b4513",
+    "--now-playing-size": "40px",
+    "--now-playing-margin-top": "-7px",
+    "--now-playing-padding-left": "0px",
+    "--image-margin-top": "26px",
+    "--image-size": "222px",
+    "--image-margin-left": "110px",
+    "--progress-bar-color": "#ffc800",
+    "--frame-variant": "0",
+    "--frame-hue": "0deg",
+    "--frame-saturation": "100%",
+    "--auto-rotate-hue": "no",
+    "--now-playing-text": "\"Now Playing...\""
+  }
 }

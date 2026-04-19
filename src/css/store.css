@@ -171,10 +171,10 @@
       text-align: center;
     }
 
-    .coming-soon {
-      font-size: 5rem;
-      font-weight: bold;
-      color: var(--highlight);
+    .coming-soon-img {
+      width: min(600px, 90%);
+      display: block;
+      margin: 0 auto 0.5rem;
     }
 
     .coming-soon-text {
@@ -211,8 +211,8 @@
         height: 71.25px;
       }
 
-      .coming-soon {
-        font-size: 3.6rem;
+      .coming-soon-img {
+        width: min(420px, 90%);
       }
 
       .coming-soon-text {

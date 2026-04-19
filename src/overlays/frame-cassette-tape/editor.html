@@ -198,6 +198,10 @@
         sliderLabelHue.disabled = true;
         document.getElementById('autoRotateMessage').style.display = 'block';
         startAutoRotate();
+      } else {
+        sliderLabelHue.style.display = '';
+        sliderLabelHue.disabled = false;
+        document.getElementById('autoRotateMessage').style.display = 'none';
       }
     }
 
@@ -215,6 +219,10 @@
         if (e.data.cssVars) populateSlidersFromVars(e.data.cssVars);
         previewFrame.addEventListener('load', sendAllVars, { once: true });
         setTimeout(sendAllVars, 800);
+      }
+      if (e.data.type === 'reset-to-defaults') {
+        populateSlidersFromVars(e.data.defaults || {});
+        sendAllVars();
       }
       if (e.data.type === 'request-root-block') {
         const css = window.buildRootBlock(e.data.existingVars || {});

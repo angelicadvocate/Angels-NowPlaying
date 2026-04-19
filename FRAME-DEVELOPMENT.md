@@ -74,13 +74,67 @@ Then work through each file:
 | `manifest.json` | Update `id`, `name`, `author`, `description`, `obsSize`, and `tags` |
 | `main.html` | Adjust the DOM structure for your layout — keep the required IDs |
 | `main.css` | Change colours, fonts, dimensions; add or remove CSS variables in `:root` |
-| `editor.html` | Add or remove sliders/pickers to match the CSS variables your layout exposes |
+| `editor.html` | Add or remove sliders/pickers to match the CSS variables your layout exposes; link `editor-common.css` for standard control styling |
 | `editor.css` | Tune the preview iframe scale and controls layout |
 | `common.js` | Usually unchanged — only modify if your overlay needs non-standard polling behaviour |
 | `preview.png` | Replace with a screenshot or mockup of your finished overlay |
 | `background.png` | Replace with your own frame graphic, or remove the `background-image` reference if not needed |
 
 > **Tip:** You can keep the starter files completely unchanged and use them only as a reference while building from scratch. There is no requirement to base your overlay on the starter layout.
+
+> **Editor styling:** The app ships a shared stylesheet at `src/css/editor-common.css` that provides the standard control styles used by all bundled overlays (`.slider`, `.dropdown`, `.color-picker`, `.color-picker-container`, `.controls-grid`, `.controls-column`, `.info` labels, etc.). Your `editor.html` can link it with `<link rel="stylesheet" href="../../css/editor-common.css" />` to get the same look as the built-in editors if you wish. See the file in the repository for the full set of classes.
+
+---
+
+## 3a. Editor wiring — postMessage protocol
+
+Each `editor.html` is loaded in a child `<iframe>` by the shared `editor-shell.html` host. All communication between the shell and your editor uses `postMessage`. There are three required steps.
+
+**Step 1 — Signal ready immediately**
+
+Post `frame-ready` at the very top of your editor script, before any expensive work. This lets the shell initialise controls without waiting for video resources (like `.webm` frame animations) to finish buffering:
+
+```js
+window.parent.postMessage({ type: 'frame-ready' }, '*');
+```
+
+**Step 2 — Handle `init` and `request-root-block` messages**
+
+```js
+window.addEventListener('message', e => {
+  if (e.data.type === 'init') {
+    // e.data.cssVars — object of saved CSS vars from main.css
+    // e.g. { '--my-color': '#ff0000', '--my-size': '16px', ... }
+    if (e.data.cssVars) populateSlidersFromVars(e.data.cssVars);
+    previewFrame.addEventListener('load', sendAllVars, { once: true });
+    setTimeout(sendAllVars, 800);
+  }
+  if (e.data.type === 'request-root-block') {
+    // Shell is saving — reply with the updated :root { ... } CSS string
+    const css = window.buildRootBlock(e.data.existingVars || {});
+    e.source.postMessage({ type: 'root-block', css }, '*');
+  }
+});
+```
+
+**Step 3 — Expose `window.buildRootBlock`**
+
+```js
+window.buildRootBlock = function buildRootBlock(vars) {
+  // vars — the full existing CSS var object; use for passthrough vars you don't own
+  // Return the new :root { ... } string to be written back to main.css
+  return `:root {
+  --my-color: ${colorInput.value};
+  --my-size: ${sizeSlider.value}px;
+  /* preserve vars this editor doesn't manage */
+  --scroll-extra: ${vars['--scroll-extra'] || '0px'};
+}`;
+};
+```
+
+The editor preview is an `<iframe src="./main.html?edit=1">`. CSS variable updates are sent to it via `postMessage({ type: 'setCSSVar', name, value })`.
+
+See `frame-template-starter/editor.html` for a complete working example, and `src/js/editor-shell.js` for the full shell implementation.
 
 ---
 
@@ -103,7 +157,7 @@ Then work through each file:
    ```
 2. Open Angels-NowPlaying and go to **Settings → Overlay Management**.
 3. Click **Install Overlay from Zip** and select your zip file.
-4. The app installs the overlay to `%APPDATA%/AngelsNowPlaying/overlays/my-overlay-name/` and post-processes `editor.html` to inline all shared app assets (CSS, scripts) so the editor works correctly when served from the app's local HTTP server.
+4. The app extracts the overlay to `%APPDATA%/AngelsNowPlaying/user-overlays/my-overlay-name/` and serves it via its built-in HTTP server. No post-processing is needed — the editor is loaded directly from disk.
 5. Your overlay now appears on the home page. Open the editor from the overlay card to verify sliders and controls update the live preview correctly.
 6. Add the overlay's `main.html` as a Browser Source in OBS at the size specified in your `manifest.json` and confirm it behaves as expected with Tuna running.
 
@@ -124,5 +178,6 @@ In the meantime, you can share your overlay by zipping the folder and distributi
 ## Further Reading
 
 - `frame-template-starter/README.md` — per-file conventions, DOM IDs, CSS variable reference, manifest schema, editor wiring
-- `src/js/editor-header-loader.js` — shared editor header implementation (Save, Copy URL, Back buttons; `headerLoaded` event; `window.buildRootBlock` contract)
+- `src/html/editor-shell.html` / `src/js/editor-shell.js` — the shared editor host; owns the header, Save, Copy URL, and Back buttons; loads each overlay's `editor.html` in a child iframe and communicates via `postMessage`
+- `src/css/editor-common.css` — shared control styles (sliders, dropdowns, colour pickers, grid layout) available to all overlay editors
 - `src-tauri/src/backend.rs` — Tauri commands available to editor pages (`get_overlay_css_path`, `read_file_abs`, `save_file_abs`, `get_overlay_settings`, etc.)

@@ -150,6 +150,28 @@ document.getElementById('save-btn').addEventListener('click', async () => {
 });
 
 // ---------------------------------------------------------------------------
+// Reset to Defaults button
+// ---------------------------------------------------------------------------
+document.getElementById('reset-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('reset-btn');
+  if (!cssPath) { alert('Cannot determine overlay path.'); return; }
+  if (!confirm('Reset all settings to defaults?\nThe preview will update but you must click Save to keep the changes.')) return;
+  try {
+    const manifestPath = cssPath.slice(0, -'main.css'.length) + 'manifest.json';
+    const manifestContent = await invoke('read_file_abs', { path: manifestPath });
+    const manifest = JSON.parse(manifestContent);
+    const defaults = manifest.defaults || {};
+    const frame = document.getElementById('overlay-frame');
+    frame.contentWindow.postMessage({ type: 'reset-to-defaults', defaults }, iframeOrigin || '*');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check"></i> Defaults Loaded!';
+    setTimeout(() => { btn.innerHTML = orig; }, 1600);
+  } catch (e) {
+    alert('Failed to load defaults: ' + e);
+  }
+});
+
+// ---------------------------------------------------------------------------
 // Copy URL button
 // ---------------------------------------------------------------------------
 document.getElementById('copy-url-btn').addEventListener('click', async () => {

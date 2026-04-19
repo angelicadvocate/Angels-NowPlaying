@@ -10,5 +10,19 @@
   "preview": "preview.png",
   "description": "A bold horizontal layout featuring larger album artwork and a longer playback progress bar.",
   "obsSize": { "width": 728, "height": 180 },
-  "tags": ["horizontal", "minimal", "progress-bar"]
+  "tags": ["horizontal", "minimal", "progress-bar"],
+  "defaults": {
+    "--accent-hex": "#eb3b4b",
+    "--song-color": "#ffffff",
+    "--font-main": "proxima-nova, sans-serif",
+    "--artist-size": "32px",
+    "--song-size": "48px",
+    "--text-spacing": "16px",
+    "--image-size": "153px",
+    "--image-padding": "60px",
+    "--image-vertical": "0px",
+    "--content-padding-left": "13px",
+    "--text-vertical-offset": "-9px",
+    "--progress-bar-offset": "0px"
+  }
 }

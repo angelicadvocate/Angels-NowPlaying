@@ -4,19 +4,6 @@
 (function () {
   const POLL_INTERVAL = 2000;
 
-  // Cassette tape has fixed physical label space — truncate to fit.
-  // Adjust these values to dial in the visible character limit.
-  const ARTIST_MAX_CHARS = 20;
-  // Short titles (≤ SONG_SHORT_MAX chars): centered on the label.
-  // Long titles (> SONG_SHORT_MAX chars): left-aligned past the INDEX artwork text,
-  //   truncated at SONG_LONG_MAX. Tune SONG_LONG_MAX and --song-index-offset together.
-  const SONG_SHORT_MAX = 21;
-  const SONG_LONG_MAX  = 24;
-
-  function truncateText(str, maxLen) {
-    return str.length > maxLen ? str.slice(0, maxLen).trimEnd() + '…' : str;
-  }
-
   let TUNA_BASE_URL = 'http://localhost:1608';
 
   let newArtist = '';
@@ -162,20 +149,9 @@
     stopScroll(document.getElementById('song'));
   }
 
-  function applySongMode(isLong) {
-    const el = document.getElementById('song');
-    if (!el) return;
-    if (isLong) el.classList.add('song-long');
-    else el.classList.remove('song-long');
-  }
-
   function updateText() {
-    $('#artist').text(truncateText(newArtist, ARTIST_MAX_CHARS));
-    const songIsLong = newSong.length > SONG_SHORT_MAX;
-    applySongMode(songIsLong);
-    $('#song').text(songIsLong
-      ? truncateText(newSong, SONG_LONG_MAX)
-      : newSong);
+    $('#artist').text(newArtist);
+    $('#song').text(newSong);
   }
 
   function showText() {
@@ -310,15 +286,9 @@
     });
 
     $(document).ready(function () {
-      $('#artist').text(truncateText('Sample Artist', ARTIST_MAX_CHARS)).css('opacity', 1);
-      // Use a long title in the preview so the left-align / INDEX-offset mode is visible.
-      // Swap to a short title (≤ 22 chars) to preview the centered mode instead.
+      $('#artist').text('Sample Artist').css('opacity', 1);
       const previewSong = 'Sample Song Title';
-      const previewIsLong = previewSong.length > SONG_SHORT_MAX;
-      applySongMode(previewIsLong);
-      $('#song').text(previewIsLong
-        ? truncateText(previewSong, SONG_LONG_MAX)
-        : previewSong).css('opacity', 1);
+      $('#song').text(previewSong).css('opacity', 1);
       $('#image').attr('src', './SampleAlbum.png');
       $('#background').css('margin-left', '0px');
       // Apply initial tape style from :root

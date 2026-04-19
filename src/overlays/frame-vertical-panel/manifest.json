@@ -10,5 +10,19 @@
   "preview": "preview.png",
   "description": "A vertically stacked layout with large album art. Perfect for side panel placement or portrait scenes.",
   "obsSize": { "width": 360, "height": 510 },
-  "tags": ["vertical"]
+  "tags": ["vertical"],
+  "defaults": {
+    "--accent-hex": "#29a9ff",
+    "--song-color": "#ffffff",
+    "--font-main": "proxima-nova, sans-serif",
+    "--artist-size": "24px",
+    "--song-size": "40px",
+    "--text-spacing": "8px",
+    "--text-align": "center",
+    "--image-size": "340px",
+    "--image-margin-top": "76px",
+    "--image-margin-left": "0px",
+    "--image-border-radius": "6%",
+    "--text-margin-top": "25px"
+  }
 }

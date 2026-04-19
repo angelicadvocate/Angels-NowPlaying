@@ -20,6 +20,7 @@
   --progress-bar-color: #ffc800;
   --frame-hue: 0deg;
   --frame-saturation: 100%;
+  --frame-variant: 0;
   --now-playing-text: "Now Playing...";
   --scroll-extra: 0px;
   --scroll-start-offset: 30px;
@@ -74,7 +75,7 @@ body {
   top: 20px;
   left: 20px;
   z-index: 5;
-  overflow: hidden;
+  overflow: visible;
   filter: var(--content-filter, none);
 }
 
@@ -125,7 +126,7 @@ body {
 #content {
   flex: 1;
   overflow: hidden;
-  padding: 0 40px 0 var(--content-padding-left);
+  padding: 0 45px 0 var(--content-padding-left);
   box-sizing: border-box;
   display: flex;
   flex-direction: row;

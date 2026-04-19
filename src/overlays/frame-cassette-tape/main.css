@@ -4,21 +4,17 @@
   --artist-color: #000000;
   --track-color: #000000;
   --font-family: Courier New, monospace;
-  --artist-font-size: 44px;
+  --artist-font-size: 53px;
   --song-font-size: 44px;
   --tape-style: black-black-light;
   --label-hue: 0deg;
-  --artist-position: 0px;
-  --song-position: 0px;
+  --auto-rotate-hue: no;
+  --artist-position: -6px;
+  --song-position: -4px;
 
   /* Scroller tuning (read by common.js) */
-  /* 9999px disables scrolling on this overlay — text truncates with ellipsis instead */
   --scroll-extra: 9999px;
   --scroll-start-offset: 30px;
-
-  /* Long-title mode: left-align past the INDEX artwork text.
-     Tune this to line up the start of text with the end of the INDEX graphic. */
-  --song-index-offset: 80px;
 }
 
 /* Reset and base styles */
@@ -106,7 +102,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden; /* clip boundary for long-title mode — keeps text inside cassette area */
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -117,13 +113,26 @@ body {
   padding-top: 70px;
 }
 
+/* Scroll clip boundary — tune width to match the visible cassette label area */
+.text-clip {
+  overflow: hidden;
+  width: 570px;
+}
+
+.artist-clip {
+  margin-top: var(--artist-position);
+}
+
+.song-clip {
+  margin-top: calc(220px + var(--song-position));
+}
+
 /* Artist name container */
 #artist {
   text-transform: uppercase;
   font-weight: 600;
   color: var(--artist-color);
   margin: 0;
-  margin-top: var(--artist-position);
   font-family: var(--font-family);
   font-size: var(--artist-font-size);
   white-space: nowrap;
@@ -137,7 +146,7 @@ body {
 #song {
   font-weight: bold;
   color: var(--track-color);
-  margin: calc(220px + var(--song-position)) 0 0 0;
+  margin: 0;
   font-family: var(--font-family);
   font-size: var(--song-font-size);
   white-space: nowrap;
@@ -146,16 +155,6 @@ body {
   width: 100%;
   box-sizing: border-box;
   text-align: center;
-}
-
-/* Long-title mode: left-aligned, offset past the INDEX artwork text.
-   overflow:visible lets #text-overlay handle clipping so JS SONG_LONG_MAX
-   is the sole truncation controller (not the element's reduced content-box). */
-#song.song-long {
-  text-align: left;
-  padding-left: var(--song-index-offset);
-  overflow: visible;
-  text-overflow: clip;
 }
 
 /* Text box wrapper */

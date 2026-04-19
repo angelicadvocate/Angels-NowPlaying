@@ -268,6 +268,10 @@
     window.addEventListener('message', function (e) {
       if (e.data && e.data.type === 'setCSSVar') {
         document.documentElement.style.setProperty(e.data.name, e.data.value);
+        if (e.data.name === '--frame-variant') {
+          var fi = document.getElementById('frame-image');
+          if (fi) fi.src = './program-window-frame-' + e.data.value.trim() + '.png';
+        }
       }
     });
 
@@ -307,6 +311,12 @@
 
   $(document).ready(function () {
     var cs = getComputedStyle(document.documentElement);
+
+    // Apply saved frame variant
+    var variant = cs.getPropertyValue('--frame-variant').trim() || '0';
+    var fi = document.getElementById('frame-image');
+    if (fi) fi.src = './program-window-frame-' + variant + '.png';
+
     var rotateMode = cs.getPropertyValue('--auto-rotate-hue').trim();
     var sat = parseFloat(cs.getPropertyValue('--frame-saturation')) || 100;
     if (rotateMode === 'yes-frame' || rotateMode === 'yes-all') {

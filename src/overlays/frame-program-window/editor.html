@@ -73,7 +73,7 @@
       <input type="range" min="-50" max="50" value="-4" class="slider" id="nowPlayingTopMargin">
 
       <label for="nowPlayingLeftPadding" class="info">Custom Text Left Padding</label>
-      <input type="range" min="-30" max="60" value="0" class="slider" id="nowPlayingLeftPadding">
+      <input type="range" min="-30" max="360" value="0" class="slider" id="nowPlayingLeftPadding">
 
       <label for="imageTopPadding" class="info">Album Art Top Margin</label>
       <input type="range" min="-80" max="80" value="30" class="slider" id="imageTopPadding">
@@ -93,6 +93,15 @@
           <code id="progressBarColorCode">#FFC800</code>
         </div>
       </div>
+
+      <label for="frameVariant" class="info">Frame Style</label>
+      <select id="frameVariant" class="dropdown">
+        <option value="0" selected>Style 1</option>
+        <option value="1">Style 2</option>
+        <option value="2">Style 3</option>
+        <option value="3">Style 4</option>
+        <option value="4">Style 5</option>
+      </select>
 
       <label for="frameSaturation" class="info">Frame Saturation</label>
       <input type="range" min="0" max="200" value="100" class="slider" id="frameSaturation">
@@ -134,6 +143,7 @@
     const frameSaturation        = document.getElementById('frameSaturation');
     const progressBarColor       = document.getElementById('progressBarColor');
     const progressBarColorCode   = document.getElementById('progressBarColorCode');
+    const frameVariantSelect     = document.getElementById('frameVariant');
     const imageSizeSlider        = document.getElementById('imageSize');
     const contentPaddingSlider   = document.getElementById('contentPadding');
     const imagePaddingSlider     = document.getElementById('imagePadding');
@@ -198,6 +208,7 @@
       sendVar('--progress-bar-color', progressBarColor.value);
       progressBarColorCode.textContent = progressBarColor.value.toUpperCase();
     });
+    frameVariantSelect.addEventListener('change', () => sendVar('--frame-variant', frameVariantSelect.value));
     fontFamilySelect.addEventListener('change', () => sendVar('--font-main', fontFamilySelect.value));
     nowPlayingTextInput.addEventListener('input', () => sendNowPlayingText(nowPlayingTextInput.value));
 
@@ -291,6 +302,10 @@
         frameHue.disabled = true;
         document.getElementById('autoRotateMessage').style.display = 'block';
         startAutoRotateHue();
+      } else {
+        frameHue.style.display = '';
+        frameHue.disabled = false;
+        document.getElementById('autoRotateMessage').style.display = 'none';
       }
 
       const ac = vars['--artist-color'] || '#FF8C00';
@@ -301,6 +316,10 @@
       nowPlayingColor.value = npc; nowPlayingColorCode.textContent = npc.toUpperCase();
       const pbc = vars['--progress-bar-color'] || '#FFC800';
       progressBarColor.value = pbc; progressBarColorCode.textContent = pbc.toUpperCase();
+
+      const variant = (vars['--frame-variant'] || '0').trim();
+      const variantOpt = Array.from(frameVariantSelect.options).find(o => o.value === variant);
+      if (variantOpt) frameVariantSelect.value = variant;
 
       const font = vars['--font-main'] || 'proxima-nova, sans-serif';
       const opt = Array.from(fontFamilySelect.options).find(o => o.value === font);
@@ -320,6 +339,7 @@
       nowPlayingColorCode.textContent = nowPlayingColor.value.toUpperCase();
       sendVar('--progress-bar-color', progressBarColor.value);
       progressBarColorCode.textContent = progressBarColor.value.toUpperCase();
+      sendVar('--frame-variant', frameVariantSelect.value);
       sendVar('--font-main', fontFamilySelect.value);
       sendNowPlayingText(nowPlayingTextInput.value);
       applyFilters();
@@ -333,6 +353,10 @@
         if (e.data.cssVars) populateSlidersFromVars(e.data.cssVars);
         previewFrame.addEventListener('load', sendAllVars, { once: true });
         setTimeout(sendAllVars, 800);
+      }
+      if (e.data.type === 'reset-to-defaults') {
+        populateSlidersFromVars(e.data.defaults || {});
+        sendAllVars();
       }
       if (e.data.type === 'request-root-block') {
         const css = window.buildRootBlock(e.data.existingVars || {});
@@ -359,6 +383,7 @@
   --image-size: ${imageSizeSlider.value}px;
   --image-margin-left: ${imagePaddingSlider.value}px;
   --progress-bar-color: ${progressBarColor.value};
+  --frame-variant: ${frameVariantSelect.value};
   --frame-hue: ${frameHue.value}deg;
   --frame-saturation: ${frameSaturation.value}%;
   --auto-rotate-hue: ${autoRotateHue.value};

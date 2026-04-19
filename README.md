@@ -2,7 +2,7 @@
 
 A cross-platform desktop app for managing and displaying **Now Playing** overlays in OBS. Built with [Tauri](https://tauri.app) (Rust backend) and plain HTML/CSS/JS overlays that run as OBS Browser Sources.
 
-> **Status:** Active development — v0.9.7. Core overlay playback and the in-app editor are working. See [TODO.md](TODO.md) for what's in progress.
+> **Status:** Active development — v0.9.8. Core overlay playback and the in-app editor are working. See [TODO.md](TODO.md) for what's in progress.
 
 ---
 
@@ -15,7 +15,7 @@ A cross-platform desktop app for managing and displaying **Now Playing** overlay
 | Platform | Status |
 |---|---|
 | Windows | Developed and tested |
-| Linux | Built and run-tested |
+| Linux | CI builds produce a `.deb`, but behavior has not been verified in OS yet. Reports welcome. |
 | macOS | CI builds produce a universal `.dmg`, but behavior has not been verified on real Apple hardware yet. Reports welcome. |
 
 ---
@@ -26,7 +26,8 @@ A cross-platform desktop app for managing and displaying **Now Playing** overlay
 - Renders artist name, track title, album art, and a live progress bar in an OBS Browser Source
 - Ships with multiple overlay styles (horizontal bars, vertical panels, glassmorphism, cassette tape, vinyl, and more)
 - Includes a desktop app with a per-overlay visual editor — adjust colours, font sizes, and layout with sliders and see changes in a live preview without touching OBS and saves customizations for each overlay.
-- **(Coming Soon)** Users can upload custom overlays via settings, or download user created overlays via the store.
+- Users can install custom overlays from a zip via Settings, and build their own using the provided starter template.
+- **(Coming Soon)** Download community-created overlays directly from the in-app store.
 
 ---
 

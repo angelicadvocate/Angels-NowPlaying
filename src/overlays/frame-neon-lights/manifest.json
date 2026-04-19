@@ -10,5 +10,19 @@
   "preview": "preview.png",
   "description": "A neon theme with bright glowing borders, animated effects, and vibrant accents on dark backgrounds.",
   "obsSize": { "width": 800, "height": 180 },
-  "tags": ["neon", "animated", "glow"]
+  "tags": ["neon", "animated", "glow"],
+  "defaults": {
+    "--accent-hex": "#ff2ed2",
+    "--font-main": "proxima-nova, sans-serif",
+    "--artist-size": "32px",
+    "--song-size": "49px",
+    "--text-spacing": "-5px",
+    "--image-size": "109px",
+    "--image-margin-left": "85px",
+    "--content-padding-left": "20px",
+    "--text-vertical-offset": "-20px",
+    "--progress-bar-offset": "31px",
+    "--neon-filter": "hue-rotate(0deg)",
+    "--auto-rotate-mode": "no"
+  }
 }

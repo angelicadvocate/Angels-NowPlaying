@@ -63,39 +63,65 @@ Declare these in `main.css` `:root {}` to enable scroller tuning:
 
 ---
 
-## Editor controls — wiring up the header and Save behaviour
+## Editor controls — wiring up the shell and Save behaviour
 
-`editor-header-loader.js` owns the Save, Copy URL, and Back buttons. Your editor page does **not** implement these directly. Instead you expose one function:
+`editor-shell.js` owns the Save, Copy URL, and Back buttons. Your `editor.html` is loaded inside an `<iframe>` in the shared `editor-shell.html` host and communicates with it entirely via `postMessage`.
+
+**Step 1 — Signal ready immediately**
+
+Post `frame-ready` at the top of your script, before any slow resource loads (especially if your `main.html` contains video). This lets the shell display controls without waiting for videos to buffer:
+
+```js
+window.parent.postMessage({ type: 'frame-ready' }, '*');
+```
+
+**Step 2 — Handle `init` and `request-root-block` messages**
+
+```js
+window.addEventListener('message', e => {
+  if (e.data.type === 'init') {
+    // e.data.cssVars — object of saved CSS vars from main.css
+    // e.g. { '--my-color': '#ff0000', '--my-size': '16px', ... }
+    if (e.data.cssVars) populateSlidersFromVars(e.data.cssVars);
+    previewFrame.addEventListener('load', sendAllVars, { once: true });
+    setTimeout(sendAllVars, 800);
+  }
+  if (e.data.type === 'request-root-block') {
+    // Shell is saving — reply with the updated :root { ... } CSS string
+    const css = window.buildRootBlock(e.data.existingVars || {});
+    e.source.postMessage({ type: 'root-block', css }, '*');
+  }
+});
+```
+
+**Step 3 — Expose `window.buildRootBlock`**
 
 ```js
 window.buildRootBlock = function buildRootBlock(vars) {
-  // vars — object of current CSS custom property values parsed from main.css
-  // Return the new :root { ... } string that should be written back to main.css
+  // vars — the full existing CSS var object (use for passthrough vars you don't own)
+  // Return the new :root { ... } string that will be written back to main.css
   return `:root {
   --my-color: ${colorInput.value};
   --my-size: ${sizeSlider.value}px;
-  /* ... all other vars ... */
+  /* preserve vars this editor doesn't manage */
+  --scroll-extra: ${vars['--scroll-extra'] || '0px'};
 }`;
 };
 ```
 
-When the user clicks Save, `editor-header-loader.js` calls `window.buildRootBlock(currentVars)` and writes the result to `main.css` automatically.
+See `src/js/editor-shell.js` for the full shell implementation.
 
-To initialise your controls from the current saved values, listen for the `headerLoaded` event:
+---
 
-```js
-document.addEventListener('headerLoaded', ({ detail: { cssVars } }) => {
-  // cssVars is an object: { '--my-color': '#ff0000', '--my-size': '16px', ... }
-  colorInput.value = cssVars['--my-color'] || '#ffffff';
-  sizeSlider.value = parseInt(cssVars['--my-size']) || 16;
-  // update the preview iframe with initial values
-  sendAllVars();
-});
+## Editor styling — editor-common.css
+
+All bundled overlay editors link `../../css/editor-common.css` to get the standard control styles. You can do the same:
+
+```html
+<link rel="stylesheet" href="../../css/editor-common.css" />
 ```
 
-The loader also fires `headerLoaded` with `{ cssPath }` — the absolute path to `main.css`. You do not need to use this directly; it is used internally by the Save handler.
-
-See `src/js/editor-header-loader.js` for the full implementation.
+This provides `.slider`, `.dropdown`, `.color-picker`, `.color-picker-container`, `.color-code-overlay`, `.controls-grid`, `.controls-column`, `.info` labels, and button styles — everything needed for a consistent look without writing custom CSS. See `src/css/editor-common.css` for the full class reference.
 
 ---
 

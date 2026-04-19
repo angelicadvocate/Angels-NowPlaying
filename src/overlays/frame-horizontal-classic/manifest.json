@@ -10,5 +10,17 @@
   "preview": "preview.png",
   "description": "A sleek horizontal layout with smaller album artwork and a progress bar. Great for minimal, unobtrusive overlays.",
   "obsSize": { "width": 810, "height": 240 },
-  "tags": ["horizontal", "progress-bar"]
+  "tags": ["horizontal", "progress-bar"],
+  "defaults": {
+    "--accent-hex": "#f73b3b",
+    "--font-main": "proxima-nova, sans-serif",
+    "--artist-size": "36px",
+    "--song-size": "60px",
+    "--text-spacing": "19px",
+    "--image-size": "181px",
+    "--image-margin-left": "16px",
+    "--image-vertical-offset": "-4px",
+    "--content-padding-left": "29px",
+    "--text-vertical-offset": "-11px"
+  }
 }

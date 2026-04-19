@@ -52,7 +52,7 @@ Angels-NowPlaying/
       settings.html     Settings page
       store.html        Overlay store / picker
       instructions.html Instructions page
-      editor-header.html  Shared editor header fragment
+      editor-shell.html Shared editor host (header + iframe for overlay editor.html)
     overlays/         One subfolder per overlay — each is a self-contained module
       frame-*/
         main.html     OBS Browser Source entry point
@@ -67,12 +67,13 @@ Angels-NowPlaying/
       settings.css    Settings page styles
       store.css       Store page styles
       instructions.css  Instructions page styles
-      editor-common.css  Shared editor layout styles
-      editor-header.css  Shared editor header styles
+      editor-common.css  Shared editor control styles (sliders, dropdowns, colour pickers, grid layout)
+      editor-header.css  Editor header styles
     js/
-      common.js       (legacy — overlays each carry their own copy)
-      editor-header-loader.js  Injects shared header into overlay editors
-      tauri.js        Tauri API bridge for app pages
+      editor-shell.js  Logic for the shared editor host (loads overlay editor iframe, handles postMessage bridge)
+      index-page.js    Home page
+      overlays.js      Overlay card rendering and editor URL construction
+      tauri.js         Tauri API bridge for app pages
     assets/           Shared images (mascot, header graphic, etc.)
   src-tauri/
     src/
@@ -97,17 +98,17 @@ These are the commands available to frontend JS via `window.__TAURI__.invoke(...
 |---|---|
 | `get_overlay_settings` | Read `src/overlays/settings.json` (tuna_port, dark_mode, show_user_overlays) |
 | `save_overlay_settings` | Write `src/overlays/settings.json` |
+| `get_overlay_editor_url` | Resolve the HTTP URL for an overlay's `editor.html` (used by editor-shell to load the correct iframe src) |
 | `get_overlay_css_path` | Resolve absolute path to an overlay's `main.css` (checks bundled then AppData) |
 | `get_overlay_main_path` | Resolve absolute path to an overlay's `main.html` (checks bundled then AppData) |
-| `read_file_abs` | Read a file at an absolute path (used by editor header loader) |
-| `save_file_abs` | Write a file at an absolute path (used by editor header loader Save button) |
+| `read_file_abs` | Read a file at an absolute path (used by editor-shell to load main.css) |
+| `save_file_abs` | Write a file at an absolute path (used by editor-shell Save button) |
 | `list_user_overlays` | Scan `%APPDATA%/AngelsNowPlaying/overlays/` and return parsed manifests |
-| `install_overlay` | Extract a zip to the user overlays AppData dir; post-processes `editor.html` to inline shared app assets |
+| `install_overlay` | Extract a zip to the user overlays AppData dir |
 | `delete_user_overlay` | Remove a user-installed overlay from AppData |
 | `zip_overlay` | Package a bundled overlay as a zip for download |
-| `get_editor_header_html` | Return the editor header HTML fragment with CSS and images inlined (used by user overlay editors served from `http://127.0.0.1`) |
 | `get_user_overlay_server_port` | Return the port the user overlay static-file server is listening on |
-| `navigate_home` | Navigate the main window back to the index page via `history.back()` eval (used by user overlay editors) |
+| `navigate_home` | Navigate the main window back to the index page (used by the editor Back button) |
 | `get_version` | Read `VERSION` file |
 | `start_server` / `stop_server` | Control the OBS-facing HTTP server (tiny_http) |
 | `open_url` | Open a URL in the system browser |
@@ -143,36 +144,9 @@ Standard HTML/CSS/JS. Tauri APIs are available via `window.__TAURI__.invoke(...)
 
 ### Overlay editors (`src/overlays/*/editor.html`)
 
-Also plain HTML/CSS/JS. Each editor page must expose one function:
+Also plain HTML/CSS/JS. Each `editor.html` is loaded inside an `<iframe>` by the shared `src/html/editor-shell.html` + `src/js/editor-shell.js` host, which owns the header, Save, Copy URL, and Back buttons. Communication between the shell and the overlay editor uses `postMessage`.
 
-```js
-window.buildRootBlock = function buildRootBlock(vars) {
-  // vars — object with the current CSS custom property values
-  // Return an updated :root { ... } string with the new values
-  return `:root {\n  --my-var: ${someInput.value};\n  // ...
-}`;
-};
-```
-
-The shared `editor-header-loader.js` owns all three action buttons (Save, Copy URL, Back). It:
-- Injects the `editor-header.html` fragment into `#header-root`
-- Reads the overlay's `main.css` via `get_overlay_css_path` + `read_file_abs`
-- Fires a `headerLoaded` CustomEvent with `{ pageTitle, cssVars, cssPath }` when ready
-- On Save: calls `window.buildRootBlock(cssVars)` and writes the result via `save_file_abs`
-- On Copy URL: resolves `main.html` via `get_overlay_main_path` and writes to clipboard
-- On Back: `history.back()`
-
-Your editor script should initialise controls inside a `headerLoaded` listener:
-
-```js
-document.addEventListener('headerLoaded', ({ detail: { cssVars } }) => {
-  // populate controls from cssVars['--my-var'] etc.
-});
-```
-
-Do **not** use `fetch('./main.css')` in editors — Vite's dev server transforms CSS files and writing the result back will corrupt them. Use the Tauri commands instead (handled automatically by `editor-header-loader.js`).
-
-The editor preview is an `<iframe src="./main.html?edit=1">`. CSS variable updates are sent to it via `postMessage({ type: 'setCSSVar', name, value })`.
+For the full editor wiring protocol, `postMessage` message types, `buildRootBlock` contract, and `editor-common.css` usage, see [FRAME-DEVELOPMENT.md](FRAME-DEVELOPMENT.md).
 
 ### Rust backend (`src-tauri/src/backend.rs`)
 

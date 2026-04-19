@@ -10,5 +10,15 @@
   "preview": "preview.png",
   "description": "A second frosted glass variant with refined styling and layout adjustments.",
   "obsSize": { "width": 850, "height": 260 },
-  "tags": ["glassmorphism", "frosted"]
+  "tags": ["glassmorphism", "frosted"],
+  "defaults": {
+    "--text-color": "#ffffff",
+    "--progress-bar-color": "#ffffff",
+    "--font-main": "proxima-nova, sans-serif",
+    "--artist-size": "39px",
+    "--song-size": "53px",
+    "--text-spacing": "-4px",
+    "--text-vertical-offset": "-1px",
+    "--progress-bar-offset": "3px"
+  }
 }

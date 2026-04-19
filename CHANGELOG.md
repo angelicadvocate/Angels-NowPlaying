@@ -11,6 +11,34 @@ Please be sure to add date, completed tag, `github:[username]`, and version numb
 
 ---------------------------------------------------------------------------------
 
+## v0.9.8 – 2026-04-19
+
+* [x] **Reset to Defaults button** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Added `"defaults"` key to all 12 overlay `manifest.json` files containing canonical `:root` CSS var values
+  * Added `reset-to-defaults` postMessage handler to all 12 `editor.html` files; calls `populateSlidersFromVars` then `sendAllVars` on receipt
+  * Added Reset button to `editor-shell.html` (between Copy URL and Save); shell reads `manifest.json` at click time, extracts defaults, and sends `{ type: 'reset-to-defaults', defaults }` to the iframe
+  * Fixed missing `else` branch in `populateSlidersFromVars` for `--auto-rotate-hue` in `frame-cassette-tape` and `frame-program-window` — sliders now correctly restore to visible state when hue auto-rotate resets to `no`
+
+* [x] **frame-program-window: Frame Style dropdown** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Added `--frame-variant` CSS var (values 0–4) to `main.css`, `manifest.json` defaults, and `editor.html`
+  * Editor shows a "Frame Style" select (Style 1–5 mapping to variants 0–4) wired into `populateSlidersFromVars`, `sendAllVars`, and `buildRootBlock`
+  * `common.js` swaps `#frame-image` src when `--frame-variant` changes in both edit mode (`setCSSVar` handler) and OBS mode (`$(document).ready`)
+
+* [x] **frame-program-window: Text rendering fixes** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Fixed "Now Playing" custom text clipping: changed `#now-playing-container` from `overflow: hidden` to `overflow: visible` so negative `margin-top` values no longer clip text above the container boundary
+  * Increased `#content` right padding from `40px` to `45px` to prevent song title overflowing the frame artwork edge
+
+* [x] **frame-cassette-tape: Simplified text rendering** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Removed character-based truncation system (`ARTIST_MAX_CHARS`, `SONG_SHORT_MAX`, `SONG_LONG_MAX`, `truncateText`, `applySongMode`, `#song.song-long`)
+  * Wrapped `#artist` and `#song` in individual `.text-clip` divs; clip width (`490px`) is the sole truncation control — text clips at the container edge with CSS ellipsis
+  * Scrolling disabled via `--scroll-extra: 9999px`; changing the clip width in `.text-clip` is all that is needed to adjust the visible text area
+
+* [x] **Store page: Coming Soon image** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Replaced plain `<div class="coming-soon">Coming Soon</div>` text with `<img src="/assets/coming-soon.png" class="coming-soon-img" />`
+  * Updated `store.css` to size the image responsively (`min(600px, 90%)`, shrinks to `min(420px, 90%)` on narrow viewports)
+
+---------------------------------------------------------------------------------
+
 ## v0.9.5, v0.9.6, v0.9.7 – 2026-04-18
 
 * [x] **Editor-shell architecture + HTTP server for bundled overlays** ✨ *COMPLETED* `github:AngelicAdvocate`

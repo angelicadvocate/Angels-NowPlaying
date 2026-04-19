@@ -10,5 +10,17 @@
   "preview": "preview.png",
   "description": "A retro cassette tape layout with animated winding reels and classic tape styling. Great for retro and synthwave streams.",
   "obsSize": { "width": 880, "height": 570 },
-  "tags": ["retro", "cassette", "animated"]
+  "tags": ["retro", "cassette", "animated"],
+  "defaults": {
+    "--artist-color": "#000000",
+    "--track-color": "#000000",
+    "--font-family": "Courier New, monospace",
+    "--artist-font-size": "44px",
+    "--song-font-size": "44px",
+    "--tape-style": "black-black-light",
+    "--label-hue": "0deg",
+    "--auto-rotate-hue": "no",
+    "--artist-position": "0px",
+    "--song-position": "0px"
+  }
 }

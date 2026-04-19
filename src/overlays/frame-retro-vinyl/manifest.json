@@ -10,5 +10,14 @@
   "preview": "preview.png",
   "description": "A retro vinyl record design with animated spinning effects and album art. Perfect for that nostalgic feel.",
   "obsSize": { "width": 900, "height": 900 },
-  "tags": ["retro", "vinyl", "animated"]
+  "tags": ["retro", "vinyl", "animated"],
+  "defaults": {
+    "--text-color": "#ffffff",
+    "--accent-color": "#377dff",
+    "--font-main": "proxima-nova, sans-serif",
+    "--artist-size": "48px",
+    "--song-size": "60px",
+    "--text-spacing": "10px",
+    "--text-vertical-offset": "272px"
+  }
 }
