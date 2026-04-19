@@ -15,7 +15,9 @@ Completed items are moved to CHANGELOG.md at the end of a work session.
 
 ## Known Bugs / Active Issues
 
-
+ - [ ] Create a default button for each overlay to reset all styles in root block to the default values.
+ - [ ] Make sure that the fix for the text in the cassette frame editor for the track title, gets applied in main.html for that overlay. Currently it looks like the fix for the really long text with the custom cutoff points is only getting applied in edit mode. It should be getting applied in both modes. If it is getting applied, check if cutoff points are correct instead since its overlapping artwork wrong.
+ - [ ] Consider changing overlay update during install/updates to go based off of the overlay version number in the manifest instead of the current lock logic. This would allow individual overlays to update instead of all at once. Evaluate pro/cons before deciding.
 
 ---------------------------------------------------------------------------------
 

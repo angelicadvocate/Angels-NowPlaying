@@ -11,7 +11,7 @@ Please be sure to add date, completed tag, `github:[username]`, and version numb
 
 ---------------------------------------------------------------------------------
 
-## v0.9.5 – 2026-04-18
+## v0.9.5, v0.9.6, v0.9.7 – 2026-04-18
 
 * [x] **Editor-shell architecture + HTTP server for bundled overlays** ✨ *COMPLETED* `github:AngelicAdvocate`
 
