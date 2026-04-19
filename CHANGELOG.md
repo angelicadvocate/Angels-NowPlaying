@@ -8,6 +8,53 @@ Only completed and released work goes in this file.
 Please be sure to add date, completed tag, `github:[username]`, and version number change if needed
 (see below for formatting example)
 
+
+---------------------------------------------------------------------------------
+
+## v0.9.5 – 2026-04-18
+
+* [x] **Editor-shell architecture + HTTP server for bundled overlays** ✨ *COMPLETED* `github:AngelicAdvocate`
+
+  **Editor-shell**
+  * Introduced `editor-shell.html` / `editor-shell.js` as a single shared host for all overlay editors, replacing per-overlay Vite-bundled entry pages
+  * Editor header (nav, Save, Copy URL, Back) lives in the shell; each overlay's `editor.html` is loaded inside a child `<iframe id="overlay-frame">` and communicates via `postMessage`
+  * New `get_overlay_editor_url` Tauri command returns the correct HTTP URL for both bundled and user-installed overlays
+  * `overlays.js` updated to construct `editorUrl` using the shell + overlay ID query parameter
+  * All 12 overlay `editor.html` files cleaned: removed legacy header HTML, adopted `postMessage` protocol (`init`, `request-root-block`, `root-block` message types)
+  * Dead code removed from `backend.rs` and `lib.rs`: `EDITOR_HEADER_HTML`, `THEME_CSS`, `get_editor_header_html` command, and `install_overlay` post-processing strip block
+
+  **Bundled overlays served via HTTP server**
+  * `extract_bundled_overlays()` in `backend.rs` updated to serve bundled overlay files through the existing HTTP server, bringing them in line with user-installed overlays
+  * Eliminates `tauri://localhost` cross-origin restrictions that previously required inline CSS/script injection on install
+
+  **Editor init performance fix**
+  * Fixed 60+ second editor load delay caused by the shell's `load` event waiting on nested `.webm` video files inside the preview iframe
+  * Each `editor.html` now posts `{ type: 'frame-ready' }` immediately when its script runs; `editor-shell.js` uses this to trigger `onFrameLoad()` without waiting for media resources
+  * `load` event kept as a `{ once: true }` fallback for safety
+
+  **Editor bug fixes**
+  * **frame-cassette-tape**: `applyTapeStyle()` was only called in edit mode; fixed by reading `--tape-style` CSS var at startup in the OBS path (`common.js`)
+  * **frame-program-window**: `--auto-rotate-hue` was never saved in `buildRootBlock` and `common.js` had no hue-rotation logic in the OBS path; both fixed
+  * **Hue rotation UI (neon-lights, color-bar-visualizer, cassette-tape)**: added "Disable hue rotation to set hue color manually." message div that replaces the hue slider when auto-rotate is active, matching the existing `frame-program-window` pattern; also fixed `--auto-rotate-hue` save/restore for `frame-cassette-tape`
+  * **Editor header spacing**: `editor-shell.html` lacked body padding, causing a visible layout jump vs. other app pages; fixed with explicit `padding-left/right: 4rem` on `.header-container`
+
+  **CI/CD**
+  * Updated GitHub Actions workflow: `actions/checkout` → `@v5`, `actions/setup-node` → `@v5` (Node.js 24)
+
+---------------------------------------------------------------------------------
+
+## v0.9.1, v0.9.2, v0.9.3, v0.9.4 – 2026-04-12
+
+* [x] **Stability improvements for standalone app builds**
+* [x] **Initial CI/CD pipeline implemented (GitHub Actions)**  
+  Established a release pipeline that builds Windows (`.msi`), macOS (`.dmg`), and Linux (`.AppImage`) artifacts automatically for tagged releases.
+
+* [x] **Additional fixes and improvements**
+  - [x] **Resolved missing jQuery in OBS for bundled overlays**: ensured `jquery-3.5.1.min.js` is extracted to the correct AppData path during `extract_bundled_overlays()`, restoring proper script loading.
+  - [x] **Fixed broken header images in bundled overlay editors**: updated asset handling so mascot and logo images load correctly from disk within AppData, removing the need for base64 inlining.
+  - [x] **Corrected hue-rotation persistence issue**: saving and reloading overlays now properly preserves the CSS hue-rotation setting.
+  - [x] **Refactored editor CSS structure**: consolidated shared header styles into a common stylesheet and removed redundant header styling from individual overlay `editor.css` files, ensuring clearer separation of responsibilities.
+
 ---------------------------------------------------------------------------------
 
 ## v0.9.0 – 2026-04-11

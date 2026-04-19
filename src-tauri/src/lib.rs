@@ -27,7 +27,6 @@ pub fn run() {
       backend::get_overlay_css_path,
       backend::read_file_abs,
       backend::save_file_abs,
-      backend::get_editor_header_html,
       backend::get_user_overlay_server_port,
       backend::navigate_home,
       backend::get_overlay_editor_url,

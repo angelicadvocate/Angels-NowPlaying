@@ -283,6 +283,16 @@
       frameHue.value        = px('--frame-hue', 0);
       frameSaturation.value = px('--frame-saturation', 100);
 
+      const savedRotateMode = (vars['--auto-rotate-hue'] || 'no').trim();
+      autoRotateHue.value = savedRotateMode;
+      autoRotateHueMode = savedRotateMode;
+      if (savedRotateMode === 'yes-frame' || savedRotateMode === 'yes-all') {
+        frameHue.style.display = 'none';
+        frameHue.disabled = true;
+        document.getElementById('autoRotateMessage').style.display = 'block';
+        startAutoRotateHue();
+      }
+
       const ac = vars['--artist-color'] || '#FF8C00';
       artistColor.value = ac; artistColorCode.textContent = ac.toUpperCase();
       const tc = vars['--track-color'] || '#8B4513';
@@ -314,6 +324,9 @@
       sendNowPlayingText(nowPlayingTextInput.value);
       applyFilters();
     }
+
+    // Signal editor-shell that controls are ready before nested video resources load
+    window.parent.postMessage({ type: 'frame-ready' }, '*');
 
     window.addEventListener('message', e => {
       if (e.data.type === 'init') {
@@ -348,6 +361,7 @@
   --progress-bar-color: ${progressBarColor.value};
   --frame-hue: ${frameHue.value}deg;
   --frame-saturation: ${frameSaturation.value}%;
+  --auto-rotate-hue: ${autoRotateHue.value};
   --now-playing-text: "${nowPlayingTextInput.value.replace(/"/g, '\\"')}";
   --scroll-extra: ${vars['--scroll-extra'] || '0px'};
   --scroll-start-offset: ${vars['--scroll-start-offset'] || '30px'};

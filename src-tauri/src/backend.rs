@@ -494,44 +494,11 @@ const JQUERY_JS: &[u8] = include_bytes!("../../src/js/vendor/jquery-3.5.1.min.js
 const EDITOR_COMMON_CSS: &str =
     include_str!("../../src/css/editor-common.css");
 
-const THEME_CSS: &str =
-    include_str!("../../src/css/theme.css");
-
-const EDITOR_HEADER_HTML: &str =
-    include_str!("../../src/html/editor-header.html");
-
 const MASCOT_PNG: &[u8] =
     include_bytes!("../../src/assets/mascot.png");
 
 const HEADER_TEXT_PNG: &[u8] =
     include_bytes!("../../src/assets/header-text.png");
-
-/// Returns a fully self-contained version of the editor-header fragment.
-/// CSS links are replaced with inline <style> blocks; image srcs become
-/// base64 data URIs.  This is used by user overlay editors running from
-/// file:// URLs where fetch() cannot load other file:// resources.
-#[tauri::command]
-pub fn get_editor_header_html() -> String {
-    use base64::Engine as _;
-    let mascot_b64 = base64::engine::general_purpose::STANDARD.encode(MASCOT_PNG);
-    let header_text_b64 = base64::engine::general_purpose::STANDARD.encode(HEADER_TEXT_PNG);
-
-    EDITOR_HEADER_HTML
-        // Inline the theme CSS (the only stylesheet linked from the header fragment)
-        .replace(
-            r#"<link rel="stylesheet" href="../../css/theme.css" />"#,
-            &format!("<style>{THEME_CSS}</style>"),
-        )
-        // Replace image srcs with data URIs
-        .replace(
-            r#"src="../../assets/mascot.png""#,
-            &format!(r#"src="data:image/png;base64,{mascot_b64}""#),
-        )
-        .replace(
-            r#"src="../../assets/header-text.png""#,
-            &format!(r#"src="data:image/png;base64,{header_text_b64}""#),
-        )
-}
 
 fn app_data_dir() -> PathBuf {
     let mut base = dirs::config_dir().unwrap_or_else(|| std::env::current_dir().unwrap());
@@ -716,21 +683,6 @@ pub fn install_overlay(zip_path: String) -> Result<String, String> {
             let mut out_file = fs::File::create(&out_path).map_err(|e| e.to_string())?;
             io::copy(&mut file, &mut out_file).map_err(|e| e.to_string())?;
         }
-    }
-
-    // ── Post-process editor.html ──────────────────────────────────────────────
-    // User overlay editors are now served via the overlay HTTP server, so all
-    // relative asset paths resolve correctly.  Strip legacy references to
-    // app-side scripts/styles (present in old overlay packages) so they don't
-    // produce 404s on the new HTTP-served path.
-    let editor_path = dest.join("editor.html");
-    if editor_path.exists() {
-        let html = fs::read_to_string(&editor_path).map_err(|e| e.to_string())?;
-        let html = html
-            .replace(r#"<link rel="stylesheet" href="../../css/editor-header.css" />"#, "")
-            .replace(r#"<script type="module" src="../../js/tauri.js"></script>"#, "")
-            .replace(r#"<script type="module" src="../../js/editor-header-loader.js"></script>"#, "");
-        fs::write(&editor_path, html).map_err(|e| e.to_string())?;
     }
 
     Ok(overlay_id)

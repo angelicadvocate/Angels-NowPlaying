@@ -59,6 +59,9 @@
 
         <label for="sliderFrameHue" class="info">Frame Hue</label>
         <input type="range" min="-180" max="180" step="1" value="0" class="slider" id="sliderFrameHue">
+        <div id="autoRotateMessage" style="display: none; padding: 10px; background: #d3d3d3; border-radius: 5px; text-align: center; font-size: 14px; color: var(--highlight); font-weight: bold;">
+          Disable hue rotation to set hue color manually.
+        </div>
 
         <label for="selectAutoRotate" class="info">Auto Rotate Hue</label>
         <select id="selectAutoRotate" class="dropdown">
@@ -151,7 +154,9 @@
       autoRotateInterval = null;
       const mode = selectAutoRotate.value;
       if (mode !== 'no') {
+        sliderFrameHue.style.display = 'none';
         sliderFrameHue.disabled = true;
+        document.getElementById('autoRotateMessage').style.display = 'block';
         applyAccentColor(pickerAccent.value);
         let hue = 220;
         autoRotateInterval = setInterval(() => {
@@ -159,7 +164,9 @@
           applyHueFilters(hue, mode);
         }, 50);
       } else {
+        sliderFrameHue.style.display = '';
         sliderFrameHue.disabled = false;
+        document.getElementById('autoRotateMessage').style.display = 'none';
         applyHueFilters(parseInt(sliderFrameHue.value), 'no');
         applyAccentColor(pickerAccent.value);
       }
@@ -205,7 +212,9 @@
       sliderFrameHue.value = hm ? parseInt(hm[1]) : 0;
       const savedMode = vars['--auto-rotate-mode'] || 'no';
       selectAutoRotate.value = savedMode;
+      sliderFrameHue.style.display = savedMode !== 'no' ? 'none' : '';
       sliderFrameHue.disabled = savedMode !== 'no';
+      document.getElementById('autoRotateMessage').style.display = savedMode !== 'no' ? 'block' : 'none';
       if (savedMode !== 'no') selectAutoRotate.dispatchEvent(new Event('change'));
 
       const accentHex = vars['--accent-hex'] || '#ff2ed2';
@@ -226,6 +235,9 @@
         applyHueFilters(parseInt(sliderFrameHue.value));
       }
     }
+
+    // Signal editor-shell that controls are ready before nested video resources load
+    window.parent.postMessage({ type: 'frame-ready' }, '*');
 
     window.addEventListener('message', e => {
       if (e.data.type === 'init') {

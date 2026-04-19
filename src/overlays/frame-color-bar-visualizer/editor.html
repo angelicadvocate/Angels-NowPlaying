@@ -71,6 +71,9 @@
 
         <label for="sliderFrameHue" class="info">Frame Hue</label>
         <input type="range" min="-180" max="180" step="1" value="0" class="slider" id="sliderFrameHue">
+        <div id="autoRotateMessage" style="display: none; padding: 10px; background: #d3d3d3; border-radius: 5px; text-align: center; font-size: 14px; color: var(--highlight); font-weight: bold;">
+          Disable hue rotation to set hue color manually.
+        </div>
 
         <label for="selectAutoRotate" class="info">Auto Rotate Hue</label>
         <select id="selectAutoRotate" class="dropdown">
@@ -160,14 +163,18 @@
       clearInterval(autoRotateInterval);
       autoRotateInterval = null;
       if (selectAutoRotate.value === 'yes') {
+        sliderFrameHue.style.display = 'none';
         sliderFrameHue.disabled = true;
+        document.getElementById('autoRotateMessage').style.display = 'block';
         let hue = 220;
         autoRotateInterval = setInterval(() => {
           hue = (hue + 2) % 360;
           applyHueFilters(hue);
         }, 50);
       } else {
+        sliderFrameHue.style.display = '';
         sliderFrameHue.disabled = false;
+        document.getElementById('autoRotateMessage').style.display = 'none';
         applyHueFilters(parseInt(sliderFrameHue.value));
       }
     });
@@ -235,7 +242,9 @@
 
       const savedMode = vars['--auto-rotate-mode'] || 'no';
       selectAutoRotate.value = savedMode;
+      sliderFrameHue.style.display = savedMode === 'yes' ? 'none' : '';
       sliderFrameHue.disabled = savedMode === 'yes';
+      document.getElementById('autoRotateMessage').style.display = savedMode === 'yes' ? 'block' : 'none';
       if (savedMode === 'yes') selectAutoRotate.dispatchEvent(new Event('change'));
 
       const accentHex = vars['--accent-hex'] || '#db0000';
@@ -258,6 +267,9 @@
         applyHueFilters(parseInt(sliderFrameHue.value));
       }
     }
+
+    // Signal editor-shell that controls are ready before nested video resources load
+    window.parent.postMessage({ type: 'frame-ready' }, '*');
 
     window.addEventListener('message', e => {
       if (e.data.type === 'init') {

@@ -167,6 +167,9 @@
       sendVar('--font-main', fontFamily.value);
     }
 
+    // Signal editor-shell that controls are ready before nested video resources load
+    window.parent.postMessage({ type: 'frame-ready' }, '*');
+
     window.addEventListener('message', e => {
       if (e.data.type === 'init') {
         if (e.data.cssVars) populateSlidersFromVars(e.data.cssVars);

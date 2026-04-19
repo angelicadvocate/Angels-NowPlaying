@@ -335,6 +335,10 @@
   }
 
   $(document).ready(function () {
+    // Apply saved tape style (--tape-style CSS var written by the editor).
+    const initialStyle = getComputedStyle(document.documentElement).getPropertyValue('--tape-style').trim();
+    if (initialStyle) applyTapeStyle(initialStyle);
+
     loadTunaConfig(function () {
       checkUpdate();
       animateProgressBar();

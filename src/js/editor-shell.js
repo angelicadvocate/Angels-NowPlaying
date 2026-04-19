@@ -38,12 +38,19 @@ let iframeOrigin = '';
 let cssPath = null;
 let pendingSaveResolve = null;
 let pendingSaveReject = null;
+let frameInitialized = false;
 
 // ---------------------------------------------------------------------------
 // postMessage bridge
 // ---------------------------------------------------------------------------
 window.addEventListener('message', e => {
   if (iframeOrigin && e.origin !== iframeOrigin) return;
+  // editor.html posts this as soon as its script runs — before nested video
+  // resources finish loading. Use it instead of the slow iframe load event.
+  if (e.data.type === 'frame-ready') {
+    onFrameLoad();
+    return;
+  }
   if (e.data.type === 'root-block') {
     if (pendingSaveResolve) {
       pendingSaveResolve(e.data.css);
@@ -93,7 +100,10 @@ async function init() {
     iframeOrigin = new URL(editorUrl).origin;
 
     const frame = document.getElementById('overlay-frame');
-    frame.addEventListener('load', onFrameLoad);
+    // frame-ready message (from editor.html script) triggers init immediately.
+    // Keep load as a last-resort fallback for overlays that don't send frame-ready.
+    frameInitialized = false;
+    frame.addEventListener('load', onFrameLoad, { once: true });
     frame.src = editorUrl;
   } catch (e) {
     console.error('[editor-shell] init failed:', e);
@@ -101,6 +111,8 @@ async function init() {
 }
 
 async function onFrameLoad() {
+  if (frameInitialized) return;
+  frameInitialized = true;
   const frame = document.getElementById('overlay-frame');
   let cssVars = {};
   if (cssPath) {

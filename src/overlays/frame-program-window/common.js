@@ -286,7 +286,33 @@
     return;
   }
 
+  // ── Hue rotation (applies saved --auto-rotate-hue setting in OBS) ────────────
+  function applyHueFrame(hue, sat, mode) {
+    document.documentElement.style.setProperty('--frame-hue', hue + 'deg');
+    document.documentElement.style.setProperty('--frame-saturation', sat + '%');
+    if (mode === 'yes-all') {
+      document.documentElement.style.setProperty('--content-filter', 'hue-rotate(' + hue + 'deg) saturate(' + sat + '%)');
+    } else {
+      document.documentElement.style.setProperty('--content-filter', 'none');
+    }
+  }
+
+  function startHueRotation(mode, sat) {
+    var currentHue = 0;
+    setInterval(function () {
+      currentHue = (currentHue + 1) % 360;
+      applyHueFrame(currentHue, sat, mode);
+    }, 60);
+  }
+
   $(document).ready(function () {
+    var cs = getComputedStyle(document.documentElement);
+    var rotateMode = cs.getPropertyValue('--auto-rotate-hue').trim();
+    var sat = parseFloat(cs.getPropertyValue('--frame-saturation')) || 100;
+    if (rotateMode === 'yes-frame' || rotateMode === 'yes-all') {
+      startHueRotation(rotateMode, sat);
+    }
+
     loadTunaConfig(function () {
       checkUpdate();
       animateProgressBar();

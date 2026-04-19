@@ -150,10 +150,12 @@
 
     selectAutoRotate.addEventListener('change', () => {
       if (selectAutoRotate.value === 'yes') {
+        sliderLabelHue.style.display = 'none';
         sliderLabelHue.disabled = true;
         document.getElementById('autoRotateMessage').style.display = 'block';
         startAutoRotate();
       } else {
+        sliderLabelHue.style.display = '';
         sliderLabelHue.disabled = false;
         document.getElementById('autoRotateMessage').style.display = 'none';
         stopAutoRotate();
@@ -188,6 +190,15 @@
       const tapeStyle = vars['--tape-style'] || 'black-black-light';
       const tapeOpt = Array.from(selectTapeStyle.options).find(o => o.value === tapeStyle);
       if (tapeOpt) selectTapeStyle.value = tapeStyle;
+
+      const savedAutoRotate = vars['--auto-rotate-hue'] || 'no';
+      selectAutoRotate.value = savedAutoRotate;
+      if (savedAutoRotate === 'yes') {
+        sliderLabelHue.style.display = 'none';
+        sliderLabelHue.disabled = true;
+        document.getElementById('autoRotateMessage').style.display = 'block';
+        startAutoRotate();
+      }
     }
 
     function sendAllVars() {
@@ -195,6 +206,9 @@
       sendVar('--font-family', selectFont.value);
       sendVar('--tape-style', selectTapeStyle.value);
     }
+
+    // Signal editor-shell that controls are ready before nested video resources load
+    window.parent.postMessage({ type: 'frame-ready' }, '*');
 
     window.addEventListener('message', e => {
       if (e.data.type === 'init') {
@@ -217,6 +231,7 @@
   --song-font-size: ${sliderSongSize.value}px;
   --tape-style: ${selectTapeStyle.value};
   --label-hue: ${sliderLabelHue.value}deg;
+  --auto-rotate-hue: ${selectAutoRotate.value};
   --artist-position: ${sliderArtistPos.value}px;
   --song-position: ${sliderSongPos.value}px;
 
