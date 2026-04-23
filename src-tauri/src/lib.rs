@@ -30,10 +30,20 @@ pub fn run() {
       backend::get_user_overlay_server_port,
       backend::navigate_home,
       backend::get_overlay_editor_url,
+      backend::list_bundled_fonts,
+      backend::list_user_fonts,
+      backend::install_font,
+      backend::delete_user_font,
+      backend::reset_app_data,
+      backend::exit_app,
+      backend::get_diagnostics,
     ])
     .setup(|app| {
       if let Err(e) = backend::extract_bundled_overlays(&app.handle()) {
         log::warn!("Failed to extract bundled overlays: {e}");
+      }
+      if let Err(e) = backend::ensure_user_fonts_dir_public() {
+        log::warn!("Failed to initialize user fonts dir: {e}");
       }
       backend::start_user_overlay_server();
       if cfg!(debug_assertions) {

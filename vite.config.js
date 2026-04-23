@@ -22,6 +22,13 @@ function copyOverlayStaticAssets() {
       const vendorDest = resolve(dist, 'js/vendor')
       if (fs.existsSync(vendorSrc)) fs.cpSync(vendorSrc, vendorDest, { recursive: true })
 
+      // Copy bundled fonts. These are not a Vite build artifact — they are
+      // extracted to AppData by the Tauri backend and served by the overlay
+      // HTTP server, so future user-uploaded fonts can drop in without a rebuild.
+      const fontsSrc = resolve(root, 'fonts')
+      const fontsDest = resolve(dist, 'fonts')
+      if (fs.existsSync(fontsSrc)) fs.cpSync(fontsSrc, fontsDest, { recursive: true })
+
       // Copy mascot and header-text images with original (unhashed) names so
       // editor-shell.html can reference them as /assets/mascot.png reliably.
       const assetsDist = resolve(dist, 'assets')

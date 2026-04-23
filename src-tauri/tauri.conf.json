@@ -27,7 +27,13 @@
     "active": true,
     "targets": "all",
     "resources": {
-      "../dist/overlays": "overlays"
+      "../dist/overlays": "overlays",
+      "../dist/fonts": "fonts"
+    },
+    "windows": {
+      "nsis": {
+        "installerHooks": "./windows/hooks.nsh"
+      }
     },
     "icon": [
       "icons/32x32.png",

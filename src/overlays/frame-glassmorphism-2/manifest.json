@@ -14,7 +14,7 @@
   "defaults": {
     "--text-color": "#ffffff",
     "--progress-bar-color": "#ffffff",
-    "--font-main": "proxima-nova, sans-serif",
+    "--font-main": "'Montserrat Regular'",
     "--artist-size": "39px",
     "--song-size": "53px",
     "--text-spacing": "-4px",

@@ -13,7 +13,7 @@
   "tags": ["banner", "visualizer", "animated"],
   "defaults": {
     "--accent-hex": "#3b82f6",
-    "--font-main": "proxima-nova, sans-serif",
+    "--font-main": "'Montserrat Regular'",
     "--artist-size": "27px",
     "--song-size": "38px",
     "--text-spacing": "8px",

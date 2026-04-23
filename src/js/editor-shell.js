@@ -95,6 +95,20 @@ async function init() {
       console.warn('[editor-shell] Could not get CSS path:', e);
     }
 
+    // Read manifest.json to display overlay version under the title
+    if (cssPath) {
+      try {
+        const manifestPath = cssPath.slice(0, -'main.css'.length) + 'manifest.json';
+        const manifestContent = await invoke('read_file_abs', { path: manifestPath });
+        const manifest = JSON.parse(manifestContent);
+        if (manifest.version) {
+          document.getElementById('page-version').textContent = 'v' + manifest.version;
+        }
+      } catch (e) {
+        console.warn('[editor-shell] Could not read manifest version:', e);
+      }
+    }
+
     // Get the iframe URL from Rust (handles dev vs release, bundled vs user)
     const editorUrl = await invoke('get_overlay_editor_url', { overlayId });
     iframeOrigin = new URL(editorUrl).origin;
@@ -123,7 +137,11 @@ async function onFrameLoad() {
       console.warn('[editor-shell] Could not read CSS vars:', e);
     }
   }
-  frame.contentWindow.postMessage({ type: 'init', cssVars }, iframeOrigin || '*');
+  // Fetch user-installed fonts so the font-augment helper in each editor can
+  // append them to the font dropdown. Empty array on any error (never blocks init).
+  let userFonts = [];
+  try { userFonts = await invoke('list_user_fonts'); } catch {}
+  frame.contentWindow.postMessage({ type: 'init', cssVars, userFonts }, iframeOrigin || '*');
 }
 
 // ---------------------------------------------------------------------------

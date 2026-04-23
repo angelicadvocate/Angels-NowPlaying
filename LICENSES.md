@@ -29,3 +29,20 @@ You may license your own overlays however you choose — MIT, Creative Commons, 
 | Component | License | Location |
 |---|---|---|
 | [jQuery 3.5.1](https://jquery.com) | [MIT](https://github.com/jquery/jquery/blob/main/LICENSE.txt) | `src/js/vendor/jquery-3.5.1.min.js` |
+
+## Bundled fonts
+
+These fonts are bundled with the application and made available to all overlays via `src/fonts/fonts.css`. Each family's license file is preserved alongside its font files in `src/fonts/<Family>/`.
+
+| Family | License | Source |
+|---|---|---|
+| Arimo | [Apache License 2.0](src/fonts/Arimo/LICENSE.txt) | Google Fonts |
+| Comic Relief | [SIL Open Font License 1.1](src/fonts/Comic_Relief/OFL.txt) | Google Fonts |
+| Courier Prime | [SIL Open Font License 1.1](src/fonts/Courier_Prime/OFL.txt) | Google Fonts |
+| Fascinate Inline | [SIL Open Font License 1.1](src/fonts/Fascinate_Inline/OFL.txt) | Google Fonts |
+| Gelasio | [SIL Open Font License 1.1](src/fonts/Gelasio/OFL.txt) | Google Fonts |
+| Mogra | [SIL Open Font License 1.1](src/fonts/Mogra/OFL.txt) | Google Fonts |
+| Montserrat | [SIL Open Font License 1.1](src/fonts/Montserrat/OFL.txt) | Google Fonts |
+| Playwrite Norge | [SIL Open Font License 1.1](src/fonts/Playwrite_Norge/OFL.txt) | Google Fonts |
+| Sekuya | [SIL Open Font License 1.1](src/fonts/Sekuya/OFL.txt) | Google Fonts |
+| Tinos | [Apache License 2.0](src/fonts/Tinos/LICENSE.txt) | Google Fonts |

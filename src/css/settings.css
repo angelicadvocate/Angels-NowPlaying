@@ -27,7 +27,10 @@
     .settings-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 2rem;
+      /* row-gap / column-gap: rows are tighter than columns so the stacked
+       * wide rows (Overlay Management, Utilities) don't feel like they're
+       * floating apart from the 3-card row above them. */
+      gap: 1.25rem 2rem;
       max-width: 1400px;
       margin: 0 auto;
     }
@@ -49,17 +52,27 @@
       position: relative;
     }
 
+    /* Anchor the final settings-item to the bottom of its card so primary
+     * action buttons (e.g. Save Settings) line up horizontally with the
+     * neighbouring card's bottom action (e.g. View Instructions). */
+    .settings-card > .settings-item:last-of-type {
+      margin-top: auto;
+    }
+
     /* Full-width variant — spans all grid columns */
     .settings-card--wide {
       grid-column: 1 / -1;
     }
 
-    /* Horizontal section layout inside the wide card */
+    /* Horizontal section layout inside the wide card.
+     * align-items: stretch forces every column to share the tallest column's
+     * height, so margin-top:auto on each column's bottom button produces a
+     * single horizontal action row across the card. */
     .overlay-sections {
       display: grid;
       grid-template-columns: auto 1px 1fr 1fr 1fr;
       gap: 0 2rem;
-      align-items: start;
+      align-items: stretch;
       margin-top: 0.5rem;
     }
 
@@ -77,10 +90,72 @@
     @media (max-width: 1400px) {
       .overlay-sections {
         grid-template-columns: 1fr;
+        gap: 1rem 0;
       }
       .overlay-sections__divider {
         height: 1px;
         width: 100%;
+      }
+      /* Add breathing room between stacked sections so each section's heading
+       * doesn't butt up against the previous section's action button. */
+      .overlay-sections .overlay-section + .overlay-section {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+      }
+    }
+
+    /* Utility Actions row — up to 5 small action cards (Reset App Data,
+     * and future single-action utilities). Each card is a heading + short
+     * description + single button. Empty slots in the grid are intentional
+     * space reserved for upcoming utilities. */
+    .utility-cards {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1rem;
+    }
+
+    .utility-card {
+      display: flex;
+      flex-direction: column;
+      padding: 0.85rem;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+    }
+
+    .utility-card__title {
+      margin: 0 0 0.35rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .utility-card__desc {
+      margin: 0 0 0.75rem;
+      font-size: 0.8rem;
+      opacity: 0.75;
+      line-height: 1.35;
+      flex: 1;
+    }
+
+    .utility-card__button {
+      width: 100%;
+      margin-top: auto;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 1400px) {
+      .utility-cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 700px) {
+      .utility-cards {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -109,9 +184,9 @@
 
     .card img {
       width: 100%;
-      height: 150px;
+      height: 180px;
       object-fit: contain;
-      margin-top: 1rem;
+      margin-top: 2rem;
       margin-bottom: 1rem;
       border-radius: 6px;
       align-self: center;
@@ -132,6 +207,12 @@
     .card p a {
       display: inline;
       white-space: nowrap;
+    }
+
+    /* Push the bottom action link to the card's footer so buttons align
+     * with neighbouring cards' primary action (e.g. Save Settings). */
+    .card > a:last-of-type {
+      margin-top: auto;
     }
 
     .card button {
@@ -833,4 +914,82 @@
       color: var(--highlight);
       margin-top: 4px;
       font-weight: 500;
+    }
+
+    /* Font Management Modal — row styling */
+    .font-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.55rem 0.75rem;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.85rem;
+    }
+
+    .font-row:last-child {
+      border-bottom: none;
+    }
+
+    .font-row__name {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .font-row__preview {
+      font-size: 1rem;
+      opacity: 0.9;
+      min-width: 4.5rem;
+    }
+
+    .font-row__meta {
+      font-size: 0.75rem;
+      opacity: 0.65;
+      white-space: nowrap;
+    }
+
+    .font-row__delete {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 0.25rem 0.55rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .font-row__delete:hover {
+      background: #b91c1c;
+      border-color: #b91c1c;
+      color: #fff;
+    }
+
+    .font-row--empty {
+      padding: 0.85rem;
+      text-align: center;
+      font-size: 0.85rem;
+      opacity: 0.65;
+    }
+
+    /* Diagnostics modal — monospace report panel. */
+    .modal--large {
+      max-width: 980px;
+    }
+
+    .diagnostics-output {
+      margin: 0;
+      padding: 0.85rem 1rem;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      white-space: pre;
+      overflow: auto;
+      max-height: 60vh;
+      color: var(--text-primary);
     }

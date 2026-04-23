@@ -246,6 +246,39 @@ pub fn start_user_overlay_server() {
                 continue;
             }
 
+            // Serve bundled/user fonts at /fonts/<family>/<file> and /fonts/fonts.css.
+            // Fonts live at app_data_dir/fonts/ (extracted from resources in release,
+            // and can be supplemented later with user uploads under fonts/user/).
+            if let Some(font_rel) = url.strip_prefix("fonts/") {
+                if !font_rel.contains("..") {
+                    // Primary source: AppData/AngelsNowPlaying/fonts/ (bundled extraction
+                    // in release + user uploads). Dev fallback: src/fonts/ since the
+                    // extraction step is skipped when cfg!(debug_assertions) is true.
+                    let mut path = fonts_dir().join(font_rel);
+                    if !path.exists() && cfg!(debug_assertions) {
+                        if let Ok(root) = project_root() {
+                            let dev_path = root.join("src").join("fonts").join(font_rel);
+                            if dev_path.exists() {
+                                path = dev_path;
+                            }
+                        }
+                    }
+                    if let Ok(file) = fs::File::open(&path) {
+                        let mime = mime_guess::from_path(&path).first_or_octet_stream();
+                        let _ = request.respond(
+                            tiny_http::Response::from_file(file).with_header(
+                                tiny_http::Header::from_bytes(&b"Content-Type"[..], mime.as_ref()).unwrap(),
+                            ),
+                        );
+                    } else {
+                        let _ = request.respond(tiny_http::Response::empty(404));
+                    }
+                } else {
+                    let _ = request.respond(tiny_http::Response::empty(400));
+                }
+                continue;
+            }
+
             // Serve tuna-port.js from bundled overlays dir root.
             if url == "tuna-port.js" {
                 let path = bundled_overlays_dir().join("tuna-port.js");
@@ -516,6 +549,13 @@ fn user_overlays_dir() -> PathBuf {
     app_data_dir().join("user-overlays")
 }
 
+/// Bundled fonts (and future user-uploaded fonts) extracted to AppData.
+/// Served by the overlay HTTP server at /fonts/... and reachable from OBS
+/// file:// loads via relative paths like `../../fonts/fonts.css`.
+fn fonts_dir() -> PathBuf {
+    app_data_dir().join("fonts")
+}
+
 fn copy_dir_all(src: &PathBuf, dst: &PathBuf) -> io::Result<()> {
     fs::create_dir_all(dst)?;
     for entry in fs::read_dir(src)? {
@@ -597,6 +637,49 @@ pub fn extract_bundled_overlays(app_handle: &tauri::AppHandle) -> Result<(), Str
     let css_dir = bundled_overlays_dir().join("css");
     fs::create_dir_all(&css_dir).map_err(|e| e.to_string())?;
     fs::write(css_dir.join("editor-common.css"), EDITOR_COMMON_CSS).map_err(|e| e.to_string())?;
+
+    // Copy bundled fonts from the Tauri resource dir to AppData/AngelsNowPlaying/fonts/.
+    // Overlays reference them via relative paths (../../fonts/fonts.css) which work
+    // in both the overlay HTTP server and OBS file:// loads.
+    let resource_fonts = app_handle
+        .path()
+        .resource_dir()
+        .map_err(|e| e.to_string())?
+        .join("fonts");
+    if resource_fonts.exists() {
+        let fonts_dest = fonts_dir();
+        // Remove existing bundled fonts before re-extracting so renamed/removed
+        // files don't linger. Preserve any user/ subfolder (future user uploads).
+        if fonts_dest.exists() {
+            for entry in fs::read_dir(&fonts_dest).map_err(|e| e.to_string())? {
+                let entry = entry.map_err(|e| e.to_string())?;
+                if entry.file_name() == "user" {
+                    continue;
+                }
+                let p = entry.path();
+                if p.is_dir() {
+                    fs::remove_dir_all(&p).map_err(|e| e.to_string())?;
+                } else {
+                    fs::remove_file(&p).map_err(|e| e.to_string())?;
+                }
+            }
+        }
+        fs::create_dir_all(&fonts_dest).map_err(|e| e.to_string())?;
+        for entry in fs::read_dir(&resource_fonts).map_err(|e| e.to_string())? {
+            let entry = entry.map_err(|e| e.to_string())?;
+            let src = entry.path();
+            let dst = fonts_dest.join(entry.file_name());
+            if src.is_dir() {
+                copy_dir_all(&src, &dst).map_err(|e| e.to_string())?;
+            } else {
+                fs::copy(&src, &dst).map_err(|e| e.to_string())?;
+            }
+        }
+    }
+
+    // Ensure the user fonts folder and its generated stylesheet always exist so
+    // fonts.css can unconditionally @import it.
+    ensure_user_fonts_dir()?;
 
     // Read current tuna port from saved settings (or default 1608) and write
     // tuna-port.js so OBS-loaded main.html files can find the port without XHR.
@@ -809,4 +892,425 @@ pub fn zip_overlay(overlay_id: String) -> Result<String, String> {
     zip_writer.finish().map_err(|e| e.to_string())?;
 
     Ok(tmp_path.to_string_lossy().into_owned())
+}
+
+// ── Font management ─────────────────────────────────────────────────────────
+
+/// Info about a bundled font (static — matches src/fonts/fonts.css).
+#[derive(Serialize)]
+pub struct BundledFontInfo {
+    pub family: String,  // e.g. "Montserrat Bold"
+    pub license: String, // e.g. "OFL 1.1" or "Apache 2.0"
+}
+
+/// Info about a user-installed font file.
+#[derive(Serialize)]
+pub struct UserFontInfo {
+    pub family: String,   // derived from filename (stem)
+    pub filename: String, // stored filename (e.g. "MyFont-Bold.ttf")
+    pub size: u64,        // bytes
+}
+
+/// Allowed user font extensions.
+const FONT_EXTS: &[&str] = &["ttf", "otf", "woff", "woff2"];
+
+/// Static list of bundled fonts — must stay in sync with src/fonts/fonts.css.
+fn bundled_fonts() -> Vec<BundledFontInfo> {
+    let entries: &[(&str, &str)] = &[
+        ("Arimo Regular", "Apache 2.0"),
+        ("Arimo Bold", "Apache 2.0"),
+        ("Comic Relief Regular", "OFL 1.1"),
+        ("Comic Relief Bold", "OFL 1.1"),
+        ("Courier Prime Regular", "OFL 1.1"),
+        ("Courier Prime Bold", "OFL 1.1"),
+        ("Fascinate Inline Regular", "OFL 1.1"),
+        ("Gelasio Regular", "OFL 1.1"),
+        ("Gelasio Bold", "OFL 1.1"),
+        ("Mogra Regular", "OFL 1.1"),
+        ("Montserrat Regular", "OFL 1.1"),
+        ("Montserrat Bold", "OFL 1.1"),
+        ("Playwrite Norge Regular", "OFL 1.1"),
+        ("Sekuya Regular", "OFL 1.1"),
+        ("Tinos Regular", "Apache 2.0"),
+        ("Tinos Bold", "Apache 2.0"),
+    ];
+    entries
+        .iter()
+        .map(|(f, l)| BundledFontInfo {
+            family: (*f).to_string(),
+            license: (*l).to_string(),
+        })
+        .collect()
+}
+
+/// Ensure fonts_dir()/user/ exists and that user-fonts.css reflects the current
+/// contents of that folder. Safe to call repeatedly.
+fn ensure_user_fonts_dir() -> Result<(), String> {
+    let user_dir = fonts_dir().join("user");
+    fs::create_dir_all(&user_dir).map_err(|e| e.to_string())?;
+    regenerate_user_fonts_css()
+}
+
+/// Public wrapper called from lib.rs setup — ensures the user fonts folder
+/// exists on every launch (both dev and release), independent of the bundled
+/// overlay/font extraction flow.
+pub fn ensure_user_fonts_dir_public() -> Result<(), String> {
+    ensure_user_fonts_dir()
+}
+
+/// Scan fonts_dir()/user/ for font files and rewrite user-fonts.css with a
+/// matching @font-face block per file. Family name = filename stem.
+fn regenerate_user_fonts_css() -> Result<(), String> {
+    let user_dir = fonts_dir().join("user");
+    if !user_dir.exists() {
+        return Ok(());
+    }
+
+    let mut entries: Vec<(String, String, String)> = Vec::new(); // (family, filename, format)
+    for entry in fs::read_dir(&user_dir).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+        if !path.is_file() {
+            continue;
+        }
+        let filename = entry.file_name().to_string_lossy().into_owned();
+        let ext = path
+            .extension()
+            .and_then(|e| e.to_str())
+            .map(|s| s.to_ascii_lowercase())
+            .unwrap_or_default();
+        if !FONT_EXTS.contains(&ext.as_str()) {
+            continue;
+        }
+        let stem = path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or(&filename)
+            .to_string();
+        let format = match ext.as_str() {
+            "ttf" => "truetype",
+            "otf" => "opentype",
+            "woff" => "woff",
+            "woff2" => "woff2",
+            _ => continue,
+        };
+        entries.push((stem, filename, format.to_string()));
+    }
+    entries.sort_by(|a, b| a.0.to_lowercase().cmp(&b.0.to_lowercase()));
+
+    let mut css = String::from(
+        "/* Angels NowPlaying — User Fonts (generated, do not edit)\n\
+         * Regenerated on every install/remove via the Settings → Manage Fonts modal.\n\
+         */\n\n",
+    );
+    for (family, filename, format) in &entries {
+        css.push_str(&format!(
+            "@font-face {{\n  font-family: '{}';\n  src: url('./{}') format('{}');\n}}\n",
+            family.replace('\'', ""),
+            filename,
+            format
+        ));
+    }
+
+    let out_path = fonts_dir().join("user").join("user-fonts.css");
+    fs::write(&out_path, css).map_err(|e| e.to_string())
+}
+
+/// Return the bundled font list (static).
+#[tauri::command]
+pub fn list_bundled_fonts() -> Vec<BundledFontInfo> {
+    bundled_fonts()
+}
+
+/// Return user-installed fonts currently present in fonts_dir()/user/.
+#[tauri::command]
+pub fn list_user_fonts() -> Result<Vec<UserFontInfo>, String> {
+    let user_dir = fonts_dir().join("user");
+    if !user_dir.exists() {
+        return Ok(vec![]);
+    }
+    let mut out = vec![];
+    for entry in fs::read_dir(&user_dir).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+        if !path.is_file() {
+            continue;
+        }
+        let filename = entry.file_name().to_string_lossy().into_owned();
+        let ext = path
+            .extension()
+            .and_then(|e| e.to_str())
+            .map(|s| s.to_ascii_lowercase())
+            .unwrap_or_default();
+        if !FONT_EXTS.contains(&ext.as_str()) {
+            continue;
+        }
+        let metadata = entry.metadata().map_err(|e| e.to_string())?;
+        let family = path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or(&filename)
+            .to_string();
+        out.push(UserFontInfo {
+            family,
+            filename,
+            size: metadata.len(),
+        });
+    }
+    out.sort_by(|a, b| a.family.to_lowercase().cmp(&b.family.to_lowercase()));
+    Ok(out)
+}
+
+/// Copy a user-selected font file into fonts_dir()/user/ and regenerate
+/// user-fonts.css. Returns the info for the newly installed font.
+#[tauri::command]
+pub fn install_font(src_path: String) -> Result<UserFontInfo, String> {
+    let src = PathBuf::from(&src_path);
+    if !src.is_file() {
+        return Err("Selected path is not a file".to_string());
+    }
+    let ext = src
+        .extension()
+        .and_then(|e| e.to_str())
+        .map(|s| s.to_ascii_lowercase())
+        .unwrap_or_default();
+    if !FONT_EXTS.contains(&ext.as_str()) {
+        return Err(format!(
+            "Unsupported font format '.{}'. Allowed: {}",
+            ext,
+            FONT_EXTS.join(", ")
+        ));
+    }
+    let filename = src
+        .file_name()
+        .and_then(|f| f.to_str())
+        .ok_or_else(|| "Invalid source filename".to_string())?
+        .to_string();
+    if filename.contains('/') || filename.contains('\\') || filename.contains("..") {
+        return Err("Invalid source filename".to_string());
+    }
+
+    let user_dir = fonts_dir().join("user");
+    fs::create_dir_all(&user_dir).map_err(|e| e.to_string())?;
+    let dest = user_dir.join(&filename);
+    if dest.exists() {
+        return Err(format!(
+            "A font named '{}' is already installed. Remove it first to replace.",
+            filename
+        ));
+    }
+    fs::copy(&src, &dest).map_err(|e| e.to_string())?;
+    regenerate_user_fonts_css()?;
+
+    let metadata = fs::metadata(&dest).map_err(|e| e.to_string())?;
+    let family = dest
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or(&filename)
+        .to_string();
+    Ok(UserFontInfo {
+        family,
+        filename,
+        size: metadata.len(),
+    })
+}
+
+/// Remove a user-installed font and regenerate user-fonts.css.
+#[tauri::command]
+pub fn delete_user_font(filename: String) -> Result<(), String> {
+    if filename.contains('/') || filename.contains('\\') || filename.contains("..") {
+        return Err("Invalid font filename".to_string());
+    }
+    let target = fonts_dir().join("user").join(&filename);
+    if !target.exists() {
+        return Err(format!("Font '{}' not found", filename));
+    }
+    fs::remove_file(&target).map_err(|e| e.to_string())?;
+    regenerate_user_fonts_css()
+}
+
+/// Permanently delete the entire app data directory (installed overlays,
+/// user-uploaded fonts, bundled-overlay copies, settings.json, and the
+/// .bundle_version stamp). The caller is expected to close/relaunch the
+/// app immediately after a successful return — the next launch will
+/// re-extract bundled overlays and fonts from the app resource bundle,
+/// leaving the user in a clean, fresh-install state.
+///
+/// This is the cross-platform equivalent of manually deleting:
+///   - Windows: %APPDATA%\Roaming\AngelsNowPlaying\
+///   - macOS:   ~/Library/Application Support/AngelsNowPlaying/
+///   - Linux:   ~/.config/AngelsNowPlaying/
+#[tauri::command]
+pub fn reset_app_data() -> Result<(), String> {
+    let dir = app_data_dir();
+    if !dir.exists() {
+        return Ok(());
+    }
+    // Remove directory contents rather than the directory itself. Some
+    // platforms hold a handle on the parent (e.g. the running HTTP server's
+    // cwd resolution) and would fail a full remove_dir_all on the root.
+    for entry in fs::read_dir(&dir).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let p = entry.path();
+        if p.is_dir() {
+            if let Err(e) = fs::remove_dir_all(&p) {
+                return Err(format!("Failed to remove {}: {e}", p.display()));
+            }
+        } else if let Err(e) = fs::remove_file(&p) {
+            return Err(format!("Failed to remove {}: {e}", p.display()));
+        }
+    }
+    Ok(())
+}
+
+/// Exit the app cleanly. Used by the Reset App Data flow to force a
+/// relaunch so first-run bootstrap re-extracts bundled overlays and fonts.
+#[tauri::command]
+pub fn exit_app(app_handle: tauri::AppHandle) {
+    app_handle.exit(0);
+}
+
+// ── Diagnostics / System Info ────────────────────────────────────────────────
+
+/// Snapshot of runtime environment + resolved paths for bug reports.
+///
+/// All `*_path` / `*_dir` fields pass through `redact_path()` before
+/// serialization: the user's home directory is replaced with a platform-
+/// neutral placeholder (`%USERPROFILE%` on Windows, `$HOME` on macOS/Linux).
+/// This keeps the output safe to paste into public GitHub issues while
+/// remaining copy-pasteable for the reporter (their shell will re-expand
+/// the placeholder).
+#[derive(Serialize, Debug, Clone)]
+pub struct DiagnosticsReport {
+    // App identity
+    pub app_version: String,
+    pub build_mode: &'static str,
+
+    // System
+    pub os: String,
+    pub arch: &'static str,
+    pub family: &'static str,
+    pub webview_version: Option<String>,
+
+    // Paths (all redacted)
+    pub executable_path: String,
+    pub app_data_dir: String,
+    pub settings_path: String,
+    pub bundled_overlays_dir: String,
+    pub user_overlays_dir: String,
+    pub fonts_dir: String,
+    pub user_fonts_dir: String,
+
+    // Runtime state
+    pub overlay_server_port: u16,
+    pub tuna_port: u16,
+    pub allow_remote: bool,
+    pub bundle_version_stamp: Option<String>,
+
+    // Counts
+    pub bundled_overlays_count: usize,
+    pub user_overlays_count: usize,
+    pub bundled_fonts_count: usize,
+    pub user_fonts_count: usize,
+}
+
+/// Replace the current user's home-directory prefix with a platform-neutral
+/// placeholder so paths are safe to publish (e.g. in GitHub issues) while
+/// still being pasteable into a shell that will re-expand the placeholder.
+fn redact_path(path: &std::path::Path) -> String {
+    let s = path.to_string_lossy().into_owned();
+    let Some(home) = dirs::home_dir() else {
+        return s;
+    };
+    let home_str = home.to_string_lossy();
+    if home_str.is_empty() {
+        return s;
+    }
+    // Only substitute on exact prefix match to avoid false positives.
+    if let Some(rest) = s.strip_prefix(home_str.as_ref()) {
+        #[cfg(target_os = "windows")]
+        let placeholder = "%USERPROFILE%";
+        #[cfg(not(target_os = "windows"))]
+        let placeholder = "$HOME";
+        return format!("{placeholder}{rest}");
+    }
+    s
+}
+
+fn count_subdirs(dir: &std::path::Path) -> usize {
+    let Ok(rd) = fs::read_dir(dir) else { return 0 };
+    rd.filter_map(|e| e.ok())
+        .filter(|e| {
+            // Skip dotfiles (e.g. .bundle_version) and non-directories.
+            e.file_type().map(|t| t.is_dir()).unwrap_or(false)
+                && !e.file_name().to_string_lossy().starts_with('.')
+        })
+        .count()
+}
+
+#[tauri::command]
+pub fn get_diagnostics() -> DiagnosticsReport {
+    let app_data = app_data_dir();
+    let bundled_overlays = bundled_overlays_dir();
+    let user_overlays = user_overlays_dir();
+    let fonts = fonts_dir();
+    let user_fonts = fonts.join("user");
+    let settings_file = settings_path();
+    let exe = std::env::current_exe().unwrap_or_default();
+
+    let build_mode = if cfg!(debug_assertions) { "debug" } else { "release" };
+
+    let os = format!("{} {}", std::env::consts::OS, std::env::consts::FAMILY);
+    let webview_version = tauri::webview_version().ok();
+
+    let overlay_server_port = *USER_OVERLAY_SERVER_PORT.lock().unwrap();
+
+    // Tuna port + allow_remote come from saved settings; fall back to defaults.
+    let (tuna_port, allow_remote) = match get_overlay_settings() {
+        Ok(s) => (s.tuna_port, get_settings().map(|a| a.allow_remote).unwrap_or(false)),
+        Err(_) => (OverlaySettings::default().tuna_port, false),
+    };
+
+    let bundle_version_stamp =
+        fs::read_to_string(app_data.join(".bundle_version"))
+            .ok()
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty());
+
+    // Bundled overlay count: in dev, count from src/overlays; in release, from AppData.
+    let bundled_overlays_count = if cfg!(debug_assertions) {
+        project_root()
+            .ok()
+            .map(|r| count_subdirs(&r.join("src").join("overlays")))
+            .unwrap_or(0)
+    } else {
+        count_subdirs(&bundled_overlays)
+    };
+    let user_overlays_count = count_subdirs(&user_overlays);
+    let bundled_fonts_count = bundled_fonts().len();
+    let user_fonts_count = list_user_fonts().map(|v| v.len()).unwrap_or(0);
+
+    DiagnosticsReport {
+        app_version: env!("CARGO_PKG_VERSION").to_string(),
+        build_mode,
+        os,
+        arch: std::env::consts::ARCH,
+        family: std::env::consts::FAMILY,
+        webview_version,
+        executable_path: redact_path(&exe),
+        app_data_dir: redact_path(&app_data),
+        settings_path: redact_path(&settings_file),
+        bundled_overlays_dir: redact_path(&bundled_overlays),
+        user_overlays_dir: redact_path(&user_overlays),
+        fonts_dir: redact_path(&fonts),
+        user_fonts_dir: redact_path(&user_fonts),
+        overlay_server_port,
+        tuna_port,
+        allow_remote,
+        bundle_version_stamp,
+        bundled_overlays_count,
+        user_overlays_count,
+        bundled_fonts_count,
+        user_fonts_count,
+    }
 }

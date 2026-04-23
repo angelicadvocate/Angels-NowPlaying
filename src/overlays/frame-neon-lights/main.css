@@ -1,4 +1,4 @@
-﻿/* Neon Lights Now Playing Frame */
+/* Neon Lights Now Playing Frame */
 
 :root {
   /* --- Colors --- */
@@ -6,7 +6,7 @@
   --accent-hex: #ff2ed2;
 
   /* --- Typography --- */
-  --font-main: proxima-nova, sans-serif;
+  --font-main: 'Montserrat Regular';
   --artist-size: 32px;
   --song-size: 49px;
   --text-spacing: -5px;
@@ -175,7 +175,7 @@ p { white-space: nowrap; }
   100% { transform: translateX(var(--marquee-end, 0)); }
 }
 
-/* Progress bar — positioned via CSS calc so it auto-adjusts with image size/padding */
+/* Progress bar � positioned via CSS calc so it auto-adjusts with image size/padding */
 #progress-container {
   position: absolute;
   bottom: var(--progress-bar-offset);

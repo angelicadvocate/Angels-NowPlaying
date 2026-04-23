@@ -11,6 +11,47 @@ Please be sure to add date, completed tag, `github:[username]`, and version numb
 
 ---------------------------------------------------------------------------------
 
+## v0.9.9 – 2026-04-23
+
+* [x] **Bundled fonts as a real app resource** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Curated 10 open-license families (16 TTFs: Regular + Bold for Arimo, Comic Relief, Courier Prime, Gelasio, Montserrat, Tinos; Regular only for Fascinate Inline, Mogra, Playwrite Norge, Sekuya) shipped under `src/fonts/` with per-family license files
+  * Added `src/fonts/fonts.css` with `@font-face` declarations for every bundled family
+  * Backend: new `fonts_dir()` helper, `/fonts/<path>` HTTP route (with dev fallback to `src/fonts/`), and bundled-font extraction in `extract_bundled_overlays()`
+  * Build wiring: `vite.config.js` copies `src/fonts/` → `dist/fonts/`; `tauri.conf.json` exposes `../dist/fonts` as a resource — fonts now load identically in dev, the in-app preview, the local HTTP server, and OBS `file://` browser sources across all platforms, with no internet dependency
+  * All 12 overlays updated: `main.html` and `editor.html` link `../../fonts/fonts.css`; each editor's font dropdown rebuilt with 16 alphabetized bundled entries; `main.css` + `manifest.json` defaults set (Montserrat Regular for 11 overlays, Courier Prime Regular for `frame-cassette-tape`)
+  * Renamed `Playwrite NO` → `Playwrite Norge` (folder, TTF, and all CSS / editor / docs references) for clearer naming
+  * `LICENSES.md`: new bundled fonts attribution table; `FRAME-DEVELOPMENT.md`: new **3b. Bundled fonts** section documenting the `fonts.css` link and the full availability matrix
+
+* [x] **Overlay version in editor header** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Added `#page-version` span to `editor-shell.html` below the overlay title; `editor-shell.js` reads the overlay's `manifest.json` version during init and renders it as `v<version>`
+  * `editor-header.css` updated with column flex layout + muted version styling so users can compare their installed overlay version against future store listings
+
+* [x] **Settings → Manage Fonts UI** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * New **Manage Fonts** button in Overlay Management opens a `#fontsModal` with an install row, a Custom Fonts list (Aa preview, family name, filename, size, delete) and a read-only Bundled Fonts list (Aa preview + license tag linking to `LICENSES.md`)
+  * Backend commands `list_bundled_fonts`, `list_user_fonts`, `install_font`, `delete_user_font` back the modal; installed fonts land in `AppData/AngelsNowPlaying/fonts/user/` and are preserved across app updates (the bundled-font extraction step skips the `user/` subfolder)
+  * `user-fonts.css` is regenerated on every install/remove with auto-detected format for `.ttf`, `.otf`, `.woff`, `.woff2`; `fonts.css` `@import`s it so custom fonts are available everywhere bundled fonts are
+  * `src/fonts/font-augment.js` runs inside each editor iframe and, on the shell's `init` message (now carrying `userFonts`), appends a `── Custom Fonts ──` separator plus one `<option>` per user font to the editor's font dropdown — all 12 overlays updated, no per-overlay wiring required
+  * `FRAME-DEVELOPMENT.md` **3b. Bundled fonts** section extended with the `font-augment.js` snippet and the `<select>` id / option-value contract so community overlay authors get the same behavior for free
+
+* [x] **Settings page layout polish** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Overlay Management columns now stretch to a shared height; primary actions (Save Settings, View Instructions, Manage Fonts) pin to the bottom of their cards via `margin-top: auto` so the two columns line up cleanly
+  * Mobile breakpoint (`max-width: 1400px`): added inter-section spacing with a top border + padding between stacked `.overlay-section` blocks for breathing room when the columns collapse
+
+* [x] **Reset App Data + uninstaller data-preservation notice** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * New **Utilities** row in Settings (5-card grid, ready for future single-action utilities) with a **Reset App Data** card. Red "Reset…" button opens a confirmation modal that requires typing `RESET`, then wipes `AppData/AngelsNowPlaying/` (overlays, fonts, settings, bundle-version stamp) and exits the app for a clean relaunch
+  * New `reset_app_data` Tauri command iterates `app_data_dir()` and removes every child; new `exit_app` command calls `app_handle.exit(0)` so the app relaunches into first-run bootstrap (re-extracting bundled overlays and fonts)
+  * New NSIS installer hook (`src-tauri/windows/hooks.nsh`, wired via `bundle.windows.nsis.installerHooks`): when the user ticks the "Delete the application data" checkbox during Windows uninstall, a `NSIS_HOOK_POSTUNINSTALL` message box informs the user that their overlay library (including any paid overlays from the future store) was preserved on purpose, shows the exact `%APPDATA%\Roaming\AngelsNowPlaying` path, and warns that manual deletion is permanent. Suppressed in silent/passive installs.
+  * Cross-platform by design: macOS and Linux have no uninstaller UX to hook into, but the Settings button offers identical cleanup on those platforms. Paid overlays from the planned community store cannot be destroyed by a single misclick during uninstall
+
+* [x] **Settings Utilities row restructure + Diagnostics card** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Flattened the Utilities row into 5 standalone cards in a single grid — no wrapping heading card — laid out left → right: **Manage Fonts**, **Backup**, **Restore**, **Diagnostics**, **Reset App Data** (danger-zone action pinned to the rightmost slot)
+  * **Manage Fonts** moved out of the Overlay Management column stack into its own utility card so it reads as a top-level app action rather than an overlay sub-setting
+  * **Backup** and **Restore** cards added as placeholders with a shared "Coming Soon" modal; wires the UI for the planned config export/import system without shipping backend work yet
+  * New **Diagnostics / System Info** card: opens a read-only monospace report of app version, build mode, OS / architecture / family, WebView version, all resolved paths (executable, app-data dir, settings, bundled overlays, user overlays, fonts dir, user fonts dir), runtime state (overlay server port, Tuna port, `allow_remote`, bundle-version stamp), and counts of bundled / user overlays and fonts. Ships with "Copy as Markdown" and "Copy as JSON" buttons for pasting into GitHub issues
+  * **PII-safe path redaction**: the backend `get_diagnostics` command runs every path through a `redact_path()` helper that replaces the user's home directory with a platform-neutral placeholder — `%USERPROFILE%` on Windows, `$HOME` on macOS/Linux — so reports are safe to share publicly but remain pasteable into a shell (which will re-expand the placeholder for the reporter)
+
+---------------------------------------------------------------------------------
+
 ## v0.9.8 – 2026-04-19
 
 * [x] **Reset to Defaults button** ✨ *COMPLETED* `github:AngelicAdvocate`

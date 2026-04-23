@@ -161,6 +161,48 @@
       </div>
     </div>
 
+    <!-- Utility Actions row — 5 standalone action cards spanning full width.
+         Each card handles a single utility operation. Reset App Data is
+         pinned to the rightmost slot as the danger-zone action. -->
+    <div class="utility-cards settings-card--wide">
+
+      <!-- Card 1: Manage Fonts -->
+      <div class="utility-card">
+        <p class="utility-card__title"><i class="fas fa-font"></i> Manage Fonts</p>
+        <p class="utility-card__desc">Install or remove custom fonts available to all overlays.</p>
+        <button class="settings-button utility-card__button" onclick="openFontsModal()"><i class="fas fa-font"></i> Manage Fonts</button>
+      </div>
+
+      <!-- Card 2: Backup (coming soon) -->
+      <div class="utility-card">
+        <p class="utility-card__title"><i class="fas fa-box-archive"></i> Backup</p>
+        <p class="utility-card__desc">Export all overlays, fonts, and settings to a single archive.</p>
+        <button class="settings-button utility-card__button" onclick="openComingSoonModal('Backup')"><i class="fas fa-download"></i> Backup…</button>
+      </div>
+
+      <!-- Card 3: Restore (coming soon) -->
+      <div class="utility-card">
+        <p class="utility-card__title"><i class="fas fa-rotate-left"></i> Restore</p>
+        <p class="utility-card__desc">Restore overlays, fonts, and settings from a previous backup.</p>
+        <button class="settings-button utility-card__button" onclick="openComingSoonModal('Restore')"><i class="fas fa-upload"></i> Restore…</button>
+      </div>
+
+      <!-- Card 4: Diagnostics -->
+      <div class="utility-card">
+        <p class="utility-card__title"><i class="fas fa-stethoscope"></i> Diagnostics</p>
+        <p class="utility-card__desc">Snapshot of paths, versions, and runtime state for bug reports.</p>
+        <button class="settings-button utility-card__button" onclick="openDiagnosticsModal()"><i class="fas fa-stethoscope"></i> View Diagnostics</button>
+      </div>
+
+      <!-- Card 5: Reset App Data (danger zone, pinned rightmost) -->
+      <div class="utility-card">
+        <p class="utility-card__title"><i class="fas fa-eraser"></i> Reset App Data</p>
+        <p class="utility-card__desc">Clears all installed overlays, custom fonts, and preferences.</p>
+        <button class="settings-button utility-card__button" onclick="openResetAppDataModal()" style="background:#b91c1c;"><i class="fas fa-exclamation-triangle"></i> Reset…</button>
+      </div>
+
+    </div>
+
   </div>
 
   <!-- Upload Template Modal -->
@@ -224,6 +266,120 @@
       <div class="modal-footer">
         <button class="btn-cancel" onclick="closeUploadModal()">Cancel</button>
         <button class="btn-submit" onclick="submitUpload()">Upload Template</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Font Management Modal -->
+  <div class="modal-overlay" id="fontsModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><i class="fas fa-font"></i> Font Management</h3>
+        <button class="modal-close" onclick="closeFontsModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.9rem; opacity:0.85; margin:0 0 1.25rem;">
+          Fonts listed here are available to every overlay's <strong>Font Family</strong> dropdown.
+          Bundled fonts ship with the app and cannot be removed. Custom fonts you install are stored
+          locally and made available to all overlays.
+        </p>
+
+        <!-- Install row -->
+        <div style="display:flex; gap:0.75rem; align-items:center; margin-bottom:1.5rem; padding:0.75rem; background:var(--bg-input); border-radius:6px;">
+          <button class="settings-button" onclick="installFont()" style="white-space:nowrap;"><i class="fas fa-plus"></i> Install Font File</button>
+          <p style="font-size:0.8rem; opacity:0.75; margin:0;">Accepted formats: <code>.ttf</code>, <code>.otf</code>, <code>.woff</code>, <code>.woff2</code></p>
+        </div>
+        <p id="fontInstallStatus" style="font-size:0.85rem; margin:0 0 1rem; display:none;"></p>
+
+        <!-- User fonts section -->
+        <h4 style="margin:0 0 0.5rem; display:flex; align-items:center; gap:0.4rem; font-size:1rem;">
+          <i class="fas fa-user-edit" style="color:var(--highlight); font-size:0.9rem;"></i> Custom Fonts
+        </h4>
+        <div id="userFontList" style="border:1px solid var(--border-color); border-radius:6px; overflow:hidden; margin-bottom:1.5rem;">
+          <p style="padding:0.75rem; margin:0; font-size:0.85rem; opacity:0.65; text-align:center;">Loading...</p>
+        </div>
+
+        <!-- Bundled fonts section -->
+        <h4 style="margin:0 0 0.5rem; display:flex; align-items:center; gap:0.4rem; font-size:1rem;">
+          <i class="fas fa-box-open" style="color:var(--highlight); font-size:0.9rem;"></i> Bundled Fonts
+        </h4>
+        <p style="font-size:0.8rem; opacity:0.7; margin:0 0 0.5rem;">
+          Always available. See <a href="#" onclick="window.openExternalUrl('https://github.com/angelicadvocate/Angels-NowPlaying/blob/main/LICENSES.md'); return false;" style="color:var(--highlight);">LICENSES.md</a> for full attribution.
+        </p>
+        <div id="bundledFontList" style="border:1px solid var(--border-color); border-radius:6px; overflow:hidden;">
+          <p style="padding:0.75rem; margin:0; font-size:0.85rem; opacity:0.65; text-align:center;">Loading...</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeFontsModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset App Data Modal -->
+  <div class="modal-overlay" id="resetAppDataModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i> Reset All App Data</h3>
+        <button class="modal-close" onclick="closeResetAppDataModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin:0 0 1rem;">
+          This will permanently delete <strong>all installed overlays, custom fonts, and saved preferences</strong>,
+          including any paid overlays from the community store. The app will return to a fresh-install state.
+        </p>
+        <p style="margin:0 0 1rem; padding:0.75rem; background:rgba(185,28,28,0.12); border:1px solid rgba(185,28,28,0.4); border-radius:6px; font-size:0.9rem;">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:0.4rem;"></i>
+          Back up anything you want to keep before continuing. This cannot be undone.
+        </p>
+        <p style="margin:0 0 0.4rem; font-size:0.9rem;">Type <code>RESET</code> below to confirm:</p>
+        <input type="text" id="resetAppDataConfirm" autocomplete="off" placeholder="RESET"
+               style="width:100%; background:var(--bg-input); border:1px solid var(--border-input); color:var(--text-primary); padding:0.5rem 0.75rem; border-radius:4px; font-size:0.95rem; font-family:monospace; letter-spacing:0.1em;" />
+        <p id="resetAppDataStatus" style="font-size:0.85rem; margin:0.5rem 0 0; display:none;"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeResetAppDataModal()">Cancel</button>
+        <button class="settings-button" id="resetAppDataConfirmBtn" onclick="confirmResetAppData()" style="background:#b91c1c;" disabled><i class="fas fa-trash"></i> Reset Everything</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Coming Soon Modal (reused for Backup / Restore placeholders) -->
+  <div class="modal-overlay" id="comingSoonModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><i class="fas fa-hourglass-half"></i> <span id="comingSoonTitle">Coming Soon</span></h3>
+        <button class="modal-close" onclick="closeComingSoonModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p id="comingSoonMessage" style="margin:0;">This feature isn't ready yet. Stay tuned for a future release!</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeComingSoonModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Diagnostics Modal -->
+  <div class="modal-overlay" id="diagnosticsModal">
+    <div class="modal modal--large">
+      <div class="modal-header">
+        <h3><i class="fas fa-stethoscope"></i> Diagnostics / System Info</h3>
+        <button class="modal-close" onclick="closeDiagnosticsModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin:0 0 0.75rem; font-size:0.85rem; opacity:0.8;">
+          Snapshot of your app, system, resolved paths, and runtime state.
+          The username is replaced with <code>%USERPROFILE%</code> / <code>$HOME</code>
+          so you can safely paste this into a GitHub issue.
+        </p>
+        <pre id="diagnosticsOutput" class="diagnostics-output">Loading…</pre>
+        <p id="diagnosticsCopyStatus" style="font-size:0.85rem; margin:0.5rem 0 0; display:none;"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeDiagnosticsModal()">Close</button>
+        <button class="settings-button" onclick="copyDiagnostics('json')"><i class="fas fa-code"></i> Copy as JSON</button>
+        <button class="settings-button" onclick="copyDiagnostics('markdown')"><i class="fab fa-markdown"></i> Copy as Markdown</button>
       </div>
     </div>
   </div>
@@ -580,6 +736,276 @@
         closeUploadModal();
       }
     });
+
+    // ── Font Management modal ────────────────────────────────────────────────
+    function openFontsModal() {
+      document.getElementById('fontsModal').classList.add('active');
+      refreshFontLists();
+    }
+
+    function closeFontsModal() {
+      document.getElementById('fontsModal').classList.remove('active');
+    }
+
+    document.getElementById('fontsModal')?.addEventListener('click', function(e) {
+      if (e.target === this) closeFontsModal();
+    });
+
+    // ── Reset App Data modal ──────────────────────────────────────────────────
+    function openResetAppDataModal() {
+      const modal = document.getElementById('resetAppDataModal');
+      const input = document.getElementById('resetAppDataConfirm');
+      const btn = document.getElementById('resetAppDataConfirmBtn');
+      const status = document.getElementById('resetAppDataStatus');
+      input.value = '';
+      btn.disabled = true;
+      status.style.display = 'none';
+      status.textContent = '';
+      modal.classList.add('active');
+      setTimeout(() => input.focus(), 50);
+    }
+
+    function closeResetAppDataModal() {
+      document.getElementById('resetAppDataModal').classList.remove('active');
+    }
+
+    document.getElementById('resetAppDataModal')?.addEventListener('click', function(e) {
+      if (e.target === this) closeResetAppDataModal();
+    });
+
+    document.getElementById('resetAppDataConfirm')?.addEventListener('input', function() {
+      document.getElementById('resetAppDataConfirmBtn').disabled = this.value.trim() !== 'RESET';
+    });
+
+    async function confirmResetAppData() {
+      const status = document.getElementById('resetAppDataStatus');
+      const btn = document.getElementById('resetAppDataConfirmBtn');
+      if (!window.__TAURI__) return;
+      btn.disabled = true;
+      status.style.display = 'block';
+      status.style.color = 'var(--text-primary)';
+      status.textContent = 'Resetting…';
+      try {
+        await window.__TAURI__.invoke('reset_app_data');
+        status.style.color = '#16a34a';
+        status.textContent = 'App data cleared. The app will now close — relaunch to finish resetting.';
+        setTimeout(async () => {
+          try { await window.__TAURI__.invoke('exit_app'); } catch {}
+        }, 1800);
+      } catch (e) {
+        status.style.color = '#dc2626';
+        status.textContent = 'Reset failed: ' + e;
+        btn.disabled = false;
+      }
+    }
+
+    // ── Coming Soon modal (shared by Backup / Restore) ───────────────────────
+    function openComingSoonModal(feature) {
+      document.getElementById('comingSoonTitle').textContent = feature + ' — Coming Soon';
+      document.getElementById('comingSoonMessage').textContent =
+        feature + ' isn\u2019t ready yet. Stay tuned for a future release!';
+      document.getElementById('comingSoonModal').classList.add('active');
+    }
+    function closeComingSoonModal() {
+      document.getElementById('comingSoonModal').classList.remove('active');
+    }
+    document.getElementById('comingSoonModal')?.addEventListener('click', function(e) {
+      if (e.target === this) closeComingSoonModal();
+    });
+
+    // ── Diagnostics modal ────────────────────────────────────────────────────
+    let _diagnosticsCache = null;
+
+    async function openDiagnosticsModal() {
+      const modal = document.getElementById('diagnosticsModal');
+      const out = document.getElementById('diagnosticsOutput');
+      const status = document.getElementById('diagnosticsCopyStatus');
+      status.style.display = 'none';
+      out.textContent = 'Loading…';
+      modal.classList.add('active');
+      if (!window.__TAURI__) {
+        out.textContent = 'Diagnostics require the desktop app.';
+        return;
+      }
+      try {
+        _diagnosticsCache = await window.__TAURI__.invoke('get_diagnostics');
+        out.textContent = formatDiagnosticsForDisplay(_diagnosticsCache);
+      } catch (e) {
+        out.textContent = 'Failed to load diagnostics: ' + e;
+      }
+    }
+
+    function closeDiagnosticsModal() {
+      document.getElementById('diagnosticsModal').classList.remove('active');
+    }
+    document.getElementById('diagnosticsModal')?.addEventListener('click', function(e) {
+      if (e.target === this) closeDiagnosticsModal();
+    });
+
+    function formatDiagnosticsForDisplay(d) {
+      const lines = [];
+      const push = (label, value) => lines.push(label.padEnd(26) + String(value ?? '—'));
+      lines.push('── App ──');
+      push('Version',             d.app_version);
+      push('Build mode',          d.build_mode);
+      push('Bundle stamp',        d.bundle_version_stamp);
+      lines.push('');
+      lines.push('── System ──');
+      push('OS',                  d.os);
+      push('Architecture',        d.arch);
+      push('Family',              d.family);
+      push('WebView',             d.webview_version);
+      lines.push('');
+      lines.push('── Paths ──');
+      push('Executable',          d.executable_path);
+      push('App data dir',        d.app_data_dir);
+      push('Settings file',       d.settings_path);
+      push('Bundled overlays',    d.bundled_overlays_dir);
+      push('User overlays',       d.user_overlays_dir);
+      push('Fonts dir',           d.fonts_dir);
+      push('User fonts dir',      d.user_fonts_dir);
+      lines.push('');
+      lines.push('── Runtime ──');
+      push('Overlay server port', d.overlay_server_port);
+      push('Tuna port',           d.tuna_port);
+      push('Allow remote',        d.allow_remote);
+      lines.push('');
+      lines.push('── Counts ──');
+      push('Bundled overlays',    d.bundled_overlays_count);
+      push('User overlays',       d.user_overlays_count);
+      push('Bundled fonts',       d.bundled_fonts_count);
+      push('User fonts',          d.user_fonts_count);
+      return lines.join('\n');
+    }
+
+    function formatDiagnosticsAsMarkdown(d) {
+      return [
+        '### Angel\u2019s NowPlaying — Diagnostics',
+        '',
+        '```',
+        formatDiagnosticsForDisplay(d),
+        '```',
+      ].join('\n');
+    }
+
+    async function copyDiagnostics(format) {
+      const status = document.getElementById('diagnosticsCopyStatus');
+      if (!_diagnosticsCache) {
+        status.style.display = 'block';
+        status.style.color = '#dc2626';
+        status.textContent = 'No diagnostics loaded yet.';
+        return;
+      }
+      const text = format === 'json'
+        ? JSON.stringify(_diagnosticsCache, null, 2)
+        : formatDiagnosticsAsMarkdown(_diagnosticsCache);
+      try {
+        await navigator.clipboard.writeText(text);
+        status.style.display = 'block';
+        status.style.color = '#16a34a';
+        status.textContent = 'Copied ' + (format === 'json' ? 'JSON' : 'Markdown') + ' to clipboard.';
+      } catch (e) {
+        status.style.display = 'block';
+        status.style.color = '#dc2626';
+        status.textContent = 'Copy failed: ' + e;
+      }
+    }
+
+    function formatFontSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    }
+
+    async function refreshFontLists() {
+      if (!window.__TAURI__) return;
+
+      // Bundled fonts
+      const bundledEl = document.getElementById('bundledFontList');
+      try {
+        const bundled = await window.__TAURI__.invoke('list_bundled_fonts');
+        if (!bundled || bundled.length === 0) {
+          bundledEl.innerHTML = '<p class="font-row font-row--empty">No bundled fonts found.</p>';
+        } else {
+          bundledEl.innerHTML = bundled.map(f => `
+            <div class="font-row">
+              <span class="font-row__preview" style="font-family: '${f.family.replace(/'/g, '')}';">Aa</span>
+              <span class="font-row__name">${f.family}</span>
+              <span class="font-row__meta">${f.license}</span>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        console.error('Failed to list bundled fonts', e);
+        bundledEl.innerHTML = '<p class="font-row font-row--empty">Error loading bundled fonts.</p>';
+      }
+
+      // User fonts
+      const userEl = document.getElementById('userFontList');
+      try {
+        const user = await window.__TAURI__.invoke('list_user_fonts');
+        if (!user || user.length === 0) {
+          userEl.innerHTML = '<p class="font-row font-row--empty">No custom fonts installed yet. Use <em>Install Font File</em> above to add one.</p>';
+        } else {
+          userEl.innerHTML = user.map(f => `
+            <div class="font-row">
+              <span class="font-row__preview" style="font-family: '${f.family.replace(/'/g, '')}';">Aa</span>
+              <span class="font-row__name">${f.family} <span class="font-row__meta">(${f.filename})</span></span>
+              <span class="font-row__meta">${formatFontSize(f.size)}</span>
+              <button class="font-row__delete" onclick="deleteUserFont('${f.filename.replace(/'/g, "\\'")}')" title="Remove this font"><i class="fas fa-trash"></i></button>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        console.error('Failed to list user fonts', e);
+        userEl.innerHTML = '<p class="font-row font-row--empty">Error loading user fonts.</p>';
+      }
+    }
+
+    async function installFont() {
+      const status = document.getElementById('fontInstallStatus');
+      if (!window.__TAURI__) return;
+      try {
+        const srcPath = await window.__TAURI__.invoke('pick_file', {
+          title: 'Select Font File',
+          filterName: 'Font Files',
+          extensions: ['ttf', 'otf', 'woff', 'woff2']
+        });
+        if (!srcPath) return;
+        status.style.display = 'block';
+        status.style.color = 'var(--text-primary)';
+        status.textContent = 'Installing...';
+        const info = await window.__TAURI__.invoke('install_font', { srcPath });
+        status.style.color = '#4ade80';
+        status.textContent = `Installed '${info.family}' successfully.`;
+        await refreshFontLists();
+      } catch (e) {
+        console.error('Install font failed', e);
+        status.style.display = 'block';
+        status.style.color = '#f87171';
+        status.textContent = 'Error: ' + e;
+      }
+      setTimeout(() => { status.style.display = 'none'; }, 4500);
+    }
+
+    async function deleteUserFont(filename) {
+      if (!window.__TAURI__) return;
+      if (!confirm(`Remove font '${filename}'? This cannot be undone.`)) return;
+      const status = document.getElementById('fontInstallStatus');
+      try {
+        await window.__TAURI__.invoke('delete_user_font', { filename });
+        status.style.display = 'block';
+        status.style.color = '#4ade80';
+        status.textContent = `'${filename}' removed.`;
+        await refreshFontLists();
+      } catch (e) {
+        console.error('Delete font failed', e);
+        status.style.display = 'block';
+        status.style.color = '#f87171';
+        status.textContent = 'Error: ' + e;
+      }
+      setTimeout(() => { status.style.display = 'none'; }, 4000);
+    }
   </script>
 
 </body>

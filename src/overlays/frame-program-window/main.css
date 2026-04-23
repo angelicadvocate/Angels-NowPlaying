@@ -2,7 +2,7 @@
 /* OBS canvas: 1000 x 440px */
 
 :root {
-  --font-main: proxima-nova, sans-serif;
+  --font-main: 'Montserrat Regular';
   --artist-color: #ff8c00;
   --artist-size: 47px;
   --track-color: #8b4513;

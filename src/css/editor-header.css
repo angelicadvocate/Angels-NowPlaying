@@ -69,6 +69,7 @@
   pointer-events: none;
   z-index: 2;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
@@ -79,6 +80,15 @@
   font-size: 24px;
   font-weight: 600;
   color: var(--text-primary);
+  white-space: nowrap;
+}
+
+#editor-header #page-version {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-secondary, #aaa);
+  opacity: 0.75;
   white-space: nowrap;
 }
 

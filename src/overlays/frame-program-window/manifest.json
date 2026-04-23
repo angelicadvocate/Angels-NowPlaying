@@ -12,7 +12,7 @@
   "obsSize": { "width": 920, "height": 440 },
   "tags": ["retro", "desktop", "windows"],
   "defaults": {
-    "--font-main": "proxima-nova, sans-serif",
+    "--font-main": "'Montserrat Regular'",
     "--artist-color": "#ff8c00",
     "--artist-size": "47px",
     "--track-color": "#8b4513",

@@ -20,14 +20,25 @@ See STORE.md for all store site implementation details.
 ---------------------------------------------------------------------------------
 
 ## Known Bugs / Active Issues
- - [ ] Uninstaller Roaming cleanup: when the user checks "remove app data" during uninstall, also delete `%APPDATA%\Roaming\AngelsNowPlaying`. Currently only `%APPDATA%\Local` is cleaned up, leaving overlay files and settings behind in Roaming. The checkbox is already unchecked by default so normal reinstalls are unaffected — this is purely a cleanup correctness fix for permanent uninstalls.
+ - [ ] Cross-platform app-data cleanup parity: the "Reset App Data" button in Settings already works on all three OSes (Windows, macOS, Linux). Native uninstallers only exist on Windows, and we intentionally do NOT auto-delete `%APPDATA%\Roaming\AngelsNowPlaying` on uninstall to protect user overlay libraries (including future paid overlays). Revisit only if user feedback indicates the informational-only uninstaller message is missed on macOS/Linux (likely a `README` / docs note is sufficient there).
 
 ---------------------------------------------------------------------------------
 
 ## Other To-Do Items
 - [ ] Pre-release slider audit: go through each overlay one at a time and verify that every slider's min/max range is correct and feels right across the realistic combinations of font styles, font sizes, spacing, and layout modes. Some overlays have multiple valid configurations (e.g. different tape styles, frame variants) so each needs to be checked in context. Not a breaking change — save for just before the first public release.
-- [ ] Display overlay version in editor header: show the `version` field from the overlay's `manifest.json` underneath the overlay name in the editor shell header. Needed before the store launches so users can compare their installed version against the store listing. The shell already reads `manifest.json` for reset-to-defaults, so this is a small addition when the time comes.
-- [ ] Bundled font support: curate a set of fonts to ship with the app (sourced from Google Fonts as `.woff2` files). Extract them to `AppData/AngelsNowPlaying/fonts/` alongside overlays during `extract_bundled_overlays()` — same pattern as jQuery today. Add a shared `fonts.css` with `@font-face` declarations referenced by each overlay's `main.html` and `editor.html` via a relative path (`../../fonts/`). This ensures fonts work in both OBS `file://` mode and the HTTP server, cross-platform, with no internet dependency. Steps when ready: (1) decide which fonts to include, (2) download `.woff2` files and add as Tauri resources, (3) write `fonts.css`, (4) update all overlay `main.html`/`editor.html` files to link it, (5) update font dropdowns in each `editor.html` to list the available fonts by name, (6) update `FRAME-DEVELOPMENT.md` to document which fonts are available for overlay authors and note that additional fonts must be bundled with the overlay zip itself.
+- [ ] **View Logs modal in Settings Utilities row**: once the app has meaningful runtime events worth surfacing (HTTP server lifecycle, Tuna connection state, store-download events, auto-updater progress), add a "View Logs" utility card that tails recent entries from `tauri-plugin-log`. Skip until those features exist — currently too little is logged for a dedicated viewer to be useful. Pairs well with the existing Diagnostics card for bug-report workflows.
+
+---------------------------------------------------------------------------------
+
+## Backup & Restore (Next workstream — auto-updater prerequisite)
+
+The Backup / Restore cards are currently stubbed in Settings with a "Coming Soon" modal. Implementing them is the prerequisite that lets the auto-updater preserve user customizations across version bumps (bundled overlays currently re-extract on every `.bundle_version` change and wipe any CSS tweaks).
+
+- [ ] **Backup command**: Tauri command that zips the user-relevant portion of `AppData/AngelsNowPlaying/` and writes it to a user-picked destination via `pick_save_file`. Decide exact contents — candidates: `user-overlays/`, `fonts/user/`, `settings.json`, `overlays/settings.json` (overlay-level dark mode / tuna port), and any customized bundled overlays (requires comparing against the bundle to detect edits).
+- [ ] **Restore command**: Tauri command that reads a backup zip, validates its shape (top-level folders, version stamp), and unpacks it into `AppData/AngelsNowPlaying/`. Needs a clear overwrite / merge policy and a confirmation modal warning about existing data.
+- [ ] **Wire up the Backup / Restore utility cards** in Settings to call the new commands and replace the placeholder Coming Soon modal with real file-picker flows + progress / status feedback.
+- [ ] **Backup metadata stamp**: embed a small `backup-info.json` in the zip (app version, backup date, included categories) so Restore can warn on version mismatches or partial backups.
+- [ ] Once complete, revisit the auto-updater warning toast and the per-overlay versioning item below — both unblock naturally once backup/restore is in place.
 
 ---------------------------------------------------------------------------------
 
@@ -44,6 +55,5 @@ See STORE.md for all store site implementation details.
 ## Long-term / Stretch Goals
 - [ ] Build a community overlay "store" where users can browse, contribute, and install custom now playing overlays. Hosted on GitHub Pages as a metadata-only catalog — see STORE.md for full implementation plan.
 - [ ] Preset theme library: ship a set of named color palettes that users can apply to any overlay in one click from the editor.
-- [ ] Import/export overlay configs between machines: let users export a config bundle (JSON + CSS) and import it on another install. (Can also be used during the update step to backup/restore across updates.) Once implemented, add a notice in Settings warning users to export their overlays before uninstalling if they plan to reinstall later.
 - [ ] Keyboard shortcuts and accessibility improvements across the app UI.
 - [ ] Consider per-overlay versioning: use the `version` field in each overlay's `manifest.json` to decide whether to re-extract that overlay on app update, instead of the current all-or-nothing `.bundle_version` stamp. Revisit alongside the config backup/restore system — backup/restore is the prerequisite that makes this worth doing.

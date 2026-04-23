@@ -14,7 +14,7 @@
   "defaults": {
     "--accent-hex": "#29a9ff",
     "--song-color": "#ffffff",
-    "--font-main": "proxima-nova, sans-serif",
+    "--font-main": "'Montserrat Regular'",
     "--artist-size": "24px",
     "--song-size": "40px",
     "--text-spacing": "8px",

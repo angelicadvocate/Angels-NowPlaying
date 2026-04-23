@@ -138,6 +138,55 @@ See `frame-template-starter/editor.html` for a complete working example, and `sr
 
 ---
 
+## 3b. Bundled fonts
+
+Angels-NowPlaying ships with a curated set of open-license fonts available to every overlay. Load them by linking `../../fonts/fonts.css` from `main.html` and `editor.html`:
+
+```html
+<link rel="stylesheet" href="../../fonts/fonts.css" />
+```
+
+The same relative path works in the in-app preview, the OBS browser source (file://), and the local HTTP server that serves published overlays.
+
+Each dropdown entry matches the exact CSS family name. Reference a font with the quoted family name, e.g. `font-family: 'Montserrat Bold';`.
+
+**Support user-installed fonts in your editor.** Users can install additional fonts via **Settings → Manage Fonts**. To have those fonts show up automatically in your overlay's font dropdown, add this one line to `editor.html` (alongside the `fonts.css` link):
+
+```html
+<script src="../../fonts/font-augment.js" defer></script>
+```
+
+For this to work, your font `<select>` must:
+
+- Have `id="fontFamily"` (preferred) or `id="selectFont"`.
+- Use option values of the form `'Family Name'` — single-quoted, matching the CSS family name — e.g. `<option value="'Montserrat Regular'">Montserrat Regular</option>`.
+
+The script listens for the editor-shell's `init` message and, if the user has any custom fonts installed, appends a `── Custom Fonts ──` separator followed by one option per font. Your existing `change` handler that sets `--font-main` (or whichever variable you use) will pick them up without any additional wiring. The list refreshes every time the editor is opened, so a new install takes effect the next time the user opens any overlay's editor.
+
+**Available families (one dropdown entry per weight):**
+
+| Family | Regular | Bold |
+|---|---|---|
+| Arimo | ✓ | ✓ |
+| Comic Relief | ✓ | ✓ |
+| Courier Prime | ✓ | ✓ |
+| Fascinate Inline | ✓ | — |
+| Gelasio | ✓ | ✓ |
+| Mogra | ✓ | — |
+| Montserrat | ✓ | ✓ |
+| Playwrite Norge | ✓ | — |
+| Sekuya | ✓ | — |
+| Tinos | ✓ | ✓ |
+
+**Using a different font:** you have two options.
+
+- **Inline it:** bundle the TTF/WOFF2 inside your overlay folder and declare your own `@font-face` in `main.css`. Fonts bundled inside an overlay zip travel with the overlay when users install it from the Store.
+- **Require the user to install it:** list the font in your overlay's `description.md` along with a source link and short install instructions. This keeps your overlay zip small and is a good fit for commonly available system or Google Fonts that users can add to their app once and reuse across overlays.
+
+See `LICENSES.md` for the license terms on each bundled family.
+
+---
+
 ## 4. Test in the App
 
 1. Package your overlay folder as a zip. The zip **must** contain a single top-level folder named with your overlay's `id`:

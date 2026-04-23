@@ -4,7 +4,7 @@
 :root {
   --text-color: #ffffff;
   --progress-bar-color: #ffffff;
-  --font-main: proxima-nova, sans-serif;
+  --font-main: 'Montserrat Regular';
   --artist-size: 40px;
   --song-size: 49px;
   --text-spacing: 2px;

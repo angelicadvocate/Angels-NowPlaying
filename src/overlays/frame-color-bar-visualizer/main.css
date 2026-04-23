@@ -4,7 +4,7 @@
 :root {
   --highlight: hsl(0, 100%, 43%);
   --accent-hex: #db0000;
-  --font-main: proxima-nova, sans-serif;
+  --font-main: 'Montserrat Regular';
   --artist-size: 32px;
   --song-size: 48px;
   --text-spacing: 2px;
