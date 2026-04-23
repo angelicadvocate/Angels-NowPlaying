@@ -80,6 +80,18 @@ personal site, or any payment URL. The catalog simply lists them; the app opens 
 in the system browser and never attempts a zip download. No special approval process needed —
 just a visually distinct listing so users know they are leaving the app.
 
+**Disclaimer surfaced on the store site:**
+
+> Paid overlays are managed by their respective developers. Angel's NowPlaying does not
+> track licenses, keys, or purchase receipts — keep your own backups and store receipts
+> for paid overlays. Backup and Restore inside the app cover overlay files and
+> customizations only; they do not preserve any licensing information supplied by
+> third-party developers.
+
+This disclaimer lives on the store site only (not in-app) so it is visible at the point
+of purchase decision. The app itself is deliberately license-agnostic: `backup-info.json`,
+`create_backup`, and `restore_backup` never read or write license keys.
+
 ---------------------------------------------------------------------------------
 
 ## Submission Flow (PR-based)

@@ -151,13 +151,34 @@ document.getElementById('save-btn').addEventListener('click', async () => {
   const btn = document.getElementById('save-btn');
   if (!cssPath) { alert('Cannot determine CSS path for this overlay.'); return; }
   try {
-    let currentCSS = '';
-    try { currentCSS = await invoke('read_file_abs', { path: cssPath }); } catch {}
+    // Read the current file. If this fails we MUST abort — silently treating
+    // the read as "" used to fall through to writing only the :root block,
+    // which wiped the entire main.css. Don't do that.
+    let currentCSS;
+    try {
+      currentCSS = await invoke('read_file_abs', { path: cssPath });
+    } catch (e) {
+      throw new Error(`Could not read existing CSS at ${cssPath}: ${e}`);
+    }
+    if (typeof currentCSS !== 'string' || currentCSS.length === 0) {
+      throw new Error(`Existing CSS at ${cssPath} is empty or unreadable; refusing to overwrite.`);
+    }
+    if (!/:root\s*\{[^}]*\}/s.test(currentCSS)) {
+      throw new Error(`Existing CSS at ${cssPath} has no :root block; refusing to overwrite.`);
+    }
     const existingVars = parseCSSVars(currentCSS);
     const newRoot = await requestRootBlock(existingVars);
-    const updated = currentCSS
-      ? currentCSS.replace(/:root\s*\{[^}]*\}/s, newRoot)
-      : newRoot;
+    // Final sanity check: the replacement must itself look like a :root block.
+    if (!/:root\s*\{[^}]*\}/s.test(newRoot)) {
+      throw new Error('Overlay returned an invalid :root block; refusing to save.');
+    }
+    const updated = currentCSS.replace(/:root\s*\{[^}]*\}/s, newRoot);
+    // Last-line guard: never write a file that's smaller than the original
+    // minus a reasonable :root-block-size delta. If the result is dramatically
+    // shorter than the source, something went wrong upstream.
+    if (updated.length < currentCSS.length / 2) {
+      throw new Error('Save would shrink the CSS file by more than half; refusing to overwrite.');
+    }
     await invoke('save_file_abs', { path: cssPath, content: updated });
     const orig = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
@@ -190,7 +211,7 @@ document.getElementById('reset-btn').addEventListener('click', async () => {
 });
 
 // ---------------------------------------------------------------------------
-// Copy URL button
+// Copy Path button (copies the overlay's local file path for OBS Browser Source)
 // ---------------------------------------------------------------------------
 document.getElementById('copy-url-btn').addEventListener('click', async () => {
   const btn = document.getElementById('copy-url-btn');

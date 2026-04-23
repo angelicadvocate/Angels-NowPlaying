@@ -175,7 +175,7 @@ p { white-space: nowrap; }
   100% { transform: translateX(var(--marquee-end, 0)); }
 }
 
-/* Progress bar — positioned via CSS calc so it auto-adjusts with image size/padding */
+/* Progress bar ï¿½ positioned via CSS calc so it auto-adjusts with image size/padding */
 #progress-container {
   position: absolute;
   bottom: var(--progress-bar-offset);

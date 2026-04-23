@@ -67,7 +67,7 @@ No Node.js or Rust installation is needed to **run** the app. See [DEVELOPMENT.m
 ### 2. Add an overlay to OBS
 
 1. Open Angels-NowPlaying and pick an overlay from the home page.
-2. Click **Copy URL** in the overlay editor to copy the path to `main.html`.
+2. Click **Copy Path** in the overlay editor to copy the path to `main.html`.
 3. In OBS, add a **Browser Source** -> Select local file -> paste the path -> set width/height to the size shown in the editor.
 4. Play music through any source Tuna is configured to read from — Spotify, Last.fm, YouTube Music Desktop App, a VLC Video Source in OBS, and so on. See [Tuna's source documentation](https://github.com/univrsal/tuna/wiki) for setup instructions per source.
 5. The overlay should appear with live track data within a couple of seconds.

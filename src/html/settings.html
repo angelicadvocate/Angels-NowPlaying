@@ -173,18 +173,18 @@
         <button class="settings-button utility-card__button" onclick="openFontsModal()"><i class="fas fa-font"></i> Manage Fonts</button>
       </div>
 
-      <!-- Card 2: Backup (coming soon) -->
+      <!-- Card 2: Backup -->
       <div class="utility-card">
         <p class="utility-card__title"><i class="fas fa-box-archive"></i> Backup</p>
         <p class="utility-card__desc">Export all overlays, fonts, and settings to a single archive.</p>
-        <button class="settings-button utility-card__button" onclick="openComingSoonModal('Backup')"><i class="fas fa-download"></i> Backup…</button>
+        <button class="settings-button utility-card__button" onclick="runBackup()"><i class="fas fa-download"></i> Create Backup…</button>
       </div>
 
-      <!-- Card 3: Restore (coming soon) -->
+      <!-- Card 3: Restore -->
       <div class="utility-card">
         <p class="utility-card__title"><i class="fas fa-rotate-left"></i> Restore</p>
         <p class="utility-card__desc">Restore overlays, fonts, and settings from a previous backup.</p>
-        <button class="settings-button utility-card__button" onclick="openComingSoonModal('Restore')"><i class="fas fa-upload"></i> Restore…</button>
+        <button class="settings-button utility-card__button" onclick="runRestore()"><i class="fas fa-upload"></i> Restore Backup…</button>
       </div>
 
       <!-- Card 4: Diagnostics -->
@@ -360,9 +360,50 @@
     </div>
   </div>
 
+  <!-- Restore confirmation modal (shown after the user picks a backup file,
+       before we wipe + replace existing data). -->
+  <div class="modal-overlay" id="restoreConfirmModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i> Restore Backup</h3>
+        <button class="modal-close" onclick="closeRestoreConfirmModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin:0 0 0.75rem;">
+          Restore from <code id="restoreConfirmFile">backup.zip</code>?
+        </p>
+        <div id="restoreConfirmMeta" style="font-size:0.85rem; opacity:0.85; margin:0 0 0.75rem;"></div>
+        <p style="margin:0 0 0.75rem; padding:0.75rem; background:rgba(185,28,28,0.12); border:1px solid rgba(185,28,28,0.4); border-radius:6px; font-size:0.9rem;">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:0.4rem;"></i>
+          This will replace your installed user overlays and custom fonts, and overwrite your settings. Bundled overlays will be merged with your backed-up customizations.
+        </p>
+        <p id="restoreConfirmStatus" style="font-size:0.85rem; margin:0; display:none;"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeRestoreConfirmModal()">Cancel</button>
+        <button class="settings-button" id="restoreConfirmBtn" onclick="confirmRestore()"><i class="fas fa-rotate-left"></i> Restore</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Restore summary modal (shown after restore completes). -->
+  <div class="modal-overlay" id="restoreSummaryModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><i class="fas fa-circle-check" style="color:#16a34a;"></i> Restore Complete</h3>
+        <button class="modal-close" onclick="closeRestoreSummaryModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="restoreSummaryBody"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="settings-button" onclick="closeRestoreSummaryModal()"><i class="fas fa-check"></i> Done</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Diagnostics Modal -->
-  <div class="modal-overlay" id="diagnosticsModal">
-    <div class="modal modal--large">
+  <div class="modal-overlay" id="diagnosticsModal">    <div class="modal modal--large">
       <div class="modal-header">
         <h3><i class="fas fa-stethoscope"></i> Diagnostics / System Info</h3>
         <button class="modal-close" onclick="closeDiagnosticsModal()">×</button>
@@ -910,6 +951,127 @@
         status.textContent = 'Copy failed: ' + e;
       }
     }
+
+    // ── Backup ───────────────────────────────────────────────────────────────
+    async function runBackup() {
+      if (!window.__TAURI__) return;
+      let dest;
+      try {
+        const defaultName = 'angels-nowplaying-backup-' + new Date().toISOString().slice(0,10) + '.zip';
+        dest = await window.__TAURI__.invoke('pick_save_file', {
+          title: 'Save Backup',
+          defaultName,
+          filterName: 'Backup Archive',
+          extensions: ['zip'],
+        });
+      } catch (e) {
+        alert('Could not open save dialog: ' + e);
+        return;
+      }
+      if (!dest) return; // user cancelled
+      try {
+        const finalPath = await window.__TAURI__.invoke('create_backup', { destination: dest });
+        alert('Backup saved to:\n' + finalPath);
+      } catch (e) {
+        alert('Backup failed: ' + e);
+      }
+    }
+
+    // ── Restore ──────────────────────────────────────────────────────────────
+    let _restorePickedPath = null;
+
+    async function runRestore() {
+      if (!window.__TAURI__) return;
+      let src;
+      try {
+        src = await window.__TAURI__.invoke('pick_file', {
+          title: 'Select Backup to Restore',
+          filterName: 'Backup Archive',
+          extensions: ['zip'],
+        });
+      } catch (e) {
+        alert('Could not open file picker: ' + e);
+        return;
+      }
+      if (!src) return;
+      _restorePickedPath = src;
+      const fileName = src.split(/[\\/]/).pop();
+      document.getElementById('restoreConfirmFile').textContent = fileName;
+      document.getElementById('restoreConfirmMeta').textContent = '';
+      const status = document.getElementById('restoreConfirmStatus');
+      status.style.display = 'none';
+      status.textContent = '';
+      document.getElementById('restoreConfirmBtn').disabled = false;
+      document.getElementById('restoreConfirmModal').classList.add('active');
+    }
+
+    function closeRestoreConfirmModal() {
+      document.getElementById('restoreConfirmModal').classList.remove('active');
+      _restorePickedPath = null;
+    }
+    document.getElementById('restoreConfirmModal')?.addEventListener('click', function(e) {
+      if (e.target === this) closeRestoreConfirmModal();
+    });
+
+    async function confirmRestore() {
+      if (!window.__TAURI__ || !_restorePickedPath) return;
+      const btn = document.getElementById('restoreConfirmBtn');
+      const status = document.getElementById('restoreConfirmStatus');
+      btn.disabled = true;
+      status.style.display = 'block';
+      status.style.color = 'var(--text-primary)';
+      status.textContent = 'Restoring…';
+      try {
+        const summary = await window.__TAURI__.invoke('restore_backup', { source: _restorePickedPath });
+        closeRestoreConfirmModal();
+        showRestoreSummary(summary);
+      } catch (e) {
+        status.style.color = '#dc2626';
+        status.textContent = 'Restore failed: ' + e;
+        btn.disabled = false;
+      }
+    }
+
+    function showRestoreSummary(s) {
+      const body = document.getElementById('restoreSummaryBody');
+      const backupDate = s.backup_created_at_unix
+        ? new Date(s.backup_created_at_unix * 1000).toLocaleString()
+        : 'unknown';
+      const skipped = Array.isArray(s.bundled_customizations_skipped) ? s.bundled_customizations_skipped : [];
+      const warnings = Array.isArray(s.warnings) ? s.warnings : [];
+      body.innerHTML = `
+        <p style="margin:0 0 0.75rem; font-size:0.9rem;">
+          Restored from a backup created by <strong>v${s.backup_app_version || '?'}</strong> on <strong>${backupDate}</strong>.
+        </p>
+        <ul style="margin:0 0 0.75rem; padding-left:1.25rem; font-size:0.9rem; line-height:1.6;">
+          <li>User overlays restored: <strong>${s.user_overlays_restored}</strong></li>
+          <li>User fonts restored: <strong>${s.user_fonts_restored}</strong></li>
+          <li>Bundled-overlay customizations restored: <strong>${s.bundled_customizations_restored}</strong></li>
+        </ul>
+        ${skipped.length ? `
+          <p style="margin:0 0 0.35rem; font-size:0.9rem;"><strong>Skipped bundled overlays</strong> (no longer exist in this app version):</p>
+          <ul style="margin:0 0 0.75rem; padding-left:1.25rem; font-size:0.85rem; opacity:0.85;">
+            ${skipped.map(id => `<li><code>${id}</code></li>`).join('')}
+          </ul>` : ''}
+        ${warnings.length ? `
+          <p style="margin:0 0 0.35rem; font-size:0.9rem;"><strong>Warnings</strong>:</p>
+          <ul style="margin:0 0 0.75rem; padding-left:1.25rem; font-size:0.85rem; opacity:0.85;">
+            ${warnings.map(w => `<li>${w}</li>`).join('')}
+          </ul>` : ''}
+        <p style="margin:0; padding:0.75rem; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.4); border-radius:6px; font-size:0.85rem;">
+          <i class="fas fa-info-circle" style="color:#f59e0b; margin-right:0.4rem;"></i>
+          If you had any overlay editors open, reload them (or return to the home page) to see the restored customizations.
+        </p>
+      `;
+      document.getElementById('restoreSummaryModal').classList.add('active');
+    }
+
+    function closeRestoreSummaryModal() {
+      document.getElementById('restoreSummaryModal').classList.remove('active');
+    }
+    document.getElementById('restoreSummaryModal')?.addEventListener('click', function(e) {
+      if (e.target === this) closeRestoreSummaryModal();
+    });
 
     function formatFontSize(bytes) {
       if (bytes < 1024) return bytes + ' B';

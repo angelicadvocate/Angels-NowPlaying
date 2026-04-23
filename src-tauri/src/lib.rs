@@ -37,6 +37,8 @@ pub fn run() {
       backend::reset_app_data,
       backend::exit_app,
       backend::get_diagnostics,
+      backend::create_backup,
+      backend::restore_backup,
     ])
     .setup(|app| {
       if let Err(e) = backend::extract_bundled_overlays(&app.handle()) {

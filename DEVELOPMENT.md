@@ -144,7 +144,7 @@ Standard HTML/CSS/JS. Tauri APIs are available via `window.__TAURI__.invoke(...)
 
 ### Overlay editors (`src/overlays/*/editor.html`)
 
-Also plain HTML/CSS/JS. Each `editor.html` is loaded inside an `<iframe>` by the shared `src/html/editor-shell.html` + `src/js/editor-shell.js` host, which owns the header, Save, Copy URL, and Back buttons. Communication between the shell and the overlay editor uses `postMessage`.
+Also plain HTML/CSS/JS. Each `editor.html` is loaded inside an `<iframe>` by the shared `src/html/editor-shell.html` + `src/js/editor-shell.js` host, which owns the header, Save, Copy Path, and Back buttons. Communication between the shell and the overlay editor uses `postMessage`.
 
 For the full editor wiring protocol, `postMessage` message types, `buildRootBlock` contract, and `editor-common.css` usage, see [FRAME-DEVELOPMENT.md](FRAME-DEVELOPMENT.md).
 

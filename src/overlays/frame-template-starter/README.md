@@ -65,7 +65,7 @@ Declare these in `main.css` `:root {}` to enable scroller tuning:
 
 ## Editor controls — wiring up the shell and Save behaviour
 
-`editor-shell.js` owns the Save, Copy URL, and Back buttons. Your `editor.html` is loaded inside an `<iframe>` in the shared `editor-shell.html` host and communicates with it entirely via `postMessage`.
+`editor-shell.js` owns the Save, Copy Path, and Back buttons. Your `editor.html` is loaded inside an `<iframe>` in the shared `editor-shell.html` host and communicates with it entirely via `postMessage`.
 
 **Step 1 — Signal ready immediately**
 

@@ -691,9 +691,16 @@ pub fn extract_bundled_overlays(app_handle: &tauri::AppHandle) -> Result<(), Str
 }
 
 /// Install a user overlay from a zip file path.
-/// The zip must contain a single top-level folder whose name is the overlay id.
-/// That folder must contain a manifest.json at its root.
-/// Returns the installed overlay id on success.
+/// The zip must contain a single top-level folder whose name is the overlay's
+/// declared id (the slug). That folder must contain a manifest.json at its root.
+///
+/// **Collision handling:** If a folder with that name already exists in
+/// `user-overlays/`, a short uuid suffix is appended (e.g. `frame-foo-a3f2c1d4`)
+/// so two unrelated overlays sharing the same slug can coexist. The first install
+/// of a given slug keeps its clean name; only later collisions get suffixed.
+///
+/// Returns the on-disk install id (the folder name actually used). For collision-
+/// free installs this equals the slug from the zip.
 #[tauri::command]
 pub fn install_overlay(zip_path: String) -> Result<String, String> {
     let dest_root = user_overlays_dir();
@@ -703,10 +710,10 @@ pub fn install_overlay(zip_path: String) -> Result<String, String> {
     let cursor = std::io::Cursor::new(&zip_bytes);
     let mut archive = zip::ZipArchive::new(cursor).map_err(|e| format!("Invalid zip: {e}"))?;
 
-    // Determine the top-level folder name (the overlay id).
+    // Determine the top-level folder name (the overlay's declared slug).
     // All entries must share the same top-level prefix.
     // Normalize backslashes → forward slashes (PowerShell Compress-Archive uses backslashes).
-    let overlay_id = {
+    let slug = {
         let first = archive.by_index(0).map_err(|e| e.to_string())?;
         let normalized = first.name().replace('\\', "/");
         let parts: Vec<&str> = normalized.splitn(2, '/').collect();
@@ -716,13 +723,13 @@ pub fn install_overlay(zip_path: String) -> Result<String, String> {
         parts[0].to_string()
     };
 
-    // Reject ids that look like path traversal.
-    if overlay_id.contains("..") || overlay_id.contains('/') || overlay_id.contains('\\') {
+    // Reject slugs that look like path traversal.
+    if slug.contains("..") || slug.contains('/') || slug.contains('\\') {
         return Err("Invalid overlay id in zip".to_string());
     }
 
     // Require manifest.json to be present inside that folder.
-    let manifest_entry = format!("{}/manifest.json", overlay_id);
+    let manifest_entry = format!("{}/manifest.json", slug);
     let has_manifest = (0..archive.len()).any(|i| {
         archive
             .by_index(i)
@@ -733,10 +740,28 @@ pub fn install_overlay(zip_path: String) -> Result<String, String> {
         return Err(format!("Zip does not contain {manifest_entry}"));
     }
 
-    let dest = dest_root.join(&overlay_id);
-    if dest.exists() {
-        return Err(format!("An overlay named '{overlay_id}' is already installed. Delete it first."));
-    }
+    // Pick a non-colliding install id. Prefer the clean slug; on collision
+    // append an 8-char hex suffix from a fresh UUIDv4. Retry a few times in
+    // the (astronomically unlikely) case the suffix itself collides.
+    let install_id = {
+        let clean = dest_root.join(&slug);
+        if !clean.exists() {
+            slug.clone()
+        } else {
+            let mut chosen: Option<String> = None;
+            for _ in 0..8 {
+                let suffix = uuid::Uuid::new_v4().simple().to_string()[..8].to_string();
+                let candidate = format!("{slug}-{suffix}");
+                if !dest_root.join(&candidate).exists() {
+                    chosen = Some(candidate);
+                    break;
+                }
+            }
+            chosen.ok_or_else(|| "Could not generate a unique install id".to_string())?
+        }
+    };
+
+    let dest = dest_root.join(&install_id);
     fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
 
     // Extract — skip the top-level folder entry itself.
@@ -744,8 +769,8 @@ pub fn install_overlay(zip_path: String) -> Result<String, String> {
         let mut file = archive.by_index(i).map_err(|e| e.to_string())?;
         // Normalize backslashes so strip_prefix and path splitting work correctly.
         let name = file.name().replace('\\', "/");
-        // strip the leading "overlay_id/" prefix
-        let relative = match name.strip_prefix(&format!("{}/", overlay_id)) {
+        // strip the leading "<slug>/" prefix from the zip path
+        let relative = match name.strip_prefix(&format!("{}/", slug)) {
             Some(r) => r.to_string(),
             None => continue, // this is the top-level dir entry itself
         };
@@ -768,7 +793,7 @@ pub fn install_overlay(zip_path: String) -> Result<String, String> {
         }
     }
 
-    Ok(overlay_id)
+    Ok(install_id)
 }
 
 /// Delete a user-installed overlay by id.
@@ -1314,3 +1339,615 @@ pub fn get_diagnostics() -> DiagnosticsReport {
         user_fonts_count,
     }
 }
+
+// ── Backup & Restore ────────────────────────────────────────────────────────
+//
+// Backup format v1 — a single zip with this top-level layout:
+//
+//     backup.zip
+//     ├── backup-info.json             metadata (version stamps + counts)
+//     ├── settings.json                AppSettings (optional — only if it
+//     │                                exists on disk; machine-specific
+//     │                                paths validated on restore)
+//     ├── overlay-settings.json        OverlaySettings (optional)
+//     ├── bundled-customizations.json  { "<overlay-id>": { "--var": "val" } }
+//     │                                parsed `:root` var overrides only,
+//     │                                diffed against each overlay's
+//     │                                manifest.json `defaults` block
+//     ├── user-overlays/               full recursive copy
+//     └── fonts/user/                  full recursive copy (regenerates
+//                                      user-fonts.css on restore)
+//
+// The silent snapshot path used by the auto-updater is
+//   AppData/AngelsNowPlaying/.snapshots/update-<unix>.zip
+// — the backup walker never traverses `.snapshots/`, so snapshots cannot
+// recursively include each other.
+
+const BACKUP_FORMAT_VERSION: u32 = 1;
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+struct BackupMetadata {
+    backup_format_version: u32,
+    app_version: String,
+    created_at_unix: u64,
+    includes: Vec<String>,
+    counts: BackupCounts,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+struct BackupCounts {
+    user_overlays: usize,
+    user_fonts: usize,
+    customized_bundled: usize,
+}
+
+/// Summary returned to the UI after a restore completes.
+#[derive(Serialize, Debug, Clone, Default)]
+pub struct RestoreSummary {
+    pub backup_app_version: String,
+    pub backup_format_version: u32,
+    pub backup_created_at_unix: u64,
+    pub user_overlays_restored: usize,
+    pub user_fonts_restored: usize,
+    pub bundled_customizations_restored: usize,
+    /// Bundled overlays present in the backup that no longer exist in
+    /// the current app version (renamed / removed).
+    pub bundled_customizations_skipped: Vec<String>,
+    /// Non-fatal notices — e.g. tuna_path from the backup didn't exist on
+    /// this machine so the current value was kept.
+    pub warnings: Vec<String>,
+}
+
+fn unix_now() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0)
+}
+
+/// Resolve the on-disk directory for a bundled overlay. Dev reads from the
+/// source tree; release reads from the AppData extraction.
+fn bundled_overlay_source_dir(overlay_id: &str) -> Option<PathBuf> {
+    let dir = if cfg!(debug_assertions) {
+        project_root().ok()?.join("src").join("overlays").join(overlay_id)
+    } else {
+        bundled_overlays_dir().join(overlay_id)
+    };
+    if dir.is_dir() { Some(dir) } else { None }
+}
+
+/// Iterate every bundled overlay folder (by id) known to the current app.
+fn list_bundled_overlay_ids() -> Vec<String> {
+    let root = if cfg!(debug_assertions) {
+        match project_root() {
+            Ok(r) => r.join("src").join("overlays"),
+            Err(_) => return vec![],
+        }
+    } else {
+        bundled_overlays_dir()
+    };
+    let Ok(rd) = fs::read_dir(&root) else { return vec![] };
+    rd.filter_map(|e| e.ok())
+        .filter(|e| e.file_type().map(|t| t.is_dir()).unwrap_or(false))
+        .map(|e| e.file_name().to_string_lossy().into_owned())
+        .filter(|name| !name.starts_with('.'))
+        .collect()
+}
+
+/// Find the `:root { ... }` block in a CSS string and return
+/// `(selector_start_idx, open_brace_idx, close_brace_idx)` so the interior
+/// is `css[open_brace_idx+1..close_brace_idx]`.
+///
+/// Uses a simple balanced-brace scan — does NOT track `{` / `}` inside
+/// strings or comments. All bundled overlay `main.css` files follow a
+/// plain `:root { --name: value; ... }` convention, so this is sufficient.
+fn find_root_block_bounds(css: &str) -> Option<(usize, usize, usize)> {
+    let sel = css.find(":root")?;
+    let rest = &css[sel..];
+    let open_rel = rest.find('{')?;
+    let open = sel + open_rel;
+    let bytes = css.as_bytes();
+    let mut depth = 1i32;
+    let mut i = open + 1;
+    while i < bytes.len() {
+        match bytes[i] {
+            b'{' => depth += 1,
+            b'}' => {
+                depth -= 1;
+                if depth == 0 {
+                    return Some((sel, open, i));
+                }
+            }
+            _ => {}
+        }
+        i += 1;
+    }
+    None
+}
+
+/// Parse `--name: value;` declarations out of a `:root` block interior.
+/// Order is preserved; duplicates keep the last value.
+fn parse_root_vars(interior: &str) -> Vec<(String, String)> {
+    let mut out: Vec<(String, String)> = Vec::new();
+    for decl in interior.split(';') {
+        let decl = decl.trim();
+        if !decl.starts_with("--") {
+            continue;
+        }
+        let Some(colon) = decl.find(':') else { continue };
+        let name = decl[..colon].trim().to_string();
+        let value = decl[colon + 1..].trim().to_string();
+        if name.is_empty() || value.is_empty() {
+            continue;
+        }
+        if let Some(existing) = out.iter_mut().find(|(n, _)| n == &name) {
+            existing.1 = value;
+        } else {
+            out.push((name, value));
+        }
+    }
+    out
+}
+
+/// Load the `defaults` object from a bundled overlay's manifest.json.
+fn load_overlay_defaults(overlay_id: &str) -> Option<Vec<(String, String)>> {
+    let dir = bundled_overlay_source_dir(overlay_id)?;
+    let manifest = fs::read_to_string(dir.join("manifest.json")).ok()?;
+    let value: serde_json::Value = serde_json::from_str(&manifest).ok()?;
+    let defaults = value.get("defaults")?.as_object()?;
+    Some(
+        defaults
+            .iter()
+            .filter_map(|(k, v)| v.as_str().map(|s| (k.clone(), s.to_string())))
+            .collect(),
+    )
+}
+
+/// Compute the diff of the current `:root` vars vs. manifest defaults for
+/// one overlay. Returns only overridden var names and their current values.
+fn diff_overlay_customizations(overlay_id: &str) -> serde_json::Map<String, serde_json::Value> {
+    let mut overrides = serde_json::Map::new();
+    let Some(dir) = bundled_overlay_source_dir(overlay_id) else { return overrides };
+    let Ok(css) = fs::read_to_string(dir.join("main.css")) else { return overrides };
+    let Some((_, open, close)) = find_root_block_bounds(&css) else { return overrides };
+    let current: Vec<(String, String)> = parse_root_vars(&css[open + 1..close]);
+    let defaults: Vec<(String, String)> = load_overlay_defaults(overlay_id).unwrap_or_default();
+    for (name, cur_val) in &current {
+        let default_val = defaults.iter().find(|(n, _)| n == name).map(|(_, v)| v.as_str());
+        match default_val {
+            Some(dv) if dv == cur_val => {} // unchanged — skip
+            _ => {
+                overrides.insert(name.clone(), serde_json::Value::String(cur_val.clone()));
+            }
+        }
+    }
+    overrides
+}
+
+/// Build the full `bundled-customizations.json` payload — overlay-id → overrides.
+/// Overlays with no overrides are omitted entirely.
+fn build_bundled_customizations() -> serde_json::Map<String, serde_json::Value> {
+    let mut out = serde_json::Map::new();
+    for id in list_bundled_overlay_ids() {
+        let overrides = diff_overlay_customizations(&id);
+        if !overrides.is_empty() {
+            out.insert(id, serde_json::Value::Object(overrides));
+        }
+    }
+    out
+}
+
+/// Re-render a `:root` block's interior from ordered (name, value) pairs.
+/// Produces a tidy indented block matching our overlay CSS conventions.
+fn render_root_block_interior(vars: &[(String, String)]) -> String {
+    let mut s = String::from("\n");
+    for (name, value) in vars {
+        s.push_str("  ");
+        s.push_str(name);
+        s.push_str(": ");
+        s.push_str(value);
+        s.push_str(";\n");
+    }
+    s
+}
+
+/// Walk `root` recursively and write every regular file into the zip under
+/// `<zip_prefix>/<rel-path>`. Skips directories whose names start with `.`
+/// so `.snapshots/` is never pulled into a backup.
+fn zip_add_dir_recursive(
+    writer: &mut zip::ZipWriter<fs::File>,
+    root: &std::path::Path,
+    zip_prefix: &str,
+    options: zip::write::FileOptions<'_, ()>,
+) -> Result<usize, String> {
+    if !root.is_dir() {
+        return Ok(0);
+    }
+    let mut count = 0usize;
+    let mut stack: Vec<PathBuf> = vec![root.to_path_buf()];
+    while let Some(dir) = stack.pop() {
+        let entries = fs::read_dir(&dir).map_err(|e| format!("read_dir {}: {e}", dir.display()))?;
+        for entry in entries {
+            let entry = entry.map_err(|e| e.to_string())?;
+            let path = entry.path();
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if name.starts_with('.') {
+                continue;
+            }
+            let rel = path
+                .strip_prefix(root)
+                .map_err(|e| e.to_string())?
+                .to_string_lossy()
+                .replace('\\', "/");
+            if path.is_dir() {
+                stack.push(path);
+                continue;
+            }
+            let zip_name = if zip_prefix.is_empty() {
+                rel
+            } else {
+                format!("{}/{}", zip_prefix.trim_end_matches('/'), rel)
+            };
+            writer
+                .start_file(&zip_name, options)
+                .map_err(|e| format!("start_file {zip_name}: {e}"))?;
+            let data = fs::read(&path).map_err(|e| e.to_string())?;
+            writer.write_all(&data).map_err(|e| e.to_string())?;
+            count += 1;
+        }
+    }
+    Ok(count)
+}
+
+/// Create a backup zip. Pass `None` for `destination` to produce a silent
+/// snapshot under `AppData/AngelsNowPlaying/.snapshots/`; pass `Some(path)`
+/// for a user-chosen destination. Returns the final path written.
+#[tauri::command]
+pub fn create_backup(destination: Option<String>) -> Result<String, String> {
+    let dest = match destination {
+        Some(s) => PathBuf::from(s),
+        None => {
+            let dir = app_data_dir().join(".snapshots");
+            fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+            dir.join(format!("update-{}.zip", unix_now()))
+        }
+    };
+    if let Some(parent) = dest.parent() {
+        fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+
+    let file = fs::File::create(&dest).map_err(|e| format!("create {}: {e}", dest.display()))?;
+    let mut zipw = zip::ZipWriter::new(file);
+    let options: zip::write::FileOptions<'_, ()> =
+        zip::write::FileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+
+    let mut includes: Vec<String> = Vec::new();
+    let mut counts = BackupCounts::default();
+
+    // user-overlays/
+    let user_ov = user_overlays_dir();
+    if user_ov.is_dir() {
+        let n = zip_add_dir_recursive(&mut zipw, &user_ov, "user-overlays", options)?;
+        // Count top-level overlay folders for metadata.
+        counts.user_overlays = fs::read_dir(&user_ov)
+            .map(|rd| {
+                rd.filter_map(|e| e.ok())
+                    .filter(|e| e.file_type().map(|t| t.is_dir()).unwrap_or(false))
+                    .filter(|e| !e.file_name().to_string_lossy().starts_with('.'))
+                    .count()
+            })
+            .unwrap_or(0);
+        if n > 0 {
+            includes.push("user_overlays".to_string());
+        }
+    }
+
+    // fonts/user/
+    let user_fonts = fonts_dir().join("user");
+    if user_fonts.is_dir() {
+        let n = zip_add_dir_recursive(&mut zipw, &user_fonts, "fonts/user", options)?;
+        counts.user_fonts = fs::read_dir(&user_fonts)
+            .map(|rd| {
+                rd.filter_map(|e| e.ok())
+                    .filter(|e| e.file_type().map(|t| t.is_file()).unwrap_or(false))
+                    .filter(|e| {
+                        let n = e.file_name().to_string_lossy().to_ascii_lowercase();
+                        FONT_EXTS.iter().any(|ext| n.ends_with(&format!(".{ext}")))
+                    })
+                    .count()
+            })
+            .unwrap_or(0);
+        if n > 0 {
+            includes.push("user_fonts".to_string());
+        }
+    }
+
+    // settings.json (AppSettings)
+    let app_settings_path = settings_path();
+    if app_settings_path.exists() {
+        let data = fs::read(&app_settings_path).map_err(|e| e.to_string())?;
+        zipw.start_file("settings.json", options).map_err(|e| e.to_string())?;
+        zipw.write_all(&data).map_err(|e| e.to_string())?;
+        includes.push("settings".to_string());
+    }
+
+    // overlay-settings.json (OverlaySettings)
+    if let Ok(ov_path) = overlay_settings_path() {
+        if ov_path.exists() {
+            let data = fs::read(&ov_path).map_err(|e| e.to_string())?;
+            zipw.start_file("overlay-settings.json", options).map_err(|e| e.to_string())?;
+            zipw.write_all(&data).map_err(|e| e.to_string())?;
+            includes.push("overlay_settings".to_string());
+        }
+    }
+
+    // bundled-customizations.json
+    let customizations = build_bundled_customizations();
+    if !customizations.is_empty() {
+        counts.customized_bundled = customizations.len();
+        let json = serde_json::to_string_pretty(&serde_json::Value::Object(customizations))
+            .map_err(|e| e.to_string())?;
+        zipw.start_file("bundled-customizations.json", options).map_err(|e| e.to_string())?;
+        zipw.write_all(json.as_bytes()).map_err(|e| e.to_string())?;
+        includes.push("bundled_customizations".to_string());
+    }
+
+    // backup-info.json (written last — we need the final counts / includes).
+    let meta = BackupMetadata {
+        backup_format_version: BACKUP_FORMAT_VERSION,
+        app_version: env!("CARGO_PKG_VERSION").to_string(),
+        created_at_unix: unix_now(),
+        includes,
+        counts,
+    };
+    let meta_json = serde_json::to_string_pretty(&meta).map_err(|e| e.to_string())?;
+    zipw.start_file("backup-info.json", options).map_err(|e| e.to_string())?;
+    zipw.write_all(meta_json.as_bytes()).map_err(|e| e.to_string())?;
+
+    zipw.finish().map_err(|e| e.to_string())?;
+    Ok(dest.to_string_lossy().into_owned())
+}
+
+/// Extract a single zip entry into a target directory. Rejects entries whose
+/// resolved path escapes the target (zip-slip guard).
+fn extract_zip_entry(
+    entry: &mut zip::read::ZipFile<'_>,
+    target_root: &std::path::Path,
+    entry_name: &str,
+) -> Result<(), String> {
+    // Normalize and validate path.
+    let rel = PathBuf::from(entry_name.replace('\\', "/"));
+    for comp in rel.components() {
+        if matches!(comp, std::path::Component::ParentDir) {
+            return Err(format!("Refusing to extract path with '..': {entry_name}"));
+        }
+    }
+    let target = target_root.join(&rel);
+    if !target.starts_with(target_root) {
+        return Err(format!("Refusing to extract outside target root: {entry_name}"));
+    }
+    if entry.is_dir() {
+        fs::create_dir_all(&target).map_err(|e| e.to_string())?;
+        return Ok(());
+    }
+    if let Some(parent) = target.parent() {
+        fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    let mut out = fs::File::create(&target).map_err(|e| format!("create {}: {e}", target.display()))?;
+    io::copy(entry, &mut out).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+/// Remove all entries inside `dir` (but not `dir` itself). No-op if missing.
+fn wipe_dir_contents(dir: &std::path::Path) -> Result<(), String> {
+    if !dir.exists() {
+        return Ok(());
+    }
+    for entry in fs::read_dir(dir).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let p = entry.path();
+        if p.is_dir() {
+            fs::remove_dir_all(&p).map_err(|e| format!("remove_dir_all {}: {e}", p.display()))?;
+        } else {
+            fs::remove_file(&p).map_err(|e| format!("remove_file {}: {e}", p.display()))?;
+        }
+    }
+    Ok(())
+}
+
+/// Restore from a backup zip created by `create_backup`.
+#[tauri::command]
+pub fn restore_backup(source: String) -> Result<RestoreSummary, String> {
+    let src = PathBuf::from(&source);
+    if !src.is_file() {
+        return Err(format!("Backup file not found: {source}"));
+    }
+    let bytes = fs::read(&src).map_err(|e| format!("read backup: {e}"))?;
+    let cursor = io::Cursor::new(&bytes);
+    let mut archive = zip::ZipArchive::new(cursor).map_err(|e| format!("Invalid zip: {e}"))?;
+
+    // ── 1. Read + validate backup-info.json ──────────────────────────────
+    let meta: BackupMetadata = {
+        let mut f = archive
+            .by_name("backup-info.json")
+            .map_err(|_| "backup-info.json missing — not a valid Angel's NowPlaying backup".to_string())?;
+        let mut s = String::new();
+        f.read_to_string(&mut s).map_err(|e| e.to_string())?;
+        serde_json::from_str(&s).map_err(|e| format!("backup-info.json malformed: {e}"))?
+    };
+    if meta.backup_format_version != BACKUP_FORMAT_VERSION {
+        return Err(format!(
+            "Unsupported backup format version {} — this app expects version {}. Restore cancelled.",
+            meta.backup_format_version, BACKUP_FORMAT_VERSION
+        ));
+    }
+
+    let mut summary = RestoreSummary {
+        backup_app_version: meta.app_version.clone(),
+        backup_format_version: meta.backup_format_version,
+        backup_created_at_unix: meta.created_at_unix,
+        ..Default::default()
+    };
+
+    // ── 2. Extract the whole zip into a temp staging dir ────────────────
+    let stage = std::env::temp_dir().join(format!("angels-np-restore-{}", unix_now()));
+    fs::create_dir_all(&stage).map_err(|e| e.to_string())?;
+    for i in 0..archive.len() {
+        let mut entry = archive.by_index(i).map_err(|e| e.to_string())?;
+        let name = entry.name().to_string();
+        extract_zip_entry(&mut entry, &stage, &name)?;
+    }
+
+    // ── 3. user-overlays/ — wipe + replace ──────────────────────────────
+    let staged_user_overlays = stage.join("user-overlays");
+    if staged_user_overlays.is_dir() {
+        let target = user_overlays_dir();
+        fs::create_dir_all(&target).map_err(|e| e.to_string())?;
+        wipe_dir_contents(&target)?;
+        copy_dir_all(&staged_user_overlays, &target).map_err(|e| e.to_string())?;
+        summary.user_overlays_restored = fs::read_dir(&target)
+            .map(|rd| {
+                rd.filter_map(|e| e.ok())
+                    .filter(|e| e.file_type().map(|t| t.is_dir()).unwrap_or(false))
+                    .count()
+            })
+            .unwrap_or(0);
+    }
+
+    // ── 4. fonts/user/ — wipe + replace, then regenerate user-fonts.css ──
+    let staged_user_fonts = stage.join("fonts").join("user");
+    if staged_user_fonts.is_dir() {
+        let target = fonts_dir().join("user");
+        fs::create_dir_all(&target).map_err(|e| e.to_string())?;
+        wipe_dir_contents(&target)?;
+        copy_dir_all(&staged_user_fonts, &target).map_err(|e| e.to_string())?;
+        summary.user_fonts_restored = fs::read_dir(&target)
+            .map(|rd| {
+                rd.filter_map(|e| e.ok())
+                    .filter(|e| {
+                        let n = e.file_name().to_string_lossy().to_ascii_lowercase();
+                        FONT_EXTS.iter().any(|ext| n.ends_with(&format!(".{ext}")))
+                    })
+                    .count()
+            })
+            .unwrap_or(0);
+    }
+    // Regenerate regardless — handles both the "fonts restored" and
+    // "fonts already present" cases, and keeps user-fonts.css consistent.
+    if let Err(e) = regenerate_user_fonts_css() {
+        summary.warnings.push(format!("Could not regenerate user-fonts.css: {e}"));
+    }
+
+    // ── 5. settings.json (AppSettings) ──────────────────────────────────
+    let staged_app_settings = stage.join("settings.json");
+    if staged_app_settings.is_file() {
+        let content = fs::read_to_string(&staged_app_settings).map_err(|e| e.to_string())?;
+        match serde_json::from_str::<AppSettings>(&content) {
+            Ok(mut backup_settings) => {
+                let current = get_settings().unwrap_or_default();
+                // Machine-specific paths: keep current value if the backup's
+                // path doesn't exist on this machine.
+                if !backup_settings.tuna_path.as_os_str().is_empty()
+                    && !backup_settings.tuna_path.exists()
+                {
+                    summary.warnings.push(format!(
+                        "Backup's Tuna path ({}) doesn't exist on this machine — kept current value.",
+                        backup_settings.tuna_path.display()
+                    ));
+                    backup_settings.tuna_path = current.tuna_path.clone();
+                }
+                if !backup_settings.export_root.as_os_str().is_empty()
+                    && !backup_settings.export_root.exists()
+                {
+                    summary.warnings.push(format!(
+                        "Backup's export root ({}) doesn't exist on this machine — kept current value.",
+                        backup_settings.export_root.display()
+                    ));
+                    backup_settings.export_root = current.export_root.clone();
+                }
+                if let Err(e) = save_settings(backup_settings) {
+                    summary.warnings.push(format!("Could not save app settings: {e}"));
+                }
+            }
+            Err(e) => summary.warnings.push(format!("settings.json malformed, skipped: {e}")),
+        }
+    }
+
+    // ── 6. overlay-settings.json (OverlaySettings) ──────────────────────
+    let staged_overlay_settings = stage.join("overlay-settings.json");
+    if staged_overlay_settings.is_file() {
+        let content = fs::read_to_string(&staged_overlay_settings).map_err(|e| e.to_string())?;
+        match serde_json::from_str::<serde_json::Value>(&content) {
+            Ok(value) => {
+                let defaults = OverlaySettings::default();
+                let tuna_port = value["tuna_port"].as_u64().map(|v| v as u16).unwrap_or(defaults.tuna_port);
+                let dark_mode = value["dark_mode"].as_bool().unwrap_or(defaults.dark_mode);
+                let show_user_overlays = value["show_user_overlays"].as_bool().unwrap_or(defaults.show_user_overlays);
+                let show_template_starter = value["show_template_starter"].as_bool().unwrap_or(defaults.show_template_starter);
+                if let Err(e) = save_overlay_settings(tuna_port, dark_mode, show_user_overlays, show_template_starter) {
+                    summary.warnings.push(format!("Could not save overlay settings: {e}"));
+                }
+            }
+            Err(e) => summary.warnings.push(format!("overlay-settings.json malformed, skipped: {e}")),
+        }
+    }
+
+    // ── 7. bundled-customizations.json ──────────────────────────────────
+    let staged_custom = stage.join("bundled-customizations.json");
+    if staged_custom.is_file() {
+        let content = fs::read_to_string(&staged_custom).map_err(|e| e.to_string())?;
+        let parsed: serde_json::Value =
+            serde_json::from_str(&content).map_err(|e| format!("bundled-customizations.json malformed: {e}"))?;
+        if let Some(map) = parsed.as_object() {
+            for (overlay_id, overrides_val) in map {
+                // Safety — reject anything that looks like a path traversal.
+                if overlay_id.contains('/') || overlay_id.contains('\\') || overlay_id.contains("..") {
+                    summary.warnings.push(format!("Skipped suspicious overlay id: {overlay_id}"));
+                    continue;
+                }
+                let Some(dir) = bundled_overlay_source_dir(overlay_id) else {
+                    summary.bundled_customizations_skipped.push(overlay_id.clone());
+                    continue;
+                };
+                let css_path = dir.join("main.css");
+                let Ok(css) = fs::read_to_string(&css_path) else {
+                    summary.warnings.push(format!("Could not read {}", css_path.display()));
+                    continue;
+                };
+                let Some((_, open, close)) = find_root_block_bounds(&css) else {
+                    summary.warnings.push(format!("{} has no :root block — skipped", overlay_id));
+                    continue;
+                };
+                let mut vars = parse_root_vars(&css[open + 1..close]);
+                let overrides = overrides_val.as_object().cloned().unwrap_or_default();
+                for (name, new_val) in overrides {
+                    let Some(new_str) = new_val.as_str() else { continue };
+                    if let Some(existing) = vars.iter_mut().find(|(n, _)| n == &name) {
+                        existing.1 = new_str.to_string();
+                    } else {
+                        // Var no longer exists in the current overlay — skip
+                        // silently. Writing a stale var would be harmless but
+                        // noisy; the user will re-create it via the editor
+                        // if it still matters to them.
+                    }
+                }
+                let new_interior = render_root_block_interior(&vars);
+                let mut rebuilt = String::with_capacity(css.len());
+                rebuilt.push_str(&css[..open + 1]);
+                rebuilt.push_str(&new_interior);
+                rebuilt.push_str(&css[close..]);
+                if let Err(e) = fs::write(&css_path, rebuilt) {
+                    summary.warnings.push(format!("Write {} failed: {e}", css_path.display()));
+                    continue;
+                }
+                summary.bundled_customizations_restored += 1;
+            }
+        }
+    }
+
+    // ── 8. Clean up staging dir (best-effort) ───────────────────────────
+    let _ = fs::remove_dir_all(&stage);
+
+    Ok(summary)
+}
+

@@ -227,6 +227,6 @@ In the meantime, you can share your overlay by zipping the folder and distributi
 ## Further Reading
 
 - `frame-template-starter/README.md` — per-file conventions, DOM IDs, CSS variable reference, manifest schema, editor wiring
-- `src/html/editor-shell.html` / `src/js/editor-shell.js` — the shared editor host; owns the header, Save, Copy URL, and Back buttons; loads each overlay's `editor.html` in a child iframe and communicates via `postMessage`
+- `src/html/editor-shell.html` / `src/js/editor-shell.js` — the shared editor host; owns the header, Save, Copy Path, and Back buttons; loads each overlay's `editor.html` in a child iframe and communicates via `postMessage`
 - `src/css/editor-common.css` — shared control styles (sliders, dropdowns, colour pickers, grid layout) available to all overlay editors
 - `src-tauri/src/backend.rs` — Tauri commands available to editor pages (`get_overlay_css_path`, `read_file_abs`, `save_file_abs`, `get_overlay_settings`, etc.)

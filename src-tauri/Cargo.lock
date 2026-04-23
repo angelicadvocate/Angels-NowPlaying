@@ -92,6 +92,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-log",
  "tiny_http",
+ "uuid",
  "zip",
 ]
 
