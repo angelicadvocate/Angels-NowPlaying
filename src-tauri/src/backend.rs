@@ -1604,6 +1604,7 @@ fn zip_add_dir_recursive(
 /// for a user-chosen destination. Returns the final path written.
 #[tauri::command]
 pub fn create_backup(destination: Option<String>) -> Result<String, String> {
+    let is_snapshot = destination.is_none();
     let dest = match destination {
         Some(s) => PathBuf::from(s),
         None => {
@@ -1705,6 +1706,13 @@ pub fn create_backup(destination: Option<String>) -> Result<String, String> {
     zipw.write_all(meta_json.as_bytes()).map_err(|e| e.to_string())?;
 
     zipw.finish().map_err(|e| e.to_string())?;
+
+    // Snapshot mode: keep the folder bounded. Best-effort — failures here
+    // shouldn't fail the backup itself.
+    if is_snapshot {
+        let _ = prune_snapshots(5);
+    }
+
     Ok(dest.to_string_lossy().into_owned())
 }
 
@@ -1753,6 +1761,99 @@ fn wipe_dir_contents(dir: &std::path::Path) -> Result<(), String> {
         }
     }
     Ok(())
+}
+
+/// Path to the marker file the auto-updater writes before relaunching. If
+/// this file exists at startup, the next launch will programmatically
+/// restore the snapshot it points to.
+fn pending_restore_marker_path() -> PathBuf {
+    app_data_dir().join(".snapshots").join("pending-restore.txt")
+}
+
+/// Arm a pending-restore marker. Called by the auto-updater right before
+/// `update.downloadAndInstall()` so that on the post-update relaunch the
+/// snapshot we just took is automatically replayed (re-applies bundled-
+/// overlay customizations + settings to the freshly-extracted bundled
+/// overlays of the new version).
+#[tauri::command]
+pub fn arm_pending_restore(snapshot_path: String) -> Result<(), String> {
+    let marker = pending_restore_marker_path();
+    if let Some(parent) = marker.parent() {
+        fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    fs::write(&marker, snapshot_path.as_bytes())
+        .map_err(|e| format!("write pending-restore marker: {e}"))
+}
+
+/// Keep the most recent `keep` snapshot zips under `.snapshots/`, deleting
+/// the rest. Called automatically after every silent snapshot so the folder
+/// can't grow unbounded across many updates. Returns the number of files
+/// pruned.
+#[tauri::command]
+pub fn prune_snapshots(keep: usize) -> Result<usize, String> {
+    let dir = app_data_dir().join(".snapshots");
+    if !dir.is_dir() {
+        return Ok(0);
+    }
+    let mut snaps: Vec<(PathBuf, std::time::SystemTime)> = fs::read_dir(&dir)
+        .map_err(|e| e.to_string())?
+        .filter_map(|e| e.ok())
+        .filter_map(|e| {
+            let p = e.path();
+            let name = p.file_name()?.to_string_lossy().to_string();
+            if !name.starts_with("update-") || !name.ends_with(".zip") {
+                return None;
+            }
+            let mtime = e.metadata().ok()?.modified().ok()?;
+            Some((p, mtime))
+        })
+        .collect();
+    snaps.sort_by(|a, b| b.1.cmp(&a.1)); // newest first
+    let mut pruned = 0;
+    for (p, _) in snaps.into_iter().skip(keep) {
+        if fs::remove_file(&p).is_ok() {
+            pruned += 1;
+        }
+    }
+    Ok(pruned)
+}
+
+/// Called once on app startup. If a pending-restore marker exists, read the
+/// snapshot path from it, restore from that snapshot, and remove the marker
+/// regardless of outcome (so a corrupt marker can never trap the user in a
+/// restore loop). Logs warnings/errors but never panics — a failed restore
+/// must not prevent the app from launching.
+pub fn consume_pending_restore_if_armed() {
+    let marker = pending_restore_marker_path();
+    if !marker.is_file() {
+        return;
+    }
+    let snapshot_path = match fs::read_to_string(&marker) {
+        Ok(s) => s.trim().to_string(),
+        Err(e) => {
+            log::warn!("Pending-restore marker exists but could not be read: {e}");
+            let _ = fs::remove_file(&marker);
+            return;
+        }
+    };
+    // Always remove the marker first — even if restore fails, we never want
+    // to retry it on the next launch.
+    let _ = fs::remove_file(&marker);
+
+    if snapshot_path.is_empty() || !PathBuf::from(&snapshot_path).is_file() {
+        log::warn!("Pending-restore snapshot missing: {snapshot_path}");
+        return;
+    }
+    log::info!("Replaying post-update snapshot: {snapshot_path}");
+    match restore_backup(snapshot_path.clone()) {
+        Ok(summary) => log::info!(
+            "Post-update restore complete: {} user overlays, {} user fonts, {} bundled customizations",
+            summary.user_overlays_restored,
+            summary.user_fonts_restored,
+            summary.bundled_customizations_restored
+        ),
+        Err(e) => log::warn!("Post-update restore failed: {e}"),
+    }
 }
 
 /// Restore from a backup zip created by `create_backup`.

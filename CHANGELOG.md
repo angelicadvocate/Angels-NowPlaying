@@ -11,6 +11,16 @@ Please be sure to add date, completed tag, `github:[username]`, and version numb
 
 ---------------------------------------------------------------------------------
 
+## v0.10.1 – 2026-04-29
+
+* [x] **Snapshot / restore around auto-updates** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Settings → Check for Updates now takes a silent pre-update snapshot via `create_backup(None)` (writing to `AppData/AngelsNowPlaying/.snapshots/update-<unix>.zip`) and arms a `pending-restore.txt` marker via the new `arm_pending_restore` command before calling `downloadAndInstall()`. On the post-update relaunch, `consume_pending_restore_if_armed()` runs in `setup()` after `extract_bundled_overlays`, replays the snapshot through the existing `restore_backup` pipeline, and removes the marker — so bundled-overlay customizations and app/overlay settings carry across version jumps without the user touching anything
+  * Marker is removed before the restore runs, so a corrupt snapshot or a partial restore can never trap the user in a startup loop. Restore failures are logged via `tauri-plugin-log` instead of blocking app launch
+  * If the snapshot itself fails (disk full, AV interference, etc.) the user is shown the underlying error and asked whether to install the update unprotected — never silent
+  * Added `prune_snapshots(keep)` (auto-called with `keep=5` after every silent snapshot) so `.snapshots/` can't grow unbounded across many updates. Newest 5 snapshots are kept by mtime; older ones are deleted best-effort
+
+---------------------------------------------------------------------------------
+
 ## v0.10.0 – 2026-04-29
 
 * [x] **Auto-Updater wired up (Phase 1)** ✨ *COMPLETED* `github:AngelicAdvocate`

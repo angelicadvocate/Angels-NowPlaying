@@ -41,6 +41,8 @@ pub fn run() {
       backend::get_diagnostics,
       backend::create_backup,
       backend::restore_backup,
+      backend::arm_pending_restore,
+      backend::prune_snapshots,
     ])
     .setup(|app| {
       if let Err(e) = backend::extract_bundled_overlays(&app.handle()) {
@@ -49,6 +51,10 @@ pub fn run() {
       if let Err(e) = backend::ensure_user_fonts_dir_public() {
         log::warn!("Failed to initialize user fonts dir: {e}");
       }
+      // If the previous launch armed a pending restore (auto-updater
+      // snapshot), replay it now — bundled overlays have just been freshly
+      // extracted, so any saved customizations get re-merged onto them.
+      backend::consume_pending_restore_if_armed();
       backend::start_user_overlay_server();
       if cfg!(debug_assertions) {
         app.handle().plugin(

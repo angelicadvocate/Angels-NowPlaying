@@ -526,6 +526,28 @@
           return;
         }
 
+        // Take a silent pre-update snapshot and arm the post-update restore.
+        // If snapshotting fails the user is warned and asked whether to
+        // proceed unprotected — a failed snapshot must not silently install.
+        updateStatus.textContent = 'Creating pre-update snapshot...';
+        let snapshotPath = null;
+        try {
+          snapshotPath = await window.__TAURI__.invoke('create_backup', { destination: null });
+          await window.__TAURI__.invoke('arm_pending_restore', { snapshotPath });
+        } catch (snapErr) {
+          console.warn('Snapshot failed', snapErr);
+          const proceedAnyway = confirm(
+            'Could not create a pre-update snapshot:\n\n' + (snapErr?.message || snapErr) + '\n\n' +
+            'Bundled-overlay customizations and settings may need to be reapplied manually after the update.\n\n' +
+            'Install the update anyway?'
+          );
+          if (!proceedAnyway) {
+            updateStatus.style.color = '#f87171';
+            updateStatus.textContent = 'Update cancelled — snapshot failed.';
+            return;
+          }
+        }
+
         updateStatus.textContent = 'Downloading update...';
         let total = 0;
         let received = 0;

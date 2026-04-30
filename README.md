@@ -49,7 +49,9 @@ No Node.js or Rust installation is needed to **run** the app. See [DEVELOPMENT.m
 2. Run the installer (`.msi` on Windows) or extract the archive.
 3. Launch **Angels-NowPlaying**.
 
-**Note: Releases are coming soon. Currently you must build from source.**
+**Note: Although public releases are available, this project is still in its pre-1.0.0 phase. Some functionality is still being tested and improved, and occasional issues should be expected.**
+
+**Note: Please note that the auto-update system is still maturing. If updates do not appear automatically, check the Releases page manually for the newest version.**
 
 ---
 
