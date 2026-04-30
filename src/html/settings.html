@@ -1493,7 +1493,17 @@
       lines.push('── App ──');
       push('Version',             d.app_version);
       push('Build mode',          d.build_mode);
-      push('Bundle stamp',        d.bundle_version_stamp);
+      push('Bundle app version',  d.bundle_app_version);
+      const overlayVersions = d.bundle_overlay_versions || {};
+      const overlayIds = Object.keys(overlayVersions).sort();
+      if (overlayIds.length) {
+        lines.push('Bundled overlay versions:');
+        for (const id of overlayIds) {
+          lines.push('  ' + id.padEnd(32) + (overlayVersions[id] || '—'));
+        }
+      } else {
+        push('Bundled overlay versions', '(none tracked)');
+      }
       lines.push('');
       lines.push('── System ──');
       push('OS',                  d.os);

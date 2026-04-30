@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::{fs, io::{self, Read, Write}, net::SocketAddr, path::PathBuf, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread, time::Duration};
+use std::{collections::BTreeMap, fs, io::{self, Read, Write}, net::SocketAddr, path::{Path, PathBuf}, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread, time::Duration};
 use tauri::Manager;
 
 /// Returns the project root directory.
@@ -748,24 +748,95 @@ fn copy_dir_all(src: &PathBuf, dst: &PathBuf) -> io::Result<()> {
     Ok(())
 }
 
-/// Extracts all bundled overlay files from the Tauri resource directory into
-/// AppData/AngelsNowPlaying/overlays/, gated by a .bundle_version stamp.
+/// Persisted per-overlay version map. Tracked alongside the bundled overlays
+/// in AppData and used to decide which overlays to re-extract on launch.
+///
+/// `app_version` is the version of the app that last wrote the **shared
+/// assets** (jquery, mascot/header images, editor-common.css, bundled fonts).
+/// Those assets aren't owned by any single overlay so they piggyback on the
+/// app version — when the app upgrades, we re-extract them; when overlays
+/// alone bump but the app version hasn't moved, only the changed overlays
+/// get re-extracted.
+///
+/// `overlays` maps each bundled overlay's id (folder name) to the `version`
+/// declared in its `manifest.json` at the time it was last extracted.
+/// Inequality (not semver-greater) triggers re-extraction so dev-side
+/// downgrades work naturally.
+#[derive(Default, Serialize, Deserialize)]
+struct BundleVersionsFile {
+    #[serde(default)]
+    app_version: String,
+    #[serde(default)]
+    overlays: BTreeMap<String, String>,
+}
+
+fn bundle_versions_path() -> PathBuf {
+    app_data_dir().join("bundle_versions.json")
+}
+
+fn load_bundle_versions() -> BundleVersionsFile {
+    let path = bundle_versions_path();
+    fs::read_to_string(&path)
+        .ok()
+        .and_then(|s| serde_json::from_str::<BundleVersionsFile>(&s).ok())
+        .unwrap_or_default()
+}
+
+fn save_bundle_versions(file: &BundleVersionsFile) -> Result<(), String> {
+    let path = bundle_versions_path();
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    let body = serde_json::to_string_pretty(file).map_err(|e| e.to_string())?;
+    fs::write(&path, body).map_err(|e| e.to_string())
+}
+
+/// Reads the `version` string out of an overlay's `manifest.json`.
+/// Returns `None` if the manifest is missing, unreadable, or has no version.
+fn read_manifest_version(overlay_dir: &Path) -> Option<String> {
+    let raw = fs::read_to_string(overlay_dir.join("manifest.json")).ok()?;
+    let v: serde_json::Value = serde_json::from_str(&raw).ok()?;
+    v.get("version")
+        .and_then(|x| x.as_str())
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+}
+
+/// Extracts bundled overlay files from the Tauri resource directory into
+/// AppData/AngelsNowPlaying/overlays/.
+///
+/// Per-overlay versioning: each bundled overlay's `manifest.json.version` is
+/// compared against the version stored in `bundle_versions.json`. Overlays
+/// whose declared version differs (or that aren't tracked yet) are
+/// re-extracted; everything else is left alone, which preserves user
+/// customizations on overlays that haven't actually changed.
+///
+/// Shared assets (jquery, mascot/header images, editor-common.css, fonts)
+/// piggyback on the app's `CARGO_PKG_VERSION` and are re-extracted whenever
+/// the app version itself changes.
+///
 /// Only runs in release builds — dev reads from src/overlays/ directly.
-/// Re-extracts (overwriting) whenever the app version changes.
 pub fn extract_bundled_overlays(app_handle: &tauri::AppHandle) -> Result<(), String> {
     if cfg!(debug_assertions) {
         return Ok(());
     }
 
-    let current_version = env!("CARGO_PKG_VERSION");
+    let current_app_version = env!("CARGO_PKG_VERSION");
     let app_dir = app_data_dir();
     fs::create_dir_all(&app_dir).map_err(|e| e.to_string())?;
 
-    let version_file = app_dir.join(".bundle_version");
-    if version_file.exists() {
-        let stored = fs::read_to_string(&version_file).unwrap_or_default();
-        if stored.trim() == current_version {
-            return Ok(());
+    // Migration from v0.11.x and earlier: a single `.bundle_version` stamp
+    // gated all-or-nothing re-extraction. Drop it the first time we run
+    // under the new scheme — we treat its presence purely as a "this is a
+    // pre-existing install" signal and let the per-overlay diff below
+    // figure out what (if anything) actually needs re-extracting. No
+    // user-data is ever touched by the migration step itself.
+    let legacy_stamp = app_dir.join(".bundle_version");
+    if legacy_stamp.exists() {
+        if let Err(e) = fs::remove_file(&legacy_stamp) {
+            log::warn!("Could not remove legacy .bundle_version stamp: {e}");
+        } else {
+            log::info!("Removed legacy .bundle_version stamp; switching to per-overlay versioning");
         }
     }
 
@@ -785,86 +856,160 @@ pub fn extract_bundled_overlays(app_handle: &tauri::AppHandle) -> Result<(), Str
     let dest = bundled_overlays_dir();
     fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
 
+    let mut tracked = load_bundle_versions();
+    let mut next_overlays: BTreeMap<String, String> = BTreeMap::new();
+    let mut updated_ids: Vec<String> = Vec::new();
+    let mut new_ids: Vec<String> = Vec::new();
+
     for entry in fs::read_dir(&resource_overlays).map_err(|e| e.to_string())? {
         let entry = entry.map_err(|e| e.to_string())?;
         let src = entry.path();
         if !src.is_dir() {
             continue;
         }
-        let dst = dest.join(entry.file_name());
-        copy_dir_all(&src, &dst).map_err(|e| e.to_string())?;
-    }
+        let id = entry.file_name().to_string_lossy().to_string();
 
-    // Write jQuery so that main.html files loaded by OBS as file:// URLs can
-    // resolve '../../js/vendor/jquery-3.5.1.min.js' from the overlay directory.
-    let jquery_path = app_dir.join("js").join("vendor").join("jquery-3.5.1.min.js");
-    if let Some(parent) = jquery_path.parent() {
-        fs::create_dir_all(parent).map_err(|e| e.to_string())?;
-    }
-    fs::write(&jquery_path, JQUERY_JS).map_err(|e| e.to_string())?;
+        // Manifests without a `version` field still get re-extracted on
+        // every launch (we have no way to compare). Worth a warning so
+        // overlay authors notice the missing field.
+        let bundled_version = read_manifest_version(&src).unwrap_or_else(|| {
+            log::warn!(
+                "Bundled overlay '{id}' has no `version` field; will re-extract every launch"
+            );
+            String::new()
+        });
 
-    // Write header image assets so all overlay editors can reference them
-    // consistently via the HTTP server or absolute file paths.
-    let assets_dir = app_dir.join("assets");
-    fs::create_dir_all(&assets_dir).map_err(|e| e.to_string())?;
-    fs::write(assets_dir.join("mascot.png"), MASCOT_PNG).map_err(|e| e.to_string())?;
-    fs::write(assets_dir.join("header-text.png"), HEADER_TEXT_PNG).map_err(|e| e.to_string())?;
+        let stored_version = tracked.overlays.get(&id);
+        let dst = dest.join(&id);
+        let needs_extract = match stored_version {
+            Some(stored) if stored == &bundled_version && dst.exists() => false,
+            _ => true,
+        };
 
-    // Write editor-common.css to css/ subdir so the overlay HTTP server can serve
-    // it at /css/editor-common.css (referenced by editor.html as "../../css/editor-common.css").
-    let css_dir = bundled_overlays_dir().join("css");
-    fs::create_dir_all(&css_dir).map_err(|e| e.to_string())?;
-    fs::write(css_dir.join("editor-common.css"), EDITOR_COMMON_CSS).map_err(|e| e.to_string())?;
-
-    // Copy bundled fonts from the Tauri resource dir to AppData/AngelsNowPlaying/fonts/.
-    // Overlays reference them via relative paths (../../fonts/fonts.css) which work
-    // in both the overlay HTTP server and OBS file:// loads.
-    let resource_fonts = app_handle
-        .path()
-        .resource_dir()
-        .map_err(|e| e.to_string())?
-        .join("fonts");
-    if resource_fonts.exists() {
-        let fonts_dest = fonts_dir();
-        // Remove existing bundled fonts before re-extracting so renamed/removed
-        // files don't linger. Preserve any user/ subfolder (future user uploads).
-        if fonts_dest.exists() {
-            for entry in fs::read_dir(&fonts_dest).map_err(|e| e.to_string())? {
-                let entry = entry.map_err(|e| e.to_string())?;
-                if entry.file_name() == "user" {
-                    continue;
-                }
-                let p = entry.path();
-                if p.is_dir() {
-                    fs::remove_dir_all(&p).map_err(|e| e.to_string())?;
-                } else {
-                    fs::remove_file(&p).map_err(|e| e.to_string())?;
-                }
+        if needs_extract {
+            // Wipe + repaint. The merge logic that protects user
+            // customizations runs upstream of this in the snapshot/restore
+            // path, not here, so a re-extract is a clean overwrite of the
+            // bundled content.
+            if dst.exists() {
+                fs::remove_dir_all(&dst).map_err(|e| e.to_string())?;
             }
-        }
-        fs::create_dir_all(&fonts_dest).map_err(|e| e.to_string())?;
-        for entry in fs::read_dir(&resource_fonts).map_err(|e| e.to_string())? {
-            let entry = entry.map_err(|e| e.to_string())?;
-            let src = entry.path();
-            let dst = fonts_dest.join(entry.file_name());
-            if src.is_dir() {
-                copy_dir_all(&src, &dst).map_err(|e| e.to_string())?;
+            copy_dir_all(&src, &dst).map_err(|e| e.to_string())?;
+            if stored_version.is_none() {
+                new_ids.push(id.clone());
             } else {
-                fs::copy(&src, &dst).map_err(|e| e.to_string())?;
+                updated_ids.push(id.clone());
+            }
+        }
+
+        next_overlays.insert(id, bundled_version);
+    }
+
+    // Prune any entries (and on-disk folders) for overlays that used to be
+    // bundled but were removed in this app version. Anything still present
+    // in `tracked.overlays` but not in `next_overlays` is now stale.
+    let removed_ids: Vec<String> = tracked
+        .overlays
+        .keys()
+        .filter(|k| !next_overlays.contains_key(*k))
+        .cloned()
+        .collect();
+    for id in &removed_ids {
+        let stale = dest.join(id);
+        if stale.exists() {
+            if let Err(e) = fs::remove_dir_all(&stale) {
+                log::warn!("Could not remove stale bundled overlay '{id}': {e}");
             }
         }
     }
 
-    // Ensure the user fonts folder and its generated stylesheet always exist so
-    // fonts.css can unconditionally @import it.
-    ensure_user_fonts_dir()?;
+    // Shared assets — refresh whenever the app version itself changes (or
+    // on first run when there's no app_version stamp yet).
+    let shared_assets_stale = tracked.app_version != current_app_version;
+    if shared_assets_stale {
+        // jQuery for OBS file:// loads of overlay main.html.
+        let jquery_path = app_dir.join("js").join("vendor").join("jquery-3.5.1.min.js");
+        if let Some(parent) = jquery_path.parent() {
+            fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+        }
+        fs::write(&jquery_path, JQUERY_JS).map_err(|e| e.to_string())?;
 
-    // Read current tuna port from saved settings (or default 1608) and write
-    // tuna-port.js so OBS-loaded main.html files can find the port without XHR.
+        // Editor header image assets.
+        let assets_dir = app_dir.join("assets");
+        fs::create_dir_all(&assets_dir).map_err(|e| e.to_string())?;
+        fs::write(assets_dir.join("mascot.png"), MASCOT_PNG).map_err(|e| e.to_string())?;
+        fs::write(assets_dir.join("header-text.png"), HEADER_TEXT_PNG)
+            .map_err(|e| e.to_string())?;
+
+        // editor-common.css served at /css/editor-common.css.
+        let css_dir = bundled_overlays_dir().join("css");
+        fs::create_dir_all(&css_dir).map_err(|e| e.to_string())?;
+        fs::write(css_dir.join("editor-common.css"), EDITOR_COMMON_CSS)
+            .map_err(|e| e.to_string())?;
+
+        // Bundled fonts — wipe everything except the user/ subfolder, then
+        // re-extract from the resource dir.
+        let resource_fonts = app_handle
+            .path()
+            .resource_dir()
+            .map_err(|e| e.to_string())?
+            .join("fonts");
+        if resource_fonts.exists() {
+            let fonts_dest = fonts_dir();
+            if fonts_dest.exists() {
+                for entry in fs::read_dir(&fonts_dest).map_err(|e| e.to_string())? {
+                    let entry = entry.map_err(|e| e.to_string())?;
+                    if entry.file_name() == "user" {
+                        continue;
+                    }
+                    let p = entry.path();
+                    if p.is_dir() {
+                        fs::remove_dir_all(&p).map_err(|e| e.to_string())?;
+                    } else {
+                        fs::remove_file(&p).map_err(|e| e.to_string())?;
+                    }
+                }
+            }
+            fs::create_dir_all(&fonts_dest).map_err(|e| e.to_string())?;
+            for entry in fs::read_dir(&resource_fonts).map_err(|e| e.to_string())? {
+                let entry = entry.map_err(|e| e.to_string())?;
+                let src = entry.path();
+                let dst = fonts_dest.join(entry.file_name());
+                if src.is_dir() {
+                    copy_dir_all(&src, &dst).map_err(|e| e.to_string())?;
+                } else {
+                    fs::copy(&src, &dst).map_err(|e| e.to_string())?;
+                }
+            }
+        }
+    }
+
+    // Always make sure the user fonts folder + generated stylesheet exist
+    // (cheap, idempotent) and that tuna-port.js reflects current settings.
+    ensure_user_fonts_dir()?;
     let tuna_port = get_overlay_settings().map(|s| s.tuna_port).unwrap_or(1608);
     write_tuna_port_files(tuna_port);
 
-    fs::write(&version_file, current_version).map_err(|e| e.to_string())?;
+    // Persist the new map. Doing this last means a mid-extract crash leaves
+    // the previous map in place, so the next launch retries the same diff.
+    tracked.app_version = current_app_version.to_string();
+    tracked.overlays = next_overlays;
+    save_bundle_versions(&tracked)?;
+
+    // One concise summary line per launch — useful in support reports
+    // without flooding the log when nothing changed.
+    if new_ids.is_empty() && updated_ids.is_empty() && removed_ids.is_empty() && !shared_assets_stale {
+        log::info!("Bundled overlays: up to date");
+    } else {
+        log::info!(
+            "Bundled overlays — added: {:?}, updated: {:?}, removed: {:?}, shared_assets_refreshed: {}",
+            new_ids,
+            updated_ids,
+            removed_ids,
+            shared_assets_stale
+        );
+    }
+
     Ok(())
 }
 
@@ -1408,7 +1553,12 @@ pub struct DiagnosticsReport {
     pub overlay_server_port: u16,
     pub tuna_port: u16,
     pub serve_lan: bool,
-    pub bundle_version_stamp: Option<String>,
+    /// App version stamp recorded the last time bundled overlays were
+    /// extracted (the `app_version` field of `bundle_versions.json`).
+    pub bundle_app_version: Option<String>,
+    /// Per-overlay version map from `bundle_versions.json`. Empty in dev
+    /// builds (extraction is skipped) and on a fresh install.
+    pub bundle_overlay_versions: BTreeMap<String, String>,
 
     // Counts
     pub bundled_overlays_count: usize,
@@ -1444,7 +1594,7 @@ fn count_subdirs(dir: &std::path::Path) -> usize {
     let Ok(rd) = fs::read_dir(dir) else { return 0 };
     rd.filter_map(|e| e.ok())
         .filter(|e| {
-            // Skip dotfiles (e.g. .bundle_version) and non-directories.
+            // Skip dotfiles and non-directories.
             e.file_type().map(|t| t.is_dir()).unwrap_or(false)
                 && !e.file_name().to_string_lossy().starts_with('.')
         })
@@ -1493,11 +1643,13 @@ pub fn get_diagnostics() -> DiagnosticsReport {
         Err(_) => (OverlaySettings::default().tuna_port, false),
     };
 
-    let bundle_version_stamp =
-        fs::read_to_string(app_data.join(".bundle_version"))
-            .ok()
-            .map(|s| s.trim().to_string())
-            .filter(|s| !s.is_empty());
+    let bundle_file = load_bundle_versions();
+    let bundle_app_version = if bundle_file.app_version.is_empty() {
+        None
+    } else {
+        Some(bundle_file.app_version.clone())
+    };
+    let bundle_overlay_versions = bundle_file.overlays;
 
     // Bundled overlay count: in dev, count from src/overlays; in release, from AppData.
     let bundled_overlays_count = if cfg!(debug_assertions) {
@@ -1529,7 +1681,8 @@ pub fn get_diagnostics() -> DiagnosticsReport {
         overlay_server_port,
         tuna_port,
         serve_lan,
-        bundle_version_stamp,
+        bundle_app_version,
+        bundle_overlay_versions,
         bundled_overlays_count,
         user_overlays_count,
         bundled_fonts_count,

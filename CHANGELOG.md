@@ -8,10 +8,22 @@ Only completed and released work goes in this file.
 Please be sure to add date, completed tag, `github:[username]`, and version number change if needed
 (see below for formatting example)
 
+---------------------------------------------------------------------------------
+
+## v0.11.2 – 2026-04-30
+
+* [x] **Per-overlay bundled-version tracking** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Replaced the all-or-nothing `.bundle_version` stamp with per-overlay versioning via a new `bundle_versions.json` file in AppData. Each entry maps an overlay's folder id to the `version` declared in its `manifest.json` at the time it was last extracted. On launch, only overlays whose declared version differs from the stored value (or that aren't tracked yet) get re-extracted; everything else is left alone. This makes app updates that touch only one or two overlays meaningfully smaller in effect — fewer folders wiped, fewer chances for the upstream merge logic to perturb a bundled overlay the user has been customising
+  * Comparison rule is string-inequality, not semver-greater, so dev-side downgrades (e.g. reverting a frame mid-iteration) re-extract correctly without needing a version bump
+  * Shared assets that aren't owned by any single overlay — `js/vendor/jquery-3.5.1.min.js`, `assets/mascot.png`, `assets/header-text.png`, `overlays/css/editor-common.css`, and the bundled fonts under `fonts/` — piggyback on the app's `CARGO_PKG_VERSION` via a new `app_version` field on the same JSON file, so they refresh exactly when the app itself updates and stay untouched on launches that only need overlay-level diffs
+  * Stale-entry pruning: any id present in `bundle_versions.json` from a previous launch but no longer in the bundled resource directory gets its on-disk folder removed and its entry dropped from the map. Keeps the file tidy as overlays come and go between releases
+  * Migration: the legacy `.bundle_version` file is deleted on first launch under the new code with a `log::info!` line noting the switch. No existing user-data is touched — the per-overlay diff handles re-extraction from there. Safe to ship now since the user base is small and entirely beta-testers
+  * One concise summary line per launch — `Bundled overlays — added: [...], updated: [...], removed: [...], shared_assets_refreshed: bool` (or `Bundled overlays: up to date` when nothing changed) — gives support reports a clear record of what the extractor actually did
+  * Diagnostics report swaps the single `bundle_version_stamp: Option<String>` field for `bundle_app_version: Option<String>` + `bundle_overlay_versions: BTreeMap<String, String>`. The Diagnostics modal now renders each tracked overlay id and its recorded version on its own line, which makes "is this user actually running the version of `frame-foo` I think they are" trivial to answer from a bug report
 
 ---------------------------------------------------------------------------------
 
-## v0.11.1 – 2026-04-30
+## v0.11.2 – 2026-04-30
 
 * [x] **In-app Update Available modal** ✨ *COMPLETED* `github:AngelicAdvocate`
   * Replaced the native `confirm()` popups in the update flow with a proper in-app modal that lives in the same `.modal-overlay` / `.modal` system as the rest of the app's dialogs (Configure HTTP Server, Restore Backup, Diagnostics). It picks up the same theme tokens, header/footer styling, click-outside-to-close, and dark-mode behaviour, so the update prompt no longer breaks immersion by suddenly looking like a system / browser dialog
