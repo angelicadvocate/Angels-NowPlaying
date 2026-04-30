@@ -28,7 +28,6 @@ fn settings_path() -> PathBuf {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AppSettings {
     pub serve_port: u16,
-    pub tuna_path: PathBuf,
     pub export_root: PathBuf,
     pub allow_remote: bool,
 }
@@ -37,7 +36,6 @@ impl Default for AppSettings {
     fn default() -> Self {
         Self {
             serve_port: 8253,
-            tuna_path: std::env::current_dir().unwrap_or_default(),
             export_root: std::env::current_dir().unwrap_or_default(),
             allow_remote: false,
         }
@@ -157,11 +155,7 @@ pub fn start_server(settings: AppSettings) -> Result<(), String> {
         let server = tiny_http::Server::http(&addr).expect("failed to start server");
         for request in server.incoming_requests() {
             let url = request.url().trim_start_matches('/');
-            let path = if url == "Song.json" || url == "Artwork.png" {
-                settings.tuna_path.join(url)
-            } else {
-                settings.export_root.join(url)
-            };
+            let path = settings.export_root.join(url);
             if let Ok(file) = fs::File::open(&path) {
                 let mime = mime_guess::from_path(&path).first_or_octet_stream();
                 let response = tiny_http::Response::from_file(file)
@@ -1384,6 +1378,43 @@ pub fn get_diagnostics() -> DiagnosticsReport {
 
 const BACKUP_FORMAT_VERSION: u32 = 1;
 
+// ── Bundled-overlay rename migrations ────────────────────────────────────
+// If a bundled overlay's folder ID is ever renamed in a future app version,
+// add an entry here mapping the OLD id → NEW id. On restore, any
+// `bundled-customizations.json` entry keyed by an old id is transparently
+// rewritten to the new id before being applied to the on-disk overlay, so
+// older backups continue to restore cleanly without losing customizations.
+//
+// Rules of thumb when adding entries:
+//   * Add the entry BEFORE shipping the rename, in the same release that
+//     does the rename (so the very first install of the new version can
+//     already restore older backups).
+//   * Bump `BACKUP_FORMAT_VERSION` only if the on-disk shape of a backup
+//     zip itself changes. A pure folder-rename does NOT require a format
+//     bump — the migration table handles it at the data layer.
+//   * Old ids should remain in this table indefinitely. The cost is one
+//     line; the benefit is that ancient backups keep restoring.
+//   * Only bundled overlays go here. User-installed overlays carry their
+//     own folder names through restore as-is and aren't subject to renames
+//     by the app.
+const BUNDLED_OVERLAY_MIGRATIONS: &[(&str, &str)] = &[
+    // Example (do NOT uncomment — keep as a reference):
+    // ("frame-old-id", "frame-new-id"),
+];
+
+/// Translate an overlay id from a backup through the migration table. If
+/// the id has been renamed, returns the new id; otherwise returns the
+/// input unchanged. Cheap linear scan — the table is expected to stay
+/// small (a handful of entries at most over the life of the app).
+fn migrate_bundled_overlay_id(id: &str) -> &str {
+    for (old, new) in BUNDLED_OVERLAY_MIGRATIONS {
+        if *old == id {
+            return new;
+        }
+    }
+    id
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct BackupMetadata {
     backup_format_version: u32,
@@ -1412,8 +1443,8 @@ pub struct RestoreSummary {
     /// Bundled overlays present in the backup that no longer exist in
     /// the current app version (renamed / removed).
     pub bundled_customizations_skipped: Vec<String>,
-    /// Non-fatal notices — e.g. tuna_path from the backup didn't exist on
-    /// this machine so the current value was kept.
+    /// Non-fatal notices — e.g. export_root from the backup didn't exist
+    /// on this machine so the current value was kept.
     pub warnings: Vec<String>,
 }
 
@@ -1999,15 +2030,6 @@ pub fn restore_backup(source: String) -> Result<RestoreSummary, String> {
                 let current = get_settings().unwrap_or_default();
                 // Machine-specific paths: keep current value if the backup's
                 // path doesn't exist on this machine.
-                if !backup_settings.tuna_path.as_os_str().is_empty()
-                    && !backup_settings.tuna_path.exists()
-                {
-                    summary.warnings.push(format!(
-                        "Backup's Tuna path ({}) doesn't exist on this machine — kept current value.",
-                        backup_settings.tuna_path.display()
-                    ));
-                    backup_settings.tuna_path = current.tuna_path.clone();
-                }
                 if !backup_settings.export_root.as_os_str().is_empty()
                     && !backup_settings.export_root.exists()
                 {
@@ -2057,7 +2079,16 @@ pub fn restore_backup(source: String) -> Result<RestoreSummary, String> {
                     summary.warnings.push(format!("Skipped suspicious overlay id: {overlay_id}"));
                     continue;
                 }
-                let Some(dir) = bundled_overlay_source_dir(overlay_id) else {
+                // Translate old → new overlay ids if this overlay was
+                // renamed in a later app version. No-op when the id is
+                // already current (the common case).
+                let migrated_id = migrate_bundled_overlay_id(overlay_id);
+                if migrated_id != overlay_id {
+                    log::info!(
+                        "Migrating bundled customization id during restore: {overlay_id} -> {migrated_id}"
+                    );
+                }
+                let Some(dir) = bundled_overlay_source_dir(migrated_id) else {
                     summary.bundled_customizations_skipped.push(overlay_id.clone());
                     continue;
                 };

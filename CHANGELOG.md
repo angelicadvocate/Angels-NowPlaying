@@ -11,6 +11,21 @@ Please be sure to add date, completed tag, `github:[username]`, and version numb
 
 ---------------------------------------------------------------------------------
 
+## v0.10.4 – 2026-04-29
+
+* [x] **Bundled-overlay rename migration table** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Added a `BUNDLED_OVERLAY_MIGRATIONS: &[(&str, &str)]` const slice in `backend.rs` keyed by old → new bundled overlay folder ids. On `restore_backup`, every entry in the backup's `bundled-customizations.json` is now run through `migrate_bundled_overlay_id()` before its target folder is resolved — so when a bundled overlay gets renamed in a future release, older backups continue to restore the user's customizations onto the new folder without losing anything
+  * Table is currently empty (no bundled overlays have been renamed yet) but the plumbing is in place. Inline comments document the rules: add the entry in the same release that does the rename, never bump `BACKUP_FORMAT_VERSION` for a pure folder-rename (the migration table handles it at the data layer), and keep entries forever — the cost is one line per rename, the benefit is that ancient backups keep restoring
+  * Closes the last item from the Auto-Updater + Distribution workstream — restore is now forward-compatible with future bundled-overlay renames
+
+* [x] **Removed dead `AppSettings.tuna_path` field** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * `AppSettings.tuna_path` was a holdover from the pre-Tuna-server-mode architecture — back when the app shelled out to a Tuna binary and served Tuna's exported `Song.json` / `Artwork.png` over HTTP itself. Tuna now exposes its own HTTP server, the bundled overlays talk to it directly via `tuna_port`, and the `tuna_path` field has had no remaining consumer for several releases
+  * Removed the field from `AppSettings`, its `Default` impl, and the `Song.json` / `Artwork.png` special case in `start_server`. Also removed the matching machine-path-validation branch in `restore_backup` (the warning text mentioning "Tuna path" is gone — `export_root` validation is unchanged)
+  * Existing `settings.json` files on disk still contain a `tuna_path` key; serde silently ignores unknown fields on deserialize, so this is a clean drop-in change with no migration needed. The field will simply disappear from `settings.json` the next time settings are saved
+  * `start_server` / `stop_server` / `serve_port` / `export_root` / `allow_remote` are intentionally retained — they'll be repurposed in v0.10.5 for the upcoming optional "Serve overlays over HTTP" feature, where having both loopback and LAN bind modes available pre-plumbed saves real work
+
+---------------------------------------------------------------------------------
+
 ## v0.10.3 – 2026-04-29
 
 * [x] **Header buttons (GitHub / Tip / Social) now work on every page** 🐛 *FIXED* `github:AngelicAdvocate`
