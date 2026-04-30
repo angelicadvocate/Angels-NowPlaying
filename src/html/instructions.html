@@ -47,101 +47,237 @@
   </div>
 
   <div class="page-container">
-    <div class="card" id="left-column">
-      <h1>Editor Instructions</h1>
-      <h3>Customising an overlay</h3>
-      <ol>
-        <li>From the home page, click <strong>Edit</strong> on any overlay card to open its editor.</li>
-        <li>Use the sliders and colour pickers to adjust colours, font sizes, spacing, and layout. The preview on the
-          right shows the actual overlay running live — what you see there is exactly what OBS will render.</li>
-        <li>When you're happy, click <strong>Save</strong>. The changes are written directly to the overlay's CSS file
-          on disk — there is no download step.</li>
-        <li>In OBS, right-click the Browser Source for that overlay and choose <strong>Refresh</strong> (or toggle the
-          source off and back on) to pick up the new styles.</li>
-      </ol>
+    <!-- Sticky table of contents. Hidden on narrow widths via CSS so the
+         topic cards get the full row. Each link scrolls to the matching
+         card id below; deep links from Settings tooltips can target the
+         same anchors (e.g. instructions.html#serve-http). -->
+    <aside class="toc" aria-label="Table of contents">
+      <nav>
+        <p class="toc-heading">On this page</p>
+        <ul>
+          <li><a href="#quick-start"><i class="fas fa-rocket"></i> Quick Start</a></li>
+          <li><a href="#editor"><i class="fas fa-paint-brush"></i> Editor Basics</a></li>
+          <li><a href="#serve-http"><i class="fas fa-network-wired"></i> Serve over HTTP</a></li>
+          <li><a href="#overlay-management"><i class="fas fa-folder-open"></i> Overlay Management</a></li>
+          <li><a href="#updates-backups"><i class="fas fa-cloud-arrow-down"></i> Updates &amp; Backups</a></li>
+          <li><a href="#feedback"><i class="fas fa-comment-dots"></i> Feedback &amp; Support</a></li>
+          <li><a href="#developers"><i class="fas fa-code"></i> For Developers</a></li>
+        </ul>
+      </nav>
+    </aside>
 
-      <h3>Copying the overlay file path</h3>
-      <p>Each editor has a <strong>Copy Path</strong> button that puts the full path to that overlay's
-        <code>main.html</code> on your clipboard, ready to paste into OBS as a <strong>Local File</strong> Browser
-        Source.</p>
+    <div class="topic-stack">
 
-      <h3>Going back to edit later</h3>
-      <p>You can return to any overlay's editor at any time. Just open Angels-NowPlaying, click <strong>Edit</strong> on
-        the overlay, make your changes, and click <strong>Save</strong>. Your previous customisations are always loaded
-        from the saved CSS file.</p>
+      <!-- ── Quick Start ────────────────────────────────────────────── -->
+      <section class="card topic-card" id="quick-start">
+        <h1><i class="fas fa-rocket section-icon"></i> Quick Start</h1>
+        <p>Welcome! Follow these steps to get Angels-NowPlaying running with OBS and Tuna.</p>
 
-      <h3>Installing custom overlays</h3>
-      <p>Go to <strong>Settings &rarr; Overlay Management &rarr; Install Overlay from Zip</strong> to install a custom
-        overlay packaged as a zip file. Installed overlays appear on the home page alongside the built-in ones and can
-        be removed from the same settings card.</p>
+        <h3>1. Install Angels-NowPlaying</h3>
+        <p>Download the latest release from the
+          <a href="https://github.com/angelicadvocate/Angels-NowPlaying/releases" target="_blank" rel="noopener">GitHub Releases page</a>
+          and run the installer. Launch the app when installation is complete. (You should be here.)</p>
 
-      <h3>Feedback &amp; support</h3>
-      <p>If you find a bug, have a feature request, or want to contribute, please open an issue or pull request on
-        <a href="https://github.com/angelicadvocate/Angels-NowPlaying" target="_blank" rel="noopener">GitHub</a>.
-        Include your OBS version, Tuna version, and a short description of how to reproduce the problem.</p>
+        <h3>2. Install and configure Tuna</h3>
+        <ol>
+          <li>Install the Tuna plugin for OBS from the
+            <a href="https://github.com/univrsal/tuna/releases" target="_blank" rel="noopener">Tuna releases page</a>.
+            <em>Special thanks to the Tuna project — this app wouldn't exist without their plugin.</em></li>
+          <li>In OBS, go to <strong>Tools &rarr; Tuna</strong> and open the <strong>Web server</strong> tab.</li>
+          <li>Enable the web server and note the port number (default is <strong>1608</strong>).</li>
+          <li>Connect Tuna to your music source — Spotify, YouTube Music Desktop App, Last.fm, a VLC Video Source in OBS,
+            Windows Media Player, MPD, and others are all supported. See the
+            <a href="https://github.com/univrsal/tuna/wiki" target="_blank" rel="noopener">Tuna documentation</a> for
+            source-specific setup steps.</li>
+        </ol>
 
-      <hr class="section-divider" />
+        <h3>3. Set the Tuna port in Angels-NowPlaying</h3>
+        <p>Open <strong>Settings &rarr; Tuna Configuration</strong> in Angels-NowPlaying and confirm the port matches
+          what Tuna is broadcasting on. Click <strong>Save Settings</strong>.</p>
 
-      <h3><i class="fas fa-code" style="color: var(--highlight); margin-right: 0.4rem;"></i> For Developers</h3>
-      <p style="font-size:0.95rem;">Want to build a custom overlay or contribute to the app itself? Use the <strong>GitHub</strong> button in the top right to view the full source, or jump straight to the relevant guide:</p>
-      <ul style="font-size:0.95rem;">
-        <li>Go to <strong>Settings &rarr; Overlay Management</strong> to enable the developer template starter and download it as a zip — it’s a fully working, heavily commented overlay you can use as a starting point.</li>
-        <li>See <a href="https://github.com/angelicadvocate/Angels-NowPlaying/blob/main/FRAME-DEVELOPMENT.md" target="_blank" rel="noopener">FRAME-DEVELOPMENT.md</a> for the overlay development workflow.</li>
-        <li>See <a href="https://github.com/angelicadvocate/Angels-NowPlaying/blob/main/DEVELOPMENT.md" target="_blank" rel="noopener">DEVELOPMENT.md</a> for contributing to the app itself (Tauri + Rust + Vite).</li>
-      </ul>
-    </div>
+        <h3>4. Pick and customise an overlay</h3>
+        <p>From the home page, click <strong>Edit</strong> on any overlay card to open its editor. See
+          <a href="#editor">Editor Basics</a> for details on customising and saving.</p>
 
-    <div class="card" id="right-column">
-      <h1>Setup Instructions</h1>
+        <div class="note">
+          <strong>OBS source size:</strong> The dimensions of the browser source for OBS listed in the editor next to
+          the overlay name are suggested values for the default version of each overlay. If you have customised the
+          overlay (resized elements, changed layout, etc.), you may need to adjust the browser source size in OBS to
+          match your changes for the overlay to display correctly.
+        </div>
 
-      <p>Welcome! Follow these steps to get Angels-NowPlaying running with OBS and Tuna.</p>
+        <h3>5. Add the overlay to OBS</h3>
+        <ol>
+          <li>In OBS, add a <strong>Browser Source</strong> to your scene.</li>
+          <li>Check <strong>Local File</strong> and paste the path you copied in step&nbsp;4. (Or use the URL from
+            <a href="#serve-http">Serve over HTTP</a> if you've enabled that feature.)</li>
+          <li>Set the Width and Height to match the size shown in the editor (displayed next to the overlay name).</li>
+          <li>Click <strong>OK</strong>. Start playing music — track info, album art, and the progress bar should appear
+            within a few seconds.</li>
+        </ol>
 
-      <h3>1. Install Angels-NowPlaying</h3>
-      <p>Download the latest release from the
-        <a href="https://github.com/angelicadvocate/Angels-NowPlaying/releases" target="_blank"
-          rel="noopener">GitHub Releases page</a> and run the installer. Launch the app when installation is complete. (You should be here.)
-      </p>
+        <div class="note">
+          <strong>VLC Video Sources:</strong> If you use a VLC Video Source in OBS for local music playback, add it as a
+          <em>VLC Video Source</em> (not a Media Source) — Tuna can only read track data from VLC Video Sources, not
+          Media Sources. You can point it at an entire folder to play a playlist.
+        </div>
+      </section>
 
-      <h3>2. Install and configure Tuna</h3>
-      <ol>
-        <li>Install the Tuna plugin for OBS from the
-          <a href="https://github.com/univrsal/tuna/releases" target="_blank" rel="noopener">Tuna releases page</a>.
-          <em>Special thanks to the Tuna project — this app wouldn't exist without their plugin.</em></li>
-        <li>In OBS, go to <strong>Tools &rarr; Tuna</strong> and open the <strong>Web server</strong> tab.</li>
-        <li>Enable the web server and note the port number (default is <strong>1608</strong>).</li>
-        <li>Connect Tuna to your music source — Spotify, YouTube Music Desktop App, Last.fm, a VLC Video Source in OBS,
-          Windows Media Player, MPD, and others are all supported. See the
-          <a href="https://github.com/univrsal/tuna/wiki" target="_blank" rel="noopener">Tuna documentation</a> for
-          source-specific setup steps.</li>
-      </ol>
+      <!-- ── Editor Basics ──────────────────────────────────────────── -->
+      <section class="card topic-card" id="editor">
+        <h1><i class="fas fa-paint-brush section-icon"></i> Editor Basics</h1>
 
-      <h3>3. Set the Tuna port in Angels-NowPlaying</h3>
-      <p>Open <strong>Settings &rarr; Tuna Configuration</strong> in Angels-NowPlaying and confirm the port matches
-        what Tuna is broadcasting on. Click <strong>Save Settings</strong>.</p>
+        <h3>Customising an overlay</h3>
+        <ol>
+          <li>From the home page, click <strong>Edit</strong> on any overlay card to open its editor.</li>
+          <li>Use the sliders and colour pickers to adjust colours, font sizes, spacing, and layout. The preview on the
+            right shows the actual overlay running live — what you see there is exactly what OBS will render.</li>
+          <li>When you're happy, click <strong>Save</strong>. The changes are written directly to the overlay's CSS file
+            on disk — there is no download step.</li>
+          <li>In OBS, right-click the Browser Source for that overlay and choose <strong>Refresh</strong> (or toggle the
+            source off and back on) to pick up the new styles.</li>
+        </ol>
 
-      <h3>4. Pick and customise an overlay</h3>
-      <ol>
-        <li>(See the section titled "Customizing an overlay" in Editor Instructions.)</li>
-      </ol>
+        <h3>Copying the overlay file path</h3>
+        <p>Each editor has a <strong>Copy Path</strong> button that puts the full path to that overlay's
+          <code>main.html</code> on your clipboard, ready to paste into OBS as a <strong>Local File</strong> Browser
+          Source. When <a href="#serve-http">Serve over HTTP</a> is enabled the same button switches to
+          <strong>Copy URL</strong> and copies the network URL instead.</p>
 
-      <div class="note">
-        <strong>OBS source size:</strong> The dimensions of the browser source for OBS listed in the editor next to the overlay name are suggested values for the default version of each overlay. If you have customised the overlay in the editor (resized elements, changed layout, etc.), you may need to adjust the browser source size in OBS to match your changes for the overlay to display correctly.
-      </div>
+        <h3>Going back to edit later</h3>
+        <p>You can return to any overlay's editor at any time. Just open Angels-NowPlaying, click <strong>Edit</strong>
+          on the overlay, make your changes, and click <strong>Save</strong>. Your previous customisations are always
+          loaded from the saved CSS file.</p>
+      </section>
 
-      <h3>5. Add the overlay to OBS</h3>
-      <ol>
-        <li>In OBS, add a <strong>Browser Source</strong> to your scene.</li>
-        <li>Check <strong>Local File</strong> and paste the path you copied in step&nbsp;4.</li>
-        <li>Set the Width and Height to match the size shown in the editor (displayed next to the overlay name).</li>
-        <li>Click <strong>OK</strong>. Start playing music — track info, album art, and the progress bar should appear
-          within a few seconds.</li>
-      </ol>
+      <!-- ── Serve Overlays over HTTP ───────────────────────────────── -->
+      <section class="card topic-card" id="serve-http">
+        <h1><i class="fas fa-network-wired section-icon"></i> Serve Overlays over HTTP</h1>
 
-      <div class="note">
-        <strong>VLC Video Sources:</strong> If you use a VLC Video Source in OBS for local music playback, add it as a
-        <em>VLC Video Source</em> (not a Media Source) — Tuna can only read track data from VLC Video Sources, not
-        Media Sources. You can point it at an entire folder to play a playlist.
-      </div>
+        <h3>What it does</h3>
+        <p>Angels-NowPlaying can host all your overlays on a small built-in HTTP server, so OBS (or any other browser)
+          can load them by URL instead of from a local file path. This is useful when:</p>
+        <ul>
+          <li>You run OBS on a different machine than the one editing overlays.</li>
+          <li>You want a friend or co-host to use one of your overlays from their own PC on the same network.</li>
+          <li>You'd rather paste a URL into OBS than a long file path.</li>
+        </ul>
+
+        <h3>Turning it on</h3>
+        <ol>
+          <li>Open <strong>Settings</strong> and find the <strong>Serve Overlays over HTTP</strong> card.</li>
+          <li>Flip the toggle on. The status line will switch to
+            <em>Currently serving on http://&hellip;</em> when the server starts.</li>
+          <li>Click <strong>Configure&hellip;</strong> to choose the port (default <strong>8253</strong>) or to enable
+            access from other devices on your network.</li>
+        </ol>
+        <p>The server starts automatically whenever the app launches if you've left the toggle on, so you only need to
+          set it up once.</p>
+
+        <h3>Local-only vs. network access</h3>
+        <p>By default the server only listens on <code>127.0.0.1</code> — that means only OBS (and other apps) running
+          on the <em>same PC</em> as Angels-NowPlaying can reach it. This is the safest setting and is fine for almost
+          everyone.</p>
+        <p>If you turn on <strong>Allow access from other devices on my network</strong> in the Configure modal, the
+          server starts listening on all network interfaces and any device on the same Wi-Fi/LAN can request your
+          overlays at <code>http://&lt;your-ip&gt;:&lt;port&gt;/&lt;overlay-id&gt;/main.html</code>.</p>
+
+        <div class="note">
+          <strong>Security note:</strong> The server has no authentication. With LAN access on, anyone on your network
+          can load any overlay you have installed — including custom ones. Only enable this on networks you trust
+          (your home Wi-Fi, not a coffee-shop hotspot).
+        </div>
+
+        <h3>Getting the URL into OBS</h3>
+        <ol>
+          <li>Open the editor for the overlay you want to use.</li>
+          <li>Click the header button — when the server is running it reads <strong>Copy URL</strong>. Paste the result
+            into OBS as a <strong>URL</strong> Browser Source (<em>not</em> Local File).</li>
+          <li>If you want OBS on another PC to load it, make sure that PC is on the same network and the URL uses your
+            machine's LAN IP (the Copy URL button picks the LAN address automatically when LAN access is on).</li>
+        </ol>
+      </section>
+
+      <!-- ── Overlay Management ─────────────────────────────────────── -->
+      <section class="card topic-card" id="overlay-management">
+        <h1><i class="fas fa-folder-open section-icon"></i> Overlay Management</h1>
+
+        <h3>Installing custom overlays</h3>
+        <p>Go to <strong>Settings &rarr; Overlay Management &rarr; Install Overlay from Zip</strong> to install a custom
+          overlay packaged as a zip file. Installed overlays appear on the home page alongside the built-in ones and can
+          be removed from the same settings card.</p>
+
+        <h3>Showing or hiding overlays</h3>
+        <p>The toggles under <strong>Overlay Management</strong> control which overlays show up on the home page. You
+          can hide built-in overlays you never use to keep the grid tidy, or hide your installed user overlays while
+          you tweak them.</p>
+
+        <h3>The AppData folder</h3>
+        <p>The <strong>Open AppData</strong> button in Settings opens the folder where Angels-NowPlaying stores user
+          overlays, fonts, settings, and backups. You don't normally need to touch anything there, but it's handy for
+          troubleshooting or copying files between machines.</p>
+      </section>
+
+      <!-- ── Updates &amp; Backups ──────────────────────────────────── -->
+      <section class="card topic-card" id="updates-backups">
+        <h1><i class="fas fa-cloud-arrow-down section-icon"></i> Updates &amp; Backups</h1>
+
+        <h3>Auto-updates</h3>
+        <p>Angels-NowPlaying checks GitHub Releases for new versions automatically when you open the Settings page (the
+          result is cached for a few hours so it doesn't hammer the network). When an update is available the
+          <strong>Check for Updates</strong> button changes to <strong>Update Available</strong> — clicking it
+          downloads, verifies, and installs the new version, then restarts the app.</p>
+        <p>Updates are signed with an Ed25519 key, so the app refuses to install anything that wasn't published by the
+          official release pipeline.</p>
+
+        <h3>Backups</h3>
+        <p>Before an auto-update is installed, the app captures a snapshot of your AppData folder (settings, user
+          overlays, fonts) so a failed update can be rolled back. You can also create snapshots manually from
+          <strong>Settings</strong> if you want one before making big changes.</p>
+      </section>
+
+      <!-- ── Feedback &amp; Support ─────────────────────────────────── -->
+      <section class="card topic-card" id="feedback">
+        <h1><i class="fas fa-comment-dots section-icon"></i> Feedback &amp; Support</h1>
+        <p>If you find a bug, have a feature request, or want to contribute, please open an issue or pull request on
+          <a href="https://github.com/angelicadvocate/Angels-NowPlaying" target="_blank" rel="noopener">GitHub</a>.
+          Include your OBS version, Tuna version, and a short description of how to reproduce the problem.</p>
+        <p>If you'd like to support development, the <strong>Buy Me a Coffee</strong> button at the top of this page is
+          much appreciated. Every contribution goes back into improving the app.</p>
+      </section>
+
+      <!-- ── For Developers ─────────────────────────────────────────── -->
+      <section class="card topic-card" id="developers">
+        <h1><i class="fas fa-code section-icon"></i> For Developers</h1>
+        <p>Building a custom overlay or contributing to the app itself? This section will grow as more developer
+          documentation is added in-app. For now the primary references live on GitHub.</p>
+
+        <h3>Building a custom overlay</h3>
+        <ul>
+          <li>Go to <strong>Settings &rarr; Overlay Management</strong>, enable the <em>developer template starter</em>,
+            and download it as a zip — it's a fully working, heavily commented overlay you can use as a starting point.</li>
+          <li>See
+            <a href="https://github.com/angelicadvocate/Angels-NowPlaying/blob/main/FRAME-DEVELOPMENT.md" target="_blank" rel="noopener">FRAME-DEVELOPMENT.md</a>
+            for the overlay development workflow — manifest fields, common.js conventions, editor variables, packaging
+            for distribution.</li>
+        </ul>
+
+        <h3>Contributing to the app</h3>
+        <ul>
+          <li>See
+            <a href="https://github.com/angelicadvocate/Angels-NowPlaying/blob/main/DEVELOPMENT.md" target="_blank" rel="noopener">DEVELOPMENT.md</a>
+            for the Tauri + Rust + Vite setup, build commands, and project layout.</li>
+          <li>The <strong>GitHub</strong> button at the top of this page links to the full source.</li>
+        </ul>
+
+        <h3>Roadmap &amp; in-app docs</h3>
+        <p>More developer-facing notes — overlay API references, theming variables, postMessage protocol — will be
+          added directly to this section over time so you can read them without leaving the app. Check back after each
+          release, or watch the
+          <a href="https://github.com/angelicadvocate/Angels-NowPlaying/blob/main/CHANGELOG.md" target="_blank" rel="noopener">CHANGELOG</a>
+          for what's new.</p>
+      </section>
+
     </div>
   </div>
 

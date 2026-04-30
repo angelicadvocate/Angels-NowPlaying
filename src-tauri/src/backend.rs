@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::{fs, io::{self, Read, Write}, path::PathBuf, sync::{Arc, Mutex}, thread};
+use std::{fs, io::{self, Read, Write}, net::SocketAddr, path::PathBuf, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread, time::Duration};
 use tauri::Manager;
 
 /// Returns the project root directory.
@@ -25,19 +25,39 @@ fn settings_path() -> PathBuf {
     base
 }
 
+/// Persisted app-level settings written to AppData/AngelsNowPlaying/settings.json.
+///
+/// All fields use `#[serde(default)]` so adding new fields in future versions
+/// doesn't break parsing of an older settings.json — missing keys fall back
+/// to the type's default. Removed/renamed fields (e.g. legacy `export_root`
+/// and `allow_remote`) are tolerated via `#[serde(other)]`-style ignores.
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(default)]
 pub struct AppSettings {
+    /// Master toggle for the optional "Serve Overlays over HTTP" feature.
+    /// When true, the app starts a tiny_http server on `serve_port` at launch
+    /// and serves overlay assets out of `bundled_overlays_dir()` /
+    /// `user_overlays_dir()` so store / third-party overlays that need
+    /// `fetch()` / CORS-bound asset loads have a real served origin instead
+    /// of `file://`.
+    pub serve_overlays_enabled: bool,
+    /// Port the optional overlay HTTP server binds to. Range 1024–65535.
     pub serve_port: u16,
-    pub export_root: PathBuf,
-    pub allow_remote: bool,
+    /// When false (default), bind loopback-only (`127.0.0.1`) so the server
+    /// is not reachable from other machines. When true, bind `0.0.0.0` so
+    /// other devices on the LAN can reach it (e.g. OBS on a separate PC).
+    /// Renamed from legacy `allow_remote`; serde alias keeps old settings
+    /// files readable.
+    #[serde(alias = "allow_remote")]
+    pub serve_lan: bool,
 }
 
 impl Default for AppSettings {
     fn default() -> Self {
         Self {
+            serve_overlays_enabled: false,
             serve_port: 8253,
-            export_root: std::env::current_dir().unwrap_or_default(),
-            allow_remote: false,
+            serve_lan: false,
         }
     }
 }
@@ -111,6 +131,20 @@ pub fn open_url(url: String) -> Result<(), String> {
     open::that(url).map_err(|e| e.to_string())
 }
 
+/// Reveal the AppData root in the OS file manager (Explorer / Finder /
+/// xdg-open). Surfaced from Settings so users can browse their installed
+/// overlays, fonts, and settings file directly without hunting for the path.
+/// Creates the directory if it doesn't yet exist (e.g. fresh install before
+/// the bundled-overlay extraction has run).
+#[tauri::command]
+pub fn open_app_data_dir() -> Result<(), String> {
+    let dir = app_data_dir();
+    if !dir.exists() {
+        fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    }
+    open::that(&dir).map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 pub fn get_settings() -> Result<AppSettings, String> {
     match fs::File::open(settings_path()) {
@@ -137,44 +171,163 @@ pub fn save_settings(settings: AppSettings) -> Result<(), String> {
 
 // Simple server handle stored globally so we can shut it down later if needed.
 lazy_static::lazy_static! {
-    static ref SERVER_HANDLE: Arc<Mutex<Option<thread::JoinHandle<()>>>> = Arc::new(Mutex::new(None));
     /// Port the user overlay static-file server is listening on (0 = not started).
+    /// This is the *internal* loopback server that's always running on a random
+    /// port; it backs file:// fallbacks and the editor iframe URLs.
     static ref USER_OVERLAY_SERVER_PORT: Mutex<u16> = Mutex::new(0);
+
+    /// Worker thread for the optional user-facing "Serve Overlays over HTTP"
+    /// server (the one toggled from Settings). None when the toggle is OFF
+    /// or the bind failed.
+    static ref OPTIONAL_SERVER_HANDLE: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(None);
+    /// Shutdown signal for the optional server worker. The worker polls this
+    /// between `recv_timeout` calls so it can exit cleanly without dropping
+    /// in-flight requests.
+    static ref OPTIONAL_SERVER_SHUTDOWN: Arc<AtomicBool> = Arc::new(AtomicBool::new(false));
+    /// `<host>:<port>` the optional server is currently bound to (e.g.
+    /// "127.0.0.1:8253" or "0.0.0.0:8253"), or None when stopped.
+    static ref OPTIONAL_SERVER_BIND_ADDR: Mutex<Option<String>> = Mutex::new(None);
+    /// Last bind / runtime error from the optional server, surfaced to the
+    /// frontend Configure modal. Cleared on successful start.
+    static ref OPTIONAL_SERVER_ERROR: Mutex<Option<String>> = Mutex::new(None);
+}
+
+// ── Optional "Serve Overlays over HTTP" server (toggled from Settings) ───────
+
+/// Status snapshot returned to the frontend Settings page + Configure modal.
+/// `bind_addr` is the loopback or LAN address the server is currently bound
+/// to, so the modal can show "Currently serving on http://…". `lan_ip` is
+/// only populated when LAN mode is on and best-effort IP detection succeeded.
+#[derive(Serialize, Debug, Clone)]
+pub struct ServeHttpStatus {
+    pub enabled: bool,
+    pub running: bool,
+    pub bind_addr: Option<String>,
+    pub lan_ip: Option<String>,
+    pub error: Option<String>,
 }
 
 #[tauri::command]
-pub fn start_server(settings: AppSettings) -> Result<(), String> {
-    // if a server is already running, ignore
-    let mut handle_guard = SERVER_HANDLE.lock().unwrap();
-    if handle_guard.is_some() {
-        return Ok(());
+pub fn get_serve_http_status() -> ServeHttpStatus {
+    let settings = get_settings().unwrap_or_default();
+    let bind_addr = OPTIONAL_SERVER_BIND_ADDR.lock().unwrap().clone();
+    let error = OPTIONAL_SERVER_ERROR.lock().unwrap().clone();
+    let running = bind_addr.is_some() && error.is_none();
+    let lan_ip = if settings.serve_lan && running {
+        local_ip_address::local_ip().ok().map(|ip| ip.to_string())
+    } else {
+        None
+    };
+    ServeHttpStatus {
+        enabled: settings.serve_overlays_enabled,
+        running,
+        bind_addr,
+        lan_ip,
+        error,
     }
+}
 
-    let t = thread::spawn(move || {
-        let addr = format!("{}:{}", if settings.allow_remote { "0.0.0.0" } else { "127.0.0.1" }, settings.serve_port);
-        let server = tiny_http::Server::http(&addr).expect("failed to start server");
-        for request in server.incoming_requests() {
-            let url = request.url().trim_start_matches('/');
-            let path = settings.export_root.join(url);
-            if let Ok(file) = fs::File::open(&path) {
-                let mime = mime_guess::from_path(&path).first_or_octet_stream();
-                let response = tiny_http::Response::from_file(file)
-                    .with_header(tiny_http::Header::from_bytes(&b"Content-Type"[..], mime.as_ref()).unwrap());
-                let _ = request.respond(response);
-            } else {
-                let _ = request.respond(tiny_http::Response::empty(404));
+/// Reconcile the optional HTTP server with the current persisted AppSettings:
+/// stop it if `serve_overlays_enabled` is false, otherwise (re)start it on the
+/// configured port + bind interface. Idempotent — safe to call after every
+/// settings save and on app launch. Always returns Ok; bind errors are stored
+/// in OPTIONAL_SERVER_ERROR so the frontend can surface them via
+/// `get_serve_http_status`.
+#[tauri::command]
+pub fn apply_serve_http_settings() -> Result<(), String> {
+    stop_optional_server();
+    let settings = get_settings().unwrap_or_default();
+    if settings.serve_overlays_enabled {
+        if let Err(e) = start_optional_server(settings.serve_port, settings.serve_lan) {
+            *OPTIONAL_SERVER_ERROR.lock().unwrap() = Some(e);
+        }
+    }
+    Ok(())
+}
+
+fn start_optional_server(port: u16, lan: bool) -> Result<(), String> {
+    let host = if lan { "0.0.0.0" } else { "127.0.0.1" };
+    let addr = format!("{}:{}", host, port);
+
+    // Build the listening socket with SO_REUSEADDR set *before* bind. On
+    // Windows the OS keeps the listening socket reserved for several
+    // seconds after a previous server drops, which breaks the LAN-toggle
+    // workflow (127.0.0.1:PORT → 0.0.0.0:PORT, or vice versa). With
+    // REUSEADDR we can bind anyway. We then hand the std::net::TcpListener
+    // to tiny_http via Server::from_listener so we keep the same simple
+    // request API.
+    let socket_addr: SocketAddr = addr
+        .parse()
+        .map_err(|e| format!("Invalid bind address {}: {}", addr, e))?;
+    let domain = socket2::Domain::for_address(socket_addr);
+    let socket = socket2::Socket::new(domain, socket2::Type::STREAM, Some(socket2::Protocol::TCP))
+        .map_err(|e| format!("Could not create socket: {}", e))?;
+    socket
+        .set_reuse_address(true)
+        .map_err(|e| format!("Could not set SO_REUSEADDR: {}", e))?;
+    socket
+        .bind(&socket_addr.into())
+        .map_err(|e| format!("Could not bind to {} — {}", addr, e))?;
+    socket
+        .listen(128)
+        .map_err(|e| format!("Could not listen on {} — {}", addr, e))?;
+    let listener: std::net::TcpListener = socket.into();
+    let server = tiny_http::Server::from_listener(listener, None)
+        .map_err(|e| format!("Could not start HTTP server on {} — {}", addr, e))?;
+
+    *OPTIONAL_SERVER_BIND_ADDR.lock().unwrap() = Some(addr.clone());
+    *OPTIONAL_SERVER_ERROR.lock().unwrap() = None;
+    OPTIONAL_SERVER_SHUTDOWN.store(false, Ordering::SeqCst);
+
+    let shutdown = OPTIONAL_SERVER_SHUTDOWN.clone();
+    let handle = thread::spawn(move || {
+        // Poll-based loop with a short timeout so the shutdown flag is checked
+        // periodically. recv_timeout returns Ok(Some(req)) on a request,
+        // Ok(None) on timeout, Err on a fatal server error.
+        loop {
+            if shutdown.load(Ordering::SeqCst) {
+                break;
+            }
+            match server.recv_timeout(Duration::from_millis(150)) {
+                Ok(Some(request)) => handle_overlay_request(request),
+                Ok(None) => continue,
+                Err(e) => {
+                    log::warn!("Optional server recv error: {e}");
+                    break;
+                }
             }
         }
+        // Explicitly drop the server before logging exit so the listening
+        // socket is released as early as possible.
+        drop(server);
+        log::info!("Optional HTTP server worker exited");
     });
 
-    *handle_guard = Some(t);
+    *OPTIONAL_SERVER_HANDLE.lock().unwrap() = Some(handle);
+    log::info!("Optional HTTP server listening on {}", addr);
     Ok(())
 }
 
-#[tauri::command]
-pub fn stop_server() -> Result<(), String> {
-    // TODO: implement graceful shutdown by dropping server or sending interrupt
-    Ok(())
+fn stop_optional_server() {
+    let was_running = OPTIONAL_SERVER_HANDLE.lock().unwrap().is_some();
+    if was_running {
+        log::info!("Stopping optional HTTP server…");
+    }
+    OPTIONAL_SERVER_SHUTDOWN.store(true, Ordering::SeqCst);
+    // Take the handle out and join *without* holding the mutex, otherwise a
+    // worker thread that re-enters the lock (e.g. via a status read) could
+    // deadlock against this join.
+    let handle = OPTIONAL_SERVER_HANDLE.lock().unwrap().take();
+    if let Some(handle) = handle {
+        let _ = handle.join();
+    }
+    *OPTIONAL_SERVER_BIND_ADDR.lock().unwrap() = None;
+    if was_running {
+        log::info!("Optional HTTP server stopped");
+    }
+    // Note: error string is intentionally NOT cleared here so the frontend
+    // can still display the last bind failure after stopping. It's cleared
+    // on the next successful start.
 }
 
 /// Starts a lightweight HTTP server that serves static files from the user
@@ -198,129 +351,160 @@ pub fn start_user_overlay_server() {
     *USER_OVERLAY_SERVER_PORT.lock().unwrap() = port;
     thread::spawn(move || {
         for request in server.incoming_requests() {
-            // Strip query string — needed for URLs like main.html?edit=1.
-            let raw = request.url().trim_start_matches('/').to_string();
-            let url = raw.split_once('?').map(|(p, _)| p).unwrap_or(&raw).to_string();
+            handle_overlay_request(request);
+        }
+    });
+}
 
-            // Virtual route: serve embedded jQuery for references like
-            // "../../js/vendor/jquery-3.5.1.min.js" in main.html that resolve
-            // to http://127.0.0.1:{port}/js/vendor/jquery-3.5.1.min.js.
-            if url == "js/vendor/jquery-3.5.1.min.js" {
+/// Shared request handler used by both the always-on internal loopback server
+/// (`start_user_overlay_server`) and the optional user-toggled server
+/// (`start_optional_server`). Routes:
+///   /js/vendor/jquery-3.5.1.min.js   → embedded jQuery
+///   /css/<file>                      → bundled overlays css/ dir
+///   /fonts/<rel>                     → fonts dir (with dev fallback)
+///   /tuna-port.js                    → bundled overlays root
+///   /<overlay_id>/<filename>         → user-overlays first, fall back to bundled
+fn handle_overlay_request(request: tiny_http::Request) {
+    // Strip query string — needed for URLs like main.html?edit=1.
+    let raw = request.url().trim_start_matches('/').to_string();
+    let url = raw.split_once('?').map(|(p, _)| p).unwrap_or(&raw).to_string();
+
+    // Virtual route: serve embedded jQuery for references like
+    // "../../js/vendor/jquery-3.5.1.min.js" in main.html that resolve
+    // to http://127.0.0.1:{port}/js/vendor/jquery-3.5.1.min.js.
+    if url == "js/vendor/jquery-3.5.1.min.js" {
+        let _ = request.respond(
+            tiny_http::Response::from_data(JQUERY_JS).with_header(
+                tiny_http::Header::from_bytes(
+                    &b"Content-Type"[..],
+                    &b"application/javascript"[..],
+                )
+                .unwrap(),
+            ),
+        );
+        return;
+    }
+
+    // Serve CSS shared files (e.g. /css/editor-common.css) from the
+    // bundled overlays css/ subdir.  editor.html files reference
+    // "../../css/editor-common.css" which resolves to /css/... here.
+    if let Some(css_file) = url.strip_prefix("css/") {
+        if !css_file.contains("..") && !css_file.contains('/') && !css_file.contains('\\') {
+            let path = bundled_overlays_dir().join("css").join(css_file);
+            if let Ok(file) = fs::File::open(&path) {
+                let mime = mime_guess::from_path(&path).first_or_octet_stream();
                 let _ = request.respond(
-                    tiny_http::Response::from_data(JQUERY_JS).with_header(
-                        tiny_http::Header::from_bytes(
-                            &b"Content-Type"[..],
-                            &b"application/javascript"[..],
-                        )
-                        .unwrap(),
+                    tiny_http::Response::from_file(file).with_header(
+                        tiny_http::Header::from_bytes(&b"Content-Type"[..], mime.as_ref()).unwrap(),
                     ),
                 );
-                continue;
-            }
-
-            // Serve CSS shared files (e.g. /css/editor-common.css) from the
-            // bundled overlays css/ subdir.  editor.html files reference
-            // "../../css/editor-common.css" which resolves to /css/... here.
-            if let Some(css_file) = url.strip_prefix("css/") {
-                if !css_file.contains("..") && !css_file.contains('/') && !css_file.contains('\\') {
-                    let path = bundled_overlays_dir().join("css").join(css_file);
-                    if let Ok(file) = fs::File::open(&path) {
-                        let mime = mime_guess::from_path(&path).first_or_octet_stream();
-                        let _ = request.respond(
-                            tiny_http::Response::from_file(file).with_header(
-                                tiny_http::Header::from_bytes(&b"Content-Type"[..], mime.as_ref()).unwrap(),
-                            ),
-                        );
-                    } else {
-                        let _ = request.respond(tiny_http::Response::empty(404));
-                    }
-                } else {
-                    let _ = request.respond(tiny_http::Response::empty(400));
-                }
-                continue;
-            }
-
-            // Serve bundled/user fonts at /fonts/<family>/<file> and /fonts/fonts.css.
-            // Fonts live at app_data_dir/fonts/ (extracted from resources in release,
-            // and can be supplemented later with user uploads under fonts/user/).
-            if let Some(font_rel) = url.strip_prefix("fonts/") {
-                if !font_rel.contains("..") {
-                    // Primary source: AppData/AngelsNowPlaying/fonts/ (bundled extraction
-                    // in release + user uploads). Dev fallback: src/fonts/ since the
-                    // extraction step is skipped when cfg!(debug_assertions) is true.
-                    let mut path = fonts_dir().join(font_rel);
-                    if !path.exists() && cfg!(debug_assertions) {
-                        if let Ok(root) = project_root() {
-                            let dev_path = root.join("src").join("fonts").join(font_rel);
-                            if dev_path.exists() {
-                                path = dev_path;
-                            }
-                        }
-                    }
-                    if let Ok(file) = fs::File::open(&path) {
-                        let mime = mime_guess::from_path(&path).first_or_octet_stream();
-                        let _ = request.respond(
-                            tiny_http::Response::from_file(file).with_header(
-                                tiny_http::Header::from_bytes(&b"Content-Type"[..], mime.as_ref()).unwrap(),
-                            ),
-                        );
-                    } else {
-                        let _ = request.respond(tiny_http::Response::empty(404));
-                    }
-                } else {
-                    let _ = request.respond(tiny_http::Response::empty(400));
-                }
-                continue;
-            }
-
-            // Serve tuna-port.js from bundled overlays dir root.
-            if url == "tuna-port.js" {
-                let path = bundled_overlays_dir().join("tuna-port.js");
-                if let Ok(file) = fs::File::open(&path) {
-                    let _ = request.respond(
-                        tiny_http::Response::from_file(file).with_header(
-                            tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"application/javascript"[..]).unwrap(),
-                        ),
-                    );
-                } else {
-                    let _ = request.respond(tiny_http::Response::empty(404));
-                }
-                continue;
-            }
-
-            // URL format: {overlay_id}/{filename}  (no subdirectory nesting allowed)
-            // Check user overlays dir first; fall back to bundled overlays dir.
-            let response: Option<tiny_http::Response<fs::File>> = (|| {
-                let (overlay_id, filename) = url.split_once('/')?;
-                // Path-traversal guard: no '..' and no path separators in filename
-                if overlay_id.contains("..")
-                    || overlay_id.contains('/')
-                    || overlay_id.contains('\\')
-                    || filename.contains("..")
-                    || filename.contains('/')
-                    || filename.contains('\\')
-                {
-                    return None;
-                }
-                let user_path = user_overlays_dir().join(overlay_id).join(filename);
-                let bundled_path = bundled_overlays_dir().join(overlay_id).join(filename);
-                let path = if user_path.exists() { user_path } else { bundled_path };
-                let file = fs::File::open(&path).ok()?;
-                let mime = mime_guess::from_path(&path).first_or_octet_stream();
-                Some(
-                    tiny_http::Response::from_file(file).with_header(
-                        tiny_http::Header::from_bytes(&b"Content-Type"[..], mime.as_ref())
-                            .unwrap(),
-                    ),
-                )
-            })();
-            if let Some(r) = response {
-                let _ = request.respond(r);
             } else {
                 let _ = request.respond(tiny_http::Response::empty(404));
             }
+        } else {
+            let _ = request.respond(tiny_http::Response::empty(400));
         }
-    });
+        return;
+    }
+
+    // Serve bundled/user fonts at /fonts/<family>/<file> and /fonts/fonts.css.
+    if let Some(font_rel) = url.strip_prefix("fonts/") {
+        if !font_rel.contains("..") {
+            let mut path = fonts_dir().join(font_rel);
+            if !path.exists() && cfg!(debug_assertions) {
+                if let Ok(root) = project_root() {
+                    let dev_path = root.join("src").join("fonts").join(font_rel);
+                    if dev_path.exists() {
+                        path = dev_path;
+                    }
+                }
+            }
+            if let Ok(file) = fs::File::open(&path) {
+                let mime = mime_guess::from_path(&path).first_or_octet_stream();
+                let _ = request.respond(
+                    tiny_http::Response::from_file(file).with_header(
+                        tiny_http::Header::from_bytes(&b"Content-Type"[..], mime.as_ref()).unwrap(),
+                    ),
+                );
+            } else {
+                let _ = request.respond(tiny_http::Response::empty(404));
+            }
+        } else {
+            let _ = request.respond(tiny_http::Response::empty(400));
+        }
+        return;
+    }
+
+    // Serve tuna-port.js from bundled overlays dir root.
+    if url == "tuna-port.js" {
+        let mut path = bundled_overlays_dir().join("tuna-port.js");
+        if !path.exists() && cfg!(debug_assertions) {
+            if let Ok(root) = project_root() {
+                let dev_path = root.join("src").join("overlays").join("tuna-port.js");
+                if dev_path.exists() {
+                    path = dev_path;
+                }
+            }
+        }
+        if let Ok(file) = fs::File::open(&path) {
+            let _ = request.respond(
+                tiny_http::Response::from_file(file).with_header(
+                    tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"application/javascript"[..]).unwrap(),
+                ),
+            );
+        } else {
+            let _ = request.respond(tiny_http::Response::empty(404));
+        }
+        return;
+    }
+
+    // URL format: {overlay_id}/{filename}  (no subdirectory nesting allowed)
+    // Check user overlays dir first; fall back to bundled overlays dir, and
+    // in debug builds fall back further to src/overlays/ since
+    // extract_bundled_overlays() is skipped in dev.
+    let response: Option<tiny_http::Response<fs::File>> = (|| {
+        let (overlay_id, filename) = url.split_once('/')?;
+        if overlay_id.contains("..")
+            || overlay_id.contains('/')
+            || overlay_id.contains('\\')
+            || filename.contains("..")
+            || filename.contains('/')
+            || filename.contains('\\')
+        {
+            return None;
+        }
+        let user_path = user_overlays_dir().join(overlay_id).join(filename);
+        let bundled_path = bundled_overlays_dir().join(overlay_id).join(filename);
+        let dev_path = if cfg!(debug_assertions) {
+            project_root()
+                .ok()
+                .map(|r| r.join("src").join("overlays").join(overlay_id).join(filename))
+        } else {
+            None
+        };
+        let path = if user_path.exists() {
+            user_path
+        } else if bundled_path.exists() {
+            bundled_path
+        } else if let Some(p) = dev_path.filter(|p| p.exists()) {
+            p
+        } else {
+            return None;
+        };
+        let file = fs::File::open(&path).ok()?;
+        let mime = mime_guess::from_path(&path).first_or_octet_stream();
+        Some(
+            tiny_http::Response::from_file(file).with_header(
+                tiny_http::Header::from_bytes(&b"Content-Type"[..], mime.as_ref())
+                    .unwrap(),
+            ),
+        )
+    })();
+    if let Some(r) = response {
+        let _ = request.respond(r);
+    } else {
+        let _ = request.respond(tiny_http::Response::empty(404));
+    }
 }
 
 /// Returns the port the user overlay static server is listening on.
@@ -1223,7 +1407,7 @@ pub struct DiagnosticsReport {
     // Runtime state
     pub overlay_server_port: u16,
     pub tuna_port: u16,
-    pub allow_remote: bool,
+    pub serve_lan: bool,
     pub bundle_version_stamp: Option<String>,
 
     // Counts
@@ -1303,9 +1487,9 @@ pub fn get_diagnostics() -> DiagnosticsReport {
 
     let overlay_server_port = *USER_OVERLAY_SERVER_PORT.lock().unwrap();
 
-    // Tuna port + allow_remote come from saved settings; fall back to defaults.
-    let (tuna_port, allow_remote) = match get_overlay_settings() {
-        Ok(s) => (s.tuna_port, get_settings().map(|a| a.allow_remote).unwrap_or(false)),
+    // Tuna port + LAN-mode flag come from saved settings; fall back to defaults.
+    let (tuna_port, serve_lan) = match get_overlay_settings() {
+        Ok(s) => (s.tuna_port, get_settings().map(|a| a.serve_lan).unwrap_or(false)),
         Err(_) => (OverlaySettings::default().tuna_port, false),
     };
 
@@ -1344,7 +1528,7 @@ pub fn get_diagnostics() -> DiagnosticsReport {
         user_fonts_dir: redact_path(&user_fonts),
         overlay_server_port,
         tuna_port,
-        allow_remote,
+        serve_lan,
         bundle_version_stamp,
         bundled_overlays_count,
         user_overlays_count,
@@ -2026,19 +2210,10 @@ pub fn restore_backup(source: String) -> Result<RestoreSummary, String> {
     if staged_app_settings.is_file() {
         let content = fs::read_to_string(&staged_app_settings).map_err(|e| e.to_string())?;
         match serde_json::from_str::<AppSettings>(&content) {
-            Ok(mut backup_settings) => {
-                let current = get_settings().unwrap_or_default();
-                // Machine-specific paths: keep current value if the backup's
-                // path doesn't exist on this machine.
-                if !backup_settings.export_root.as_os_str().is_empty()
-                    && !backup_settings.export_root.exists()
-                {
-                    summary.warnings.push(format!(
-                        "Backup's export root ({}) doesn't exist on this machine — kept current value.",
-                        backup_settings.export_root.display()
-                    ));
-                    backup_settings.export_root = current.export_root.clone();
-                }
+            Ok(backup_settings) => {
+                // AppSettings now contains only portable preferences
+                // (serve_overlays_enabled, serve_port, serve_lan) — no
+                // machine-specific paths to reconcile, so write directly.
                 if let Err(e) = save_settings(backup_settings) {
                     summary.warnings.push(format!("Could not save app settings: {e}"));
                 }

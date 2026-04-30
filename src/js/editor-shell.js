@@ -119,6 +119,11 @@ async function init() {
     frameInitialized = false;
     frame.addEventListener('load', onFrameLoad, { once: true });
     frame.src = editorUrl;
+
+    // Set the initial Copy Path / Copy URL label based on whether the
+    // optional HTTP server is currently running. Fire-and-forget — failure
+    // here just leaves the default "Copy Path" label.
+    refreshCopyButtonMode().catch(() => {});
   } catch (e) {
     console.error('[editor-shell] init failed:', e);
   }
@@ -211,17 +216,76 @@ document.getElementById('reset-btn').addEventListener('click', async () => {
 });
 
 // ---------------------------------------------------------------------------
-// Copy Path button (copies the overlay's local file path for OBS Browser Source)
+// Copy Path / Copy URL button
 // ---------------------------------------------------------------------------
+// When the optional HTTP server is running, this button copies the URL the
+// user can paste into OBS (e.g. http://192.168.1.42:8253/frame-foo/main.html).
+// When it's off, it falls back to copying the local file path. The label +
+// tooltip are refreshed on editor open and again every click so a Settings
+// page toggle made in another window still picks up.
+
+/// Reads `get_serve_http_status` and updates the copy button's label/tooltip.
+/// Returns the status object so the click handler can reuse it.
+async function refreshCopyButtonMode() {
+  const btn = document.getElementById('copy-url-btn');
+  if (!btn) return null;
+  let status = null;
+  try {
+    status = await invoke('get_serve_http_status');
+  } catch (e) {
+    console.warn('[editor-shell] get_serve_http_status failed:', e);
+  }
+  const serving = !!(status && status.enabled && status.running && !status.error);
+  if (serving) {
+    btn.innerHTML = '<i class="fas fa-clipboard"></i> Copy URL';
+    btn.title = 'Copy Overlay URL to Clipboard';
+  } else {
+    btn.innerHTML = '<i class="fas fa-clipboard"></i> Copy Path';
+    btn.title = 'Copy Path to Clipboard';
+  }
+  return status;
+}
+
+/// Build the public URL for this overlay's main.html based on the server's
+/// current bind state. Prefers the LAN IP when LAN mode is on so the URL is
+/// reachable from other devices; otherwise uses the loopback host.
+function buildOverlayUrl(status, overlayId) {
+  if (!status || !status.bind_addr) return null;
+  const port = status.bind_addr.split(':').pop();
+  const boundHost = status.bind_addr.split(':')[0];
+  // 0.0.0.0 isn't a valid request host — fall back to the LAN IP we got
+  // from local-ip-address, or 127.0.0.1 if detection failed.
+  const host = (boundHost === '0.0.0.0')
+    ? (status.lan_ip || '127.0.0.1')
+    : boundHost;
+  return `http://${host}:${port}/${overlayId}/main.html`;
+}
+
 document.getElementById('copy-url-btn').addEventListener('click', async () => {
   const btn = document.getElementById('copy-url-btn');
+  const origHTML = btn.innerHTML;
   try {
-    const obsPath = await invoke('get_overlay_main_path', { overlayId });
-    await navigator.clipboard.writeText(obsPath);
-    const orig = btn.innerHTML;
+    // Re-check status on every click so toggles in the Settings window are
+    // picked up without needing to re-open the editor.
+    const status = await refreshCopyButtonMode();
+    const serving = !!(status && status.enabled && status.running && !status.error);
+    let textToCopy;
+    if (serving) {
+      textToCopy = buildOverlayUrl(status, overlayId);
+      if (!textToCopy) {
+        // Server reported running but we couldn't construct a URL — fall
+        // back to the file path rather than failing silently.
+        textToCopy = await invoke('get_overlay_main_path', { overlayId });
+      }
+    } else {
+      textToCopy = await invoke('get_overlay_main_path', { overlayId });
+    }
+    await navigator.clipboard.writeText(textToCopy);
     btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-    setTimeout(() => { btn.innerHTML = orig; }, 1600);
-  } catch (e) { console.warn('copy failed', e); }
+    setTimeout(() => { btn.innerHTML = origHTML; }, 1600);
+  } catch (e) {
+    console.warn('copy failed', e);
+  }
 });
 
 // ---------------------------------------------------------------------------

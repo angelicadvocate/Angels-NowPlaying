@@ -11,6 +11,42 @@ Please be sure to add date, completed tag, `github:[username]`, and version numb
 
 ---------------------------------------------------------------------------------
 
+## v0.11.0 – 2026-04-29
+
+* [x] **Serve Overlays over HTTP** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Angels-NowPlaying can now host all installed overlays on its own built-in HTTP server, exposing each one at `http://<host>:<port>/<overlay_id>/main.html`. Users who run OBS on a different machine, or who want to share an overlay with a friend on the same LAN, can now paste a URL into OBS as a **URL** Browser Source instead of using a Local File path. Default port is `8253`; both port and bind mode are user-configurable
+  * Two bind modes — **loopback-only** (`127.0.0.1`, default and recommended) so only apps on the same PC can reach the server, and **LAN access** (`0.0.0.0`) for cross-device use. The Configure modal renders an amber security warning whenever LAN access is on, since the server has no authentication
+  * Server lifecycle is fully auto-managed: when the master toggle is ON the server starts at app launch via `apply_serve_http_settings()` in `setup()`, and stops cleanly at exit. There are no public start/stop commands — the frontend's only interactions are `save_settings` + `apply_serve_http_settings` (reconcile) and `get_serve_http_status` (paint). The lifecycle worker uses an `AtomicBool` shutdown flag with `recv_timeout(150ms)` polling so the server thread checks for stop requests promptly without blocking app exit
+  * Bind uses `socket2` to construct a `TcpListener` with `SO_REUSEADDR` set *before* bind, then hands it to `tiny_http` via `Server::from_listener`. Without this, Windows holds the listening socket exclusively for ~10s after drop and rebinds (e.g. flipping the LAN toggle on a running server) fail with `WSAEADDRINUSE` — `SO_REUSEADDR` lets the new bind succeed even while the old socket is still in `TIME_WAIT`
+  * `LAN` IP detection uses the `local_ip_address` crate so the UI can show the externally-reachable URL (`http://192.168.x.y:8253/...`) when LAN mode is on, instead of the meaningless `0.0.0.0`. Multi-NIC machines pick one interface somewhat arbitrarily — flagged in the docs
+
+* [x] **Editor header: Copy Path ↔ Copy URL toggle** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * The header button in every overlay's editor now reads its label and behaviour from the live serve-HTTP status: when the server is running it switches to **Copy URL** and copies `http://<host>:<port>/<overlay_id>/main.html` (using the LAN IP when LAN access is enabled, loopback otherwise); when serving is off it falls back to the existing **Copy Path** behaviour and copies the local `main.html` path. Status is re-read on every click so toggles made in the Settings window are picked up without needing to reopen the editor
+
+* [x] **AppSettings refactor + lifecycle backend** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Replaced the legacy `start_server` / `stop_server` / `export_root` / `allow_remote` plumbing — all carried in v0.10.4 specifically for this work — with a clean three-field `AppSettings` (`serve_overlays_enabled: bool`, `serve_port: u16`, `serve_lan: bool`) plus the new internal lifecycle (`start_optional_server`, `stop_optional_server`, `apply_serve_http_settings`, `get_serve_http_status`). The struct uses `#[serde(default)]` and `#[serde(alias = "allow_remote")]` so existing `settings.json` files on disk continue to deserialize cleanly during the upgrade — no migration step needed
+  * The two HTTP servers (the always-on internal loopback server backing editor iframes and the new optional user-toggled server) now share a single `handle_overlay_request()` function, so the routing rules (`/js/vendor/jquery-3.5.1.min.js`, `/css/<file>`, `/fonts/<rel>`, `/tuna-port.js`, `/<overlay_id>/<filename>`) only live in one place
+  * Added a debug-build fallback to `src/overlays/` in the request handler — `extract_bundled_overlays()` is skipped in dev, so without the fallback the new HTTP server would 404 on every overlay during `cargo tauri dev`. Release builds use the bundled extraction path as before, gated by `cfg!(debug_assertions)`
+
+* [x] **Settings page: Configure HTTP modal + persistent toggles** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * New Settings card section anchored to the bottom of the left column, with title + master toggle inline, a status line below ("Serve over HTTP not enabled" / "Currently serving on http://x.x.x.x:port" / "Warning: Check Config"), and a full-width **Configure&hellip;** button that opens a modal. The status line reads from `get_serve_http_status` on every page load and after every settings change so it always reflects live backend state
+  * Configure modal contains the port input (validated 1024–65535), the LAN sub-toggle with an inline amber security warning that appears only when LAN is on, and a red error detail panel that surfaces backend bind errors verbatim. `save_settings` + `apply_serve_http_settings` are called atomically on save; if the apply step reports a bind error the modal stays open so the user can read the detail panel and pick a different port
+  * Master toggle on the main card persists the new state immediately on click and triggers a server reconcile, so the user can flip serving on/off without ever opening the modal once it's been configured. All settings round-trip through `restore_backup` automatically since they live on `AppSettings`
+
+* [x] **Open AppData utility button** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * New `open_app_data_dir` Tauri command + matching button in the Overlay Management section of Settings. Opens `AppData/AngelsNowPlaying/` in the platform's file manager so users can inspect their installed overlays, fonts, settings, and `.snapshots/` backups without hunting for the path. Useful for troubleshooting and copying user content between machines
+
+* [x] **Instructions page: stacked topic cards + sticky TOC** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Replaced the old 2-column "Editor Instructions / Setup Instructions" layout with a single column of self-contained topic cards plus a sticky sidebar table-of-contents on the left. Each card has a stable id (`#quick-start`, `#editor`, `#serve-http`, `#overlay-management`, `#updates-backups`, `#feedback`, `#developers`) so deep-links from anywhere else in the app can target the right section
+  * New layout scales with future features without forcing a rewrite each time, and gives the **For Developers** section room to grow into a proper in-app reference. Existing walkthrough content (Tuna setup, OBS browser source, customising an overlay) was preserved verbatim and just reorganised into the new buckets; the Quick Start card now links forward to Editor Basics and Serve over HTTP at the right moments
+  * Below 1100px the layout collapses to a single column with the TOC stacked at the top so it still works as an in-page index. `scroll-behavior: smooth` + `scroll-margin-top` make TOC clicks land cleanly under the page header
+
+* [x] **Settings card layout polish** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Tightened vertical spacing across the Settings card (`.settings-item` margin-bottom 1rem, dividers rely on the previous item's bottom margin instead of stacking margins), reduced padding on compact buttons, and gave the modal `overflow: hidden` so its rounded corners actually clip. Modal footer buttons use the same sizing as the main page action buttons; the About card avatar and link buttons were re-tuned to match the new proportions
+  * Result is a noticeably denser Settings page that fits the new HTTP-serve section without scrolling, while leaving every existing control in roughly the same place
+
+---------------------------------------------------------------------------------
+
 ## v0.10.4 – 2026-04-29
 
 * [x] **Bundled-overlay rename migration table** ✨ *COMPLETED* `github:AngelicAdvocate`

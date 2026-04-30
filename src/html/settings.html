@@ -54,30 +54,54 @@
         <button class="toggle-switch active" id="dark-mode-toggle" title="Toggle Dark Mode"></button>
       </div>
 
-      <div class="settings-item" style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem; flex-direction: column; align-items: flex-start;">
-        <p class="template-section-title">Current Version: <strong id="version-number">Loading...</strong></p>
-        <p class="template-section-title" id="latest-version-row" style="display: none; opacity: 0.85;">Latest Version: <strong id="latest-version">—</strong></p>
-        <button class="settings-button" onclick="checkForUpdates()" style="width: 100%;">
-          <i class="fas fa-download"></i> Check for Updates
-        </button>
-        <!-- Always rendered + flex-grows into the column's empty space so
-             that messages like "You are running the latest version" appear
-             in the existing whitespace below the button instead of pushing
-             the column taller. -->
-        <p id="update-status" style="font-size: 0.85rem; margin-top: 0.8rem; flex-grow: 1; width: 100%; color: var(--text-primary); margin-bottom: 0;"></p>
+      <div class="settings-item settings-section-divider">
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 0.75rem;">
+          <p class="template-section-title" style="margin: 0;">Current Version: <strong id="version-number">Loading...</strong></p>
+          <button class="settings-button settings-button--compact" onclick="checkForUpdates(true)">
+            <i class="fas fa-download"></i> Check for Updates
+          </button>
+        </div>
+        <!-- Always rendered with a reserved min-height so messages like
+             "You are running the latest version" appear in pre-allocated
+             whitespace instead of pushing the column taller. min-height
+             is sized to fit the longest single-line status message at
+             0.85rem font-size; multi-line messages (release notes, long
+             errors) will still grow the column, which is acceptable. -->
+        <p id="update-status" style="font-size: 0.85rem; margin: 0.8rem 0 0; width: 100%; color: var(--text-primary); min-height: 1.4em; line-height: 1.4;"></p>
       </div>
 
       <!-- Tuna Configuration -->
-      <div class="settings-item" style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem; flex-direction: column; align-items: flex-start;">
-        <p class="template-section-title"><i class="fas fa-music"></i> Tuna Configuration</p>
-        <p style="font-size:0.85rem; opacity:0.75; margin: 0 0 0.75rem;">Set the port Tuna is broadcasting on. Default is 1608.</p>
-        <label style="font-size:0.85rem; font-weight:600;">Tuna Port</label>
-        <div style="display:flex; gap:0.5rem; width:100%; margin-top:0.25rem;">
+      <div class="settings-item settings-section-divider">
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 0.75rem;">
+          <p class="template-section-title" style="margin: 0;"><i class="fas fa-music"></i> Tuna Configuration</p>
+          <button class="settings-button settings-button--compact" onclick="saveOverlaySettings()">
+            <i class="fas fa-save"></i> Save Settings
+          </button>
+        </div>
+        <label style="font-size:0.85rem; font-weight:600; margin-top: 0.6rem;">Tuna Port</label>
+        <div style="display:flex; gap:0.75rem; width:100%; margin-top:0.25rem; align-items:center;">
           <input type="number" id="tunaPort" min="1" max="65535" value="1608" placeholder="1608"
             style="width:120px; background:var(--bg-input); border:1px solid var(--border-input); color:var(--text-primary); padding:0.4rem 0.6rem; border-radius:4px; font-size:0.8rem;">
+          <p style="font-size:0.85rem; opacity:0.75; margin:0; flex:1;">Set the port Tuna is broadcasting on. Default is 1608.</p>
         </div>
-        <button class="settings-button" onclick="saveOverlaySettings()" style="width:100%; margin-top:0.75rem;"><i class="fas fa-save"></i> Save Settings</button>
-        <p id="tunaStatus" style="font-size:0.85rem; margin:0.25rem 0 0; display:none;"></p>
+        <p id="tunaStatus" style="font-size:0.85rem; margin:0.5rem 0 0; display:none;"></p>
+      </div>
+
+      <!-- Serve Overlays over HTTP — anchored to the bottom of the card so
+           its full-width Configure button aligns horizontally with the
+           View Instructions button in the neighbouring card. -->
+      <div class="settings-item settings-section-divider">
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+          <p class="template-section-title" style="margin: 0;"><i class="fas fa-network-wired"></i> Serve Overlays over HTTP</p>
+          <button class="toggle-switch" id="serve-http-toggle" title="Toggle HTTP Server"></button>
+        </div>
+        <!-- Status placeholder. JS will swap class + textContent based on
+             backend state. Default = OFF (grey). Sits above the button so
+             the button itself is the bottom-row alignment anchor. -->
+        <p id="serve-http-status" class="serve-status serve-status--off">Serve over HTTP not enabled</p>
+        <button class="settings-button" id="serve-http-configure" onclick="openServeHttpModal()" style="width: 100%; margin-top: 0.25rem;">
+          <i class="fas fa-sliders-h"></i> Configure&hellip;
+        </button>
       </div>
 
     </div>
@@ -131,6 +155,9 @@
             <p class="template-section-title"><i class="fas fa-code"></i> Show Developer Overlay</p>
             <button class="toggle-switch" id="show-template-starter-toggle" title="Show/hide the frame-template-starter overlay on the home page"></button>
           </div>
+          <button class="settings-button" onclick="openAppDataDir()" title="Open the AppData folder where overlays, fonts, and settings are stored" style="width:100%; margin-top:auto;">
+            <i class="fas fa-folder-open"></i> Open AppData Folder
+          </button>
         </div>
 
         <!-- Vertical divider -->
@@ -365,6 +392,61 @@
     </div>
   </div>
 
+  <!-- Configure HTTP Server Modal -->
+  <div class="modal-overlay" id="serveHttpModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><i class="fas fa-network-wired"></i> Configure HTTP Server</h3>
+        <button class="modal-close" onclick="closeServeHttpModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin:0 0 1rem; font-size:0.9rem; opacity:0.85;">
+          Optionally serve your overlays over HTTP instead of <code>file://</code>. Useful for store / third-party overlays that need <code>fetch()</code> or for running OBS on a different machine.
+        </p>
+
+        <!-- Port input -->
+        <div class="form-group">
+          <label for="serveHttpPort">Port</label>
+          <div style="display:flex; gap:0.75rem; align-items:center;">
+            <input type="number" id="serveHttpPort" min="1024" max="65535" value="8253" placeholder="8253"
+              style="width:120px; background:var(--bg-input); border:1px solid var(--border-input); color:var(--text-primary); padding:0.4rem 0.6rem; border-radius:4px; font-size:0.85rem;">
+            <p style="font-size:0.85rem; opacity:0.75; margin:0; flex:1;">Port the local server will bind to. Range 1024–65535. Default is 8253.</p>
+          </div>
+        </div>
+
+        <!-- LAN sub-toggle -->
+        <div class="form-group" style="display:flex; align-items:flex-start; justify-content:space-between; gap:0.75rem;">
+          <div style="flex:1;">
+            <label style="margin:0 0 0.25rem;">Allow access from other devices on my network</label>
+            <p style="font-size:0.8rem; opacity:0.75; margin:0;">When OFF, the server is loopback-only (<code>127.0.0.1</code>). When ON, it binds to <code>0.0.0.0</code> so other devices on your LAN can reach it.</p>
+          </div>
+          <button class="toggle-switch" id="serveHttpLanToggle" title="Toggle LAN Access" style="flex-shrink:0; margin-top:0.25rem;"></button>
+        </div>
+
+        <!-- LAN warning, only shown when LAN toggle is ON -->
+        <p id="serveHttpLanWarning" style="display:none; font-size:0.85rem; margin:0 0 1rem; padding:0.6rem 0.75rem; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.4); border-radius:6px; line-height:1.4;">
+          <i class="fas fa-exclamation-triangle" style="color:#f59e0b; margin-right:0.4rem;"></i>
+          This opens your overlays to any device on your local network. Only enable this if you run OBS on a different machine. Your operating system may show a firewall prompt.
+        </p>
+
+        <!-- Error / diagnostic detail panel. Only visible when the backend
+             reports a startup or runtime error (e.g. port in use). The
+             warning text on the main Settings page links here. -->
+        <div id="serveHttpErrorPanel" style="display:none; margin-top:1rem; padding:0.75rem; background:rgba(248,113,113,0.10); border:1px solid rgba(248,113,113,0.4); border-radius:6px;">
+          <p style="margin:0 0 0.4rem; font-size:0.9rem; font-weight:600; color:#f87171;">
+            <i class="fas fa-circle-exclamation" style="margin-right:0.4rem;"></i>
+            Server Error
+          </p>
+          <p id="serveHttpErrorMessage" style="margin:0; font-size:0.85rem; line-height:1.45; white-space:pre-wrap; word-break:break-word;"></p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeServeHttpModal()">Cancel</button>
+        <button class="btn-submit" onclick="saveServeHttpSettings()"><i class="fas fa-save"></i> Save</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Restore confirmation modal (shown after the user picks a backup file,
        before we wipe + replace existing data). -->
   <div class="modal-overlay" id="restoreConfirmModal">
@@ -469,12 +551,249 @@
       }
     }
 
+    // ── Configure HTTP Server modal ──────────────────────────────────────────
+    // The master toggle on the main Settings card is the source of truth for
+    // whether the optional HTTP server is running. The modal lets the user
+    // pick the port and LAN bind, and surfaces backend bind errors. All
+    // state is persisted to AppSettings (settings.json) via `save_settings`,
+    // and the backend's `apply_serve_http_settings` reconciles the actual
+    // server lifecycle on every save + on app launch.
+    async function loadServeHttpSettings() {
+      if (!window.__TAURI__) return null;
+      try {
+        return await window.__TAURI__.invoke('get_settings');
+      } catch (err) {
+        console.warn('get_settings failed:', err);
+        return null;
+      }
+    }
+
+    async function refreshServeHttpStatus() {
+      if (!window.__TAURI__) return;
+      const statusEl = document.getElementById('serve-http-status');
+      const masterToggle = document.getElementById('serve-http-toggle');
+      if (!statusEl || !masterToggle) return;
+      let status;
+      try {
+        status = await window.__TAURI__.invoke('get_serve_http_status');
+      } catch (err) {
+        console.warn('get_serve_http_status failed:', err);
+        return;
+      }
+      // Sync master toggle visual state with persisted enabled flag.
+      masterToggle.classList.toggle('active', !!status.enabled);
+
+      // Repaint status line + class.
+      statusEl.classList.remove('serve-status--off', 'serve-status--active', 'serve-status--error');
+      if (!status.enabled) {
+        statusEl.classList.add('serve-status--off');
+        statusEl.textContent = 'Serve over HTTP not enabled';
+      } else if (status.error) {
+        statusEl.classList.add('serve-status--error');
+        statusEl.textContent = 'Warning: Check Config';
+      } else if (status.running) {
+        statusEl.classList.add('serve-status--active');
+        // Prefer LAN IP when LAN mode is on so users can copy the externally
+        // reachable URL; otherwise fall back to the bound address.
+        const port = (status.bind_addr || '').split(':').pop() || '';
+        const host = status.lan_ip || (status.bind_addr || '').split(':')[0] || '127.0.0.1';
+        statusEl.textContent = `Currently serving on http://${host}:${port}`;
+      } else {
+        statusEl.classList.add('serve-status--off');
+        statusEl.textContent = 'Serve over HTTP not enabled';
+      }
+
+      // Mirror error into the modal panel so it's visible if/when reopened.
+      if (status.error) {
+        showServeHttpError(status.error);
+      } else {
+        hideServeHttpError();
+      }
+    }
+
+    async function openServeHttpModal() {
+      // Hydrate the modal with the persisted AppSettings so the user sees
+      // the current values rather than the HTML defaults each time.
+      const s = await loadServeHttpSettings();
+      if (s) {
+        const portInput = document.getElementById('serveHttpPort');
+        const lanToggle = document.getElementById('serveHttpLanToggle');
+        if (portInput) portInput.value = (s.serve_port || 8253);
+        if (lanToggle) lanToggle.classList.toggle('active', !!s.serve_lan);
+      }
+      syncServeHttpLanWarning();
+      // Surface any standing backend error inside the modal panel.
+      await refreshServeHttpStatus();
+      document.getElementById('serveHttpModal').classList.add('active');
+    }
+
+    function closeServeHttpModal() {
+      document.getElementById('serveHttpModal').classList.remove('active');
+    }
+
+    function syncServeHttpLanWarning() {
+      const lanToggle = document.getElementById('serveHttpLanToggle');
+      const warning = document.getElementById('serveHttpLanWarning');
+      if (!lanToggle || !warning) return;
+      warning.style.display = lanToggle.classList.contains('active') ? 'block' : 'none';
+    }
+
+    async function saveServeHttpSettings() {
+      const port = parseInt(document.getElementById('serveHttpPort').value, 10);
+      if (!Number.isFinite(port) || port < 1024 || port > 65535) {
+        showServeHttpError('Port must be a number between 1024 and 65535.');
+        return;
+      }
+      hideServeHttpError();
+
+      if (!window.__TAURI__) {
+        closeServeHttpModal();
+        return;
+      }
+
+      const masterToggle = document.getElementById('serve-http-toggle');
+      const lanToggle = document.getElementById('serveHttpLanToggle');
+      const settings = {
+        serve_overlays_enabled: !!(masterToggle && masterToggle.classList.contains('active')),
+        serve_port: port,
+        serve_lan: !!(lanToggle && lanToggle.classList.contains('active')),
+      };
+
+      try {
+        await window.__TAURI__.invoke('save_settings', { settings });
+        await window.__TAURI__.invoke('apply_serve_http_settings');
+      } catch (err) {
+        showServeHttpError(String(err));
+        return;
+      }
+
+      // Repaint the main card status from the freshly-applied state.
+      await refreshServeHttpStatus();
+      // If the backend reported an error during apply, keep the modal open
+      // so the user can see the detail panel; otherwise dismiss it.
+      const status = await window.__TAURI__.invoke('get_serve_http_status').catch(() => null);
+      if (!status || !status.error) {
+        closeServeHttpModal();
+      }
+    }
+
+    // Public helpers — used by the backend status callback to surface
+    // detailed error text inside the modal. The compact "Warning: Check
+    // Config" hint on the main Settings card is set separately on the
+    // #serve-http-status element via the .serve-status--error class.
+    function showServeHttpError(message) {
+      const panel = document.getElementById('serveHttpErrorPanel');
+      const msg = document.getElementById('serveHttpErrorMessage');
+      if (!panel || !msg) return;
+      msg.textContent = message || 'Unknown error.';
+      panel.style.display = 'block';
+    }
+    function hideServeHttpError() {
+      const panel = document.getElementById('serveHttpErrorPanel');
+      if (panel) panel.style.display = 'none';
+    }
+
+    // Toggle wiring — the existing toggle-switch component just toggles its
+    // own .active class on click, so we listen for clicks here to keep the
+    // LAN warning text in sync.
+    document.getElementById('serveHttpLanToggle')?.addEventListener('click', function() {
+      this.classList.toggle('active');
+      syncServeHttpLanWarning();
+    });
+
+    // Master toggle on the main Settings card — persists the new state
+    // immediately and asks the backend to reconcile (start or stop the
+    // optional server). Repaints the status line + error panel from the
+    // returned status snapshot.
+    document.getElementById('serve-http-toggle')?.addEventListener('click', async function() {
+      this.classList.toggle('active');
+      if (!window.__TAURI__) return;
+      try {
+        const current = await window.__TAURI__.invoke('get_settings');
+        const settings = {
+          serve_overlays_enabled: this.classList.contains('active'),
+          serve_port: (current && current.serve_port) || 8253,
+          serve_lan: !!(current && current.serve_lan),
+        };
+        await window.__TAURI__.invoke('save_settings', { settings });
+        await window.__TAURI__.invoke('apply_serve_http_settings');
+      } catch (err) {
+        console.warn('serve-http-toggle apply failed:', err);
+      }
+      await refreshServeHttpStatus();
+    });
+
+    // Click-outside-to-close, matching the other modals.
+    document.getElementById('serveHttpModal')?.addEventListener('click', function(e) {
+      if (e.target === this) closeServeHttpModal();
+    });
+
     // Check for updates — calls the real Tauri updater plugin which fetches
     // latest.json from GitHub Releases, verifies the embedded ed25519 signature
     // against the pubkey baked into tauri.conf.json, and (on user consent)
     // downloads + applies the platform-specific installer before relaunching.
-    async function checkForUpdates() {
+    //
+    // Caching: the result of an update check is cached in localStorage for
+    // UPDATE_CACHE_TTL_MS so the auto-fire on every Settings page load doesn't
+    // hammer the GitHub Releases endpoint. The cache is invalidated when the
+    // installed app version changes (i.e. after a successful update). Manual
+    // clicks of the "Check for Updates" button always bypass the cache by
+    // passing `forceFresh = true`.
+    const UPDATE_CACHE_KEY = 'angelsNowPlaying.updateCheckCache.v1';
+    const UPDATE_CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
+
+    function readUpdateCache() {
+      try {
+        const raw = localStorage.getItem(UPDATE_CACHE_KEY);
+        if (!raw) return null;
+        const obj = JSON.parse(raw);
+        if (!obj || typeof obj.ts !== 'number' || !obj.appVersion) return null;
+        if (Date.now() - obj.ts > UPDATE_CACHE_TTL_MS) return null;
+        // Invalidate if the installed app version changed since the cache
+        // was written (e.g. user just installed an update).
+        const currentVersion = document.getElementById('version-number')?.textContent || '';
+        if (obj.appVersion !== currentVersion) return null;
+        return obj;
+      } catch { return null; }
+    }
+
+    function writeUpdateCache(state, latestVersion) {
+      try {
+        const currentVersion = document.getElementById('version-number')?.textContent || '';
+        localStorage.setItem(UPDATE_CACHE_KEY, JSON.stringify({
+          ts: Date.now(),
+          appVersion: currentVersion,
+          state,                                // 'latest' | 'available'
+          latestVersion: latestVersion || null,
+        }));
+      } catch {}
+    }
+
+    function paintUpdateStatus(state, latestVersion) {
+      const el = document.getElementById('update-status');
+      if (!el) return;
+      if (state === 'latest') {
+        el.style.color = '#4ade80';
+        el.textContent = '✓ You are running the latest version!';
+      } else if (state === 'available') {
+        const currentVersion = document.getElementById('version-number')?.textContent || '?';
+        el.style.color = 'var(--highlight)';
+        el.textContent = `Update available: ${currentVersion} → ${latestVersion}`;
+      }
+    }
+
+    async function checkForUpdates(forceFresh = false) {
       const updateStatus = document.getElementById('update-status');
+
+      // Cache hit path — only used when called automatically (forceFresh=false).
+      if (!forceFresh) {
+        const cached = readUpdateCache();
+        if (cached) {
+          paintUpdateStatus(cached.state, cached.latestVersion);
+          return;
+        }
+      }
+
       updateStatus.style.color = 'var(--text-primary)';
       updateStatus.textContent = 'Checking for updates...';
 
@@ -486,18 +805,21 @@
       try {
         const update = await window.__TAURI__.updater.check();
         if (!update) {
-          updateStatus.style.color = '#4ade80';
-          updateStatus.textContent = '✓ You are running the latest version!';
+          paintUpdateStatus('latest');
+          writeUpdateCache('latest', null);
           return;
         }
 
-        // Update found — show side-by-side current vs latest and prompt.
-        const currentVersion = document.getElementById('version-number')?.textContent || '?';
-        document.getElementById('latest-version').textContent = update.version;
-        document.getElementById('latest-version-row').style.display = 'block';
-        updateStatus.style.color = 'var(--highlight)';
-        updateStatus.textContent = `Update available: ${currentVersion} → ${update.version}`;
+        // Update found — fold the new version into the status message.
+        paintUpdateStatus('available', update.version);
+        writeUpdateCache('available', update.version);
 
+        // Only the manual "Check for Updates" click should pop the install
+        // confirmation dialog. The auto-fire on page load just paints the
+        // status text and stops.
+        if (!forceFresh) return;
+
+        const currentVersion = document.getElementById('version-number')?.textContent || '?';
         const notes = (update.body || '').trim();
         const proceed = confirm(
           `A new version is available:\n\n${currentVersion} → ${update.version}\n\n` +
@@ -579,6 +901,11 @@
     window.addEventListener('DOMContentLoaded', () => {
       loadVersion();
       populateTemplateDropdown();
+      // Auto-fire an update check so the status row under "Current Version"
+      // always has text in it (instead of showing an empty reserved-height
+      // line). Delayed slightly so loadVersion() has time to fill in the
+      // current version number that checkForUpdates() reads back.
+      setTimeout(() => { checkForUpdates(); }, 250);
       // loadOverlaySettings() is called by the second DOMContentLoaded listener below
     });
 
@@ -706,6 +1033,10 @@
     window.addEventListener('DOMContentLoaded', () => {
       loadOverlaySettings();
       populateUserOverlayDropdown();
+      // Hydrate the master toggle + status line from persisted AppSettings
+      // and the live backend lifecycle. Fire-and-forget; refreshServeHttpStatus
+      // safely no-ops if Tauri isn't available.
+      refreshServeHttpStatus();
     });
 
     // ── Overlay visibility toggles (auto-save on click) ──────────────────────
@@ -717,6 +1048,17 @@
       this.classList.toggle('active');
       saveOverlaySettings();
     });
+
+    // ── Open AppData folder in OS file manager ───────────────────────────────
+    async function openAppDataDir() {
+      if (!window.__TAURI__) return;
+      try {
+        await window.__TAURI__.invoke('open_app_data_dir');
+      } catch (e) {
+        console.error('Failed to open AppData folder', e);
+        alert('Could not open the AppData folder:\n\n' + (e?.message || e));
+      }
+    }
 
     // ── Download frame-template-starter as zip ───────────────────────────────
     async function downloadTemplateStarter() {
@@ -982,7 +1324,7 @@
       lines.push('── Runtime ──');
       push('Overlay server port', d.overlay_server_port);
       push('Tuna port',           d.tuna_port);
-      push('Allow remote',        d.allow_remote);
+      push('Serve over LAN',      d.serve_lan);
       lines.push('');
       lines.push('── Counts ──');
       push('Bundled overlays',    d.bundled_overlays_count);

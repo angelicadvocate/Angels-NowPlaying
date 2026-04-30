@@ -251,7 +251,7 @@
     }
 
     .settings-item {
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -260,6 +260,33 @@
     .settings-item:last-child {
       margin-bottom: 0;
     }
+
+    /* Shared divider between sections inside a settings-card. The previous
+     * item's margin-bottom (1rem) already separates the line from the
+     * content above, so this rule contributes 0 above the line and 0.75rem
+     * below — keeps the divider visually anchored to the section it
+     * introduces, not floating in the middle of empty space. */
+    .settings-section-divider {
+      border-top: 1px solid var(--border-color);
+      padding-top: 0.75rem;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    /* Serve-over-HTTP status line — three placeholder states:
+     *   .serve-status--off    : grey, "Serve over HTTP not enabled"
+     *   .serve-status--active : green, "Currently serving on IP:PORT"
+     *   .serve-status--error  : red, "Warning: Check Config" */
+    .serve-status {
+      font-size: 0.85rem;
+      margin: 0.6rem 0 0;
+      width: 100%;
+      line-height: 1.4;
+      min-height: 1.4em;
+    }
+    .serve-status--off    { color: var(--text-primary); opacity: 0.55; }
+    .serve-status--active { color: #4ade80; }
+    .serve-status--error  { color: #f87171; }
 
     .settings-item label {
       display: flex;
@@ -318,6 +345,15 @@
 
     .settings-button:hover {
       background-color: hsl(221, 82%, 65%);
+    }
+
+    /* Compact variant for inline placement on a row alongside other content
+     * (e.g. the "Check for Updates" button next to the version number).
+     * Smaller padding + font, no flex-grow — takes only the space it needs. */
+    .settings-button--compact {
+      padding: 6px 10px;
+      font-size: 12px;
+      white-space: nowrap;
     }
 
     .link-button {
@@ -516,12 +552,13 @@
     .about-links a {
       display: flex;
       align-items: center;
-      gap: 0.3rem;
-      padding: 6px 12px;
+      gap: 0.5rem;
+      padding: 10px 16px;
       background-color: var(--highlight);
       color: white;
-      border-radius: 6px;
-      font-size: 0.9rem;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
       transition: background-color 0.2s;
     }
 
@@ -530,13 +567,13 @@
     }
 
     .about-avatar {
-      width: 144px;
-      height: 144px;
+      width: 130px;
+      height: 130px;
       border-radius: 50%;
       border: 2px solid var(--border-color);
       object-fit: cover;
       position: absolute;
-      bottom: calc(1.5rem + 8px);
+      bottom: calc(1.5rem + 3px);
       right: calc(1.5rem + 5px);
     }
 
@@ -733,6 +770,10 @@
       display: flex;
       flex-direction: column;
       padding: 0;
+      /* Clip the header/footer chrome backgrounds to the modal's rounded
+       * corners so all four corners actually look round (without this,
+       * the chrome bg paints square corners over the radius). */
+      overflow: hidden;
     }
 
     .modal-body {
@@ -795,22 +836,23 @@
       display: flex;
       gap: 10px;
       justify-content: flex-end;
-      padding: 14px 20px;
+      align-items: center;
+      padding: 10px 16px;
       border-top: 1px solid var(--border-color);
       background-color: var(--bg-modal-chrome);
       flex-shrink: 0;
-      height: 58px;
     }
 
     .modal-footer button {
-      padding: 8px 16px;
+      padding: 8px 18px;
       border: none;
       border-radius: 6px;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
       transition: background-color 0.2s;
       white-space: nowrap;
+      line-height: 1.3;
     }
 
     .btn-cancel {

@@ -9,13 +9,14 @@ pub fn run() {
     .invoke_handler(tauri::generate_handler![
       backend::get_settings,
       backend::save_settings,
-      backend::start_server,
-      backend::stop_server,
+      backend::apply_serve_http_settings,
+      backend::get_serve_http_status,
       backend::read_text_file,
       backend::save_css_file,
       backend::get_version,
       backend::list_user_overlays,
       backend::open_url,
+      backend::open_app_data_dir,
       backend::resolve_path,
       backend::get_overlay_main_path,
       backend::get_overlay_settings,
@@ -57,6 +58,10 @@ pub fn run() {
       // extracted, so any saved customizations get re-merged onto them.
       backend::consume_pending_restore_if_armed();
       backend::start_user_overlay_server();
+      // Auto-start the optional user-toggled HTTP server if the master
+      // toggle in AppSettings is on. No-op when disabled. Bind errors are
+      // captured internally and surfaced via get_serve_http_status().
+      let _ = backend::apply_serve_http_settings();
       if cfg!(debug_assertions) {
         app.handle().plugin(
           tauri_plugin_log::Builder::default()

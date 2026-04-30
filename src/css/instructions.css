@@ -215,13 +215,88 @@ li {
   color: var(--highlight);
 }
 
-/* Page container for two columns */
+/* ── Page layout ─────────────────────────────────────────────────────── */
+/* Sticky TOC on the left + a vertical stack of topic cards on the right.
+   Each topic-card is a self-contained section with an id used by the TOC
+   anchor links and any external deep links (e.g. Settings tooltips). */
 .page-container {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 240px minmax(0, 1fr);
   gap: 2rem;
   max-width: none;
   margin: 0;
+  align-items: start;
+}
+
+.toc {
+  position: sticky;
+  top: 1rem;
+  align-self: start;
+  background-color: var(--bg-card);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+  font-size: 0.95rem;
+}
+
+.toc nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.toc li {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.toc a {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 6px;
+  color: var(--text-primary);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.toc a:hover {
+  background-color: var(--bg-input);
+  color: var(--text-link);
+}
+
+.toc a i {
+  width: 1.2em;
+  text-align: center;
+  color: var(--highlight);
+  font-size: 0.95rem;
+}
+
+.toc-heading {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+  margin: 0 0 0.5rem;
+  padding: 0 0.55rem;
+}
+
+/* Smooth-scroll anchor jumps + leave a little breathing room above each
+   card so the TOC link target isn't pinned right at the viewport edge. */
+html {
+  scroll-behavior: smooth;
+}
+
+.topic-card {
+  scroll-margin-top: 1rem;
+}
+
+.topic-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
 }
 
 .card {
@@ -233,9 +308,20 @@ li {
   overflow-wrap: break-word;
 }
 
-@media (max-width: 1400px) {
+.section-icon {
+  color: var(--highlight);
+  margin-right: 0.5rem;
+}
+
+@media (max-width: 1100px) {
+  /* On narrower viewports collapse to a single column and let the TOC sit
+     above the content (still useful as an in-page index). */
   .page-container {
     grid-template-columns: 1fr;
+  }
+
+  .toc {
+    position: static;
   }
 }
 
