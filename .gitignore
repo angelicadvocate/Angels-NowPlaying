@@ -27,3 +27,6 @@ test-overlay.zip
 *.tmp
 .DS_Store
 Thumbs.db
+
+# Personal planning notes — not for distribution
+MARKETING.md

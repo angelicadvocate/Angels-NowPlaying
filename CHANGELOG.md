@@ -23,7 +23,7 @@ Please be sure to add date, completed tag, `github:[username]`, and version numb
 
 ---------------------------------------------------------------------------------
 
-## v0.11.2 – 2026-04-30
+## v0.11.1 – 2026-04-30
 
 * [x] **In-app Update Available modal** ✨ *COMPLETED* `github:AngelicAdvocate`
   * Replaced the native `confirm()` popups in the update flow with a proper in-app modal that lives in the same `.modal-overlay` / `.modal` system as the rest of the app's dialogs (Configure HTTP Server, Restore Backup, Diagnostics). It picks up the same theme tokens, header/footer styling, click-outside-to-close, and dark-mode behaviour, so the update prompt no longer breaks immersion by suddenly looking like a system / browser dialog
