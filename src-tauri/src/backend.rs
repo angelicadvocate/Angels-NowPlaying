@@ -1285,7 +1285,26 @@ pub fn get_diagnostics() -> DiagnosticsReport {
 
     let build_mode = if cfg!(debug_assertions) { "debug" } else { "release" };
 
-    let os = format!("{} {}", std::env::consts::OS, std::env::consts::FAMILY);
+    // Friendly OS name + version. `std::env::consts::OS` only returns the
+    // platform family ("windows" / "macos" / "linux") with no version info,
+    // so we lean on `os_info` which reads the registry on Windows, parses
+    // `/etc/os-release` on Linux, and shells `sw_vers` on macOS to produce
+    // strings like "Windows 11 (build 22631)" or "Ubuntu 22.04".
+    let os = {
+        let info = os_info::get();
+        let ver = info.version().to_string();
+        let edition = info.edition().unwrap_or("");
+        let mut s = format!("{}", info.os_type());
+        if !edition.is_empty() && !s.eq_ignore_ascii_case(edition) {
+            s.push(' ');
+            s.push_str(edition);
+        }
+        if ver != "Unknown" && !ver.is_empty() {
+            s.push(' ');
+            s.push_str(&ver);
+        }
+        s
+    };
     let webview_version = tauri::webview_version().ok();
 
     let overlay_server_port = *USER_OVERLAY_SERVER_PORT.lock().unwrap();

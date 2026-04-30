@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "0.10.1"
+version = "0.10.2"
 description = "A Tauri App"
 authors = ["you"]
 license = ""
@@ -33,6 +33,7 @@ tauri-plugin-log = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
 open = "5"
+os_info = { version = "3", default-features = false }
 rfd = "0.15"
 zip = { version = "2", default-features = false, features = ["deflate"] }
 base64 = "0.22"

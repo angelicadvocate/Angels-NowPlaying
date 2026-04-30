@@ -11,6 +11,17 @@ Please be sure to add date, completed tag, `github:[username]`, and version numb
 
 ---------------------------------------------------------------------------------
 
+## v0.10.2 – 2026-04-29
+
+* [x] **Diagnostics: real OS name + version** 🐛 *FIXED* `github:AngelicAdvocate`
+  * The OS row in Settings → Diagnostics was rendering as `windows windows` because it concatenated `std::env::consts::OS` with `std::env::consts::FAMILY` — both of which return the platform family on Windows with no version info. Reports now use the `os_info` crate, which reads the registry on Windows, parses `/etc/os-release` on Linux, and shells `sw_vers` on macOS, producing strings like `Windows 11 (22631)`, `Ubuntu 22.04`, or `Mac OS 14.4` — actually useful for bug reports
+  * The lower `Family` row is unchanged (still `windows` / `unix`) since that's a meaningful separate field for cross-platform troubleshooting
+
+* [x] **Update-status message no longer pushes Settings page taller** 🐛 *FIXED* `github:AngelicAdvocate`
+  * The `#update-status` paragraph below the **Check for Updates** button used to start at `display: none` and switch to `display: block` once a status message appeared, which made the entire Settings card grow vertically the moment the user clicked the button. The element is now always present, empty by default, and `flex-grow: 1` so it consumes the existing whitespace below the button — status messages render in place with zero layout shift
+
+---------------------------------------------------------------------------------
+
 ## v0.10.1 – 2026-04-29
 
 * [x] **Snapshot / restore around auto-updates** ✨ *COMPLETED* `github:AngelicAdvocate`

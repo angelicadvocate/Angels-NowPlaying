@@ -60,7 +60,11 @@
         <button class="settings-button" onclick="checkForUpdates()" style="width: 100%;">
           <i class="fas fa-download"></i> Check for Updates
         </button>
-        <p id="update-status" style="font-size: 0.85rem; margin-top: 0.8rem; display: none; width: 100%; color: var(--text-primary);"></p>
+        <!-- Always rendered + flex-grows into the column's empty space so
+             that messages like "You are running the latest version" appear
+             in the existing whitespace below the button instead of pushing
+             the column taller. -->
+        <p id="update-status" style="font-size: 0.85rem; margin-top: 0.8rem; flex-grow: 1; width: 100%; color: var(--text-primary); margin-bottom: 0;"></p>
       </div>
 
       <!-- Tuna Configuration -->
@@ -491,7 +495,6 @@
     // downloads + applies the platform-specific installer before relaunching.
     async function checkForUpdates() {
       const updateStatus = document.getElementById('update-status');
-      updateStatus.style.display = 'block';
       updateStatus.style.color = 'var(--text-primary)';
       updateStatus.textContent = 'Checking for updates...';
 
