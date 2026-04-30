@@ -1590,13 +1590,17 @@ fn redact_path(path: &std::path::Path) -> String {
     s
 }
 
-fn count_subdirs(dir: &std::path::Path) -> usize {
+fn count_overlay_dirs(dir: &std::path::Path) -> usize {
     let Ok(rd) = fs::read_dir(dir) else { return 0 };
     rd.filter_map(|e| e.ok())
         .filter(|e| {
-            // Skip dotfiles and non-directories.
-            e.file_type().map(|t| t.is_dir()).unwrap_or(false)
-                && !e.file_name().to_string_lossy().starts_with('.')
+            if !e.file_type().map(|t| t.is_dir()).unwrap_or(false) {
+                return false;
+            }
+            if e.file_name().to_string_lossy().starts_with('.') {
+                return false;
+            }
+            e.path().join("manifest.json").is_file()
         })
         .count()
 }
@@ -1652,15 +1656,17 @@ pub fn get_diagnostics() -> DiagnosticsReport {
     let bundle_overlay_versions = bundle_file.overlays;
 
     // Bundled overlay count: in dev, count from src/overlays; in release, from AppData.
+    // Filter to folders containing manifest.json so shared-asset dirs (css/, js/,
+    // assets/) extracted alongside the overlays don't inflate the count.
     let bundled_overlays_count = if cfg!(debug_assertions) {
         project_root()
             .ok()
-            .map(|r| count_subdirs(&r.join("src").join("overlays")))
+            .map(|r| count_overlay_dirs(&r.join("src").join("overlays")))
             .unwrap_or(0)
     } else {
-        count_subdirs(&bundled_overlays)
+        count_overlay_dirs(&bundled_overlays)
     };
-    let user_overlays_count = count_subdirs(&user_overlays);
+    let user_overlays_count = count_overlay_dirs(&user_overlays);
     let bundled_fonts_count = bundled_fonts().len();
     let user_fonts_count = list_user_fonts().map(|v| v.len()).unwrap_or(0);
 
