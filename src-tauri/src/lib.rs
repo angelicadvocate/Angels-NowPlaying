@@ -43,6 +43,7 @@ pub fn run() {
       backend::restore_backup,
       backend::arm_pending_restore,
       backend::prune_snapshots,
+      backend::consume_restore_success_flag,
     ])
     .setup(|app| {
       if let Err(e) = backend::extract_bundled_overlays(&app.handle()) {

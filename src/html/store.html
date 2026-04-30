@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../css/theme.css" />
   <link rel="stylesheet" href="../css/store.css" />
   <script type="module" src="../js/theme.js"></script>
+  <script type="module" src="../js/tauri.js"></script>
 </head>
 <body>
 
@@ -53,25 +54,7 @@
   </div>
 
   <script>
-    const shareURL = encodeURIComponent("https://github.com/angelicadvocate/Angels-NowPlaying");
-    const shareText = encodeURIComponent("Check out this awesome customizable Angel's-NowPlaying overlay!");
-
-    function shareToTwitter() {
-      window.open(`https://twitter.com/intent/tweet?text=${shareText}&url=${shareURL}`, '_blank');
-    }
-
-    function shareToReddit() {
-      window.open(`https://www.reddit.com/submit?url=${shareURL}&title=${shareText}`, '_blank');
-    }
-
-    function shareToDiscord() {
-      navigator.clipboard.writeText(`${decodeURIComponent(shareText)}\n${decodeURIComponent(shareURL)}`);
-      alert("Link copied! Paste it into your favorite Discord server.");
-    }
-    
-    function shareOnFacebook() {
-      window.open(`https://www.facebook.com/sharer/sharer.php?u=${shareURL}`, "_blank");
-    }
+    // Share helpers + external-link delegation come from tauri.js.
   </script>
 
 </body>

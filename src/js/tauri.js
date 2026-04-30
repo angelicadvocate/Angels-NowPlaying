@@ -33,3 +33,58 @@ window.openExternalUrl = async (url) => {
     window.open(url, '_blank')
   }
 }
+
+// ─── Shared header behaviors ─────────────────────────────────────────────
+// Every page that loads tauri.js gets these for free, so the GitHub / Tip /
+// social share buttons in the header behave consistently across index,
+// editor, settings, store, and instructions. Previously each page had its
+// own (often broken) `window.open(..., '_blank')` calls and plain
+// `<a target="_blank">` anchors — neither of which actually navigates
+// inside the Tauri webview, so the buttons appeared dead on every page
+// except index.
+
+const SHARE_URL = encodeURIComponent('https://github.com/angelicadvocate/Angels-NowPlaying')
+const SHARE_TEXT = encodeURIComponent(
+  "Check out this awesome customizable Angel's-NowPlaying overlay collection!"
+)
+
+window.shareToTwitter = () =>
+  window.openExternalUrl(`https://twitter.com/intent/tweet?text=${SHARE_TEXT}&url=${SHARE_URL}`)
+
+window.shareOnFacebook = () =>
+  window.openExternalUrl(`https://www.facebook.com/sharer/sharer.php?u=${SHARE_URL}`)
+
+window.shareToReddit = () =>
+  window.openExternalUrl(`https://www.reddit.com/submit?url=${SHARE_URL}&title=${SHARE_TEXT}`)
+
+window.shareToDiscord = () => {
+  try {
+    navigator.clipboard.writeText(
+      `${decodeURIComponent(SHARE_TEXT)}\n${decodeURIComponent(SHARE_URL)}`
+    )
+    alert('Link copied! Paste it into your favorite Discord server.')
+  } catch {
+    alert('Could not copy to clipboard.')
+  }
+}
+
+// Route every `target="_blank"` link through the system browser. Tauri's
+// webview ignores `_blank` navigations by default, which is why the GitHub
+// and Tip Jar buttons used to appear dead on every page except index.
+function wireExternalLinks() {
+  document.querySelectorAll('a[target="_blank"]').forEach(a => {
+    if (a.dataset.externalWired === '1') return
+    a.dataset.externalWired = '1'
+    a.addEventListener('click', e => {
+      e.preventDefault()
+      const href = a.getAttribute('href')
+      if (href && href !== '#') window.openExternalUrl(href)
+    })
+  })
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', wireExternalLinks)
+} else {
+  wireExternalLinks()
+}

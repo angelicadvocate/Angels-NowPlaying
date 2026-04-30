@@ -65,39 +65,9 @@
   </div>
 
   <script>
-    const shareURL = encodeURIComponent("https://github.com/angelicadvocate/Angels-NowPlaying");
-    const shareText = encodeURIComponent("Check out this awesome customizable Angel's-NowPlaying overlay collection!");
-
-    function shareToTwitter() {
-      window.openExternalUrl(`https://twitter.com/intent/tweet?text=${shareText}&url=${shareURL}`);
-    }
-
-    function shareToReddit() {
-      window.openExternalUrl(`https://www.reddit.com/submit?url=${shareURL}&title=${shareText}`);
-    }
-
-    function shareToDiscord() {
-      navigator.clipboard.writeText(`${decodeURIComponent(shareText)}\n${decodeURIComponent(shareURL)}`);
-      alert("Link copied! Paste it into your favorite Discord server.");
-    }
-    
-    function shareOnFacebook() {
-      window.openExternalUrl(`https://www.facebook.com/sharer/sharer.php?u=${shareURL}`);
-    }
-
     function openStore() {
       window.location.href = "html/store.html";
     }
-
-    // Route all target="_blank" links through the system browser (Tauri context)
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('a[target="_blank"]').forEach(a => {
-        a.addEventListener('click', e => {
-          e.preventDefault();
-          window.openExternalUrl(a.href);
-        });
-      });
-    });
   </script>
 
 </body>

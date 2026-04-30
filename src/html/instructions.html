@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../css/theme.css" />
   <link rel="stylesheet" href="../css/instructions.css" />
   <script type="module" src="../js/theme.js"></script>
+  <script type="module" src="../js/tauri.js"></script>
 </head>
 
 <body>
@@ -145,26 +146,6 @@
   </div>
 
   <script>
-    function shareToTwitter() {
-      const url = encodeURIComponent(window.location.href);
-      const text = encodeURIComponent("Check out Angels-NowPlaying!");
-      window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, "_blank");
-    }
-
-    function shareOnFacebook() {
-      const url = encodeURIComponent(window.location.href);
-      window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank");
-    }
-
-    function shareToReddit() {
-      const url = encodeURIComponent(window.location.href);
-      window.open(`https://reddit.com/submit?url=${url}`, "_blank");
-    }
-
-    function shareToDiscord() {
-      alert("Copy the URL from your browser to share on Discord.");
-    }
-
     function openStore() {
       window.location.href = "store.html";
     }

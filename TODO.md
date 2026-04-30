@@ -28,11 +28,7 @@ See STORE.md for all store site implementation details.
 
 End-to-end goal: a user clicks **Check for Updates** in Settings, the app calls a real Tauri updater against a signed GitHub Releases manifest, snapshots state via the existing `create_backup(None)`, applies the update, and restores customizations + settings on first launch of the new version. Items below are roughly in build order.
 
-**1. User-facing surfacing**
-- [ ] Toast/popup on the index page when an update is available, with a one-click "Open Settings → Check for Updates" action.
-- [ ] Now that the snapshot/restore wrap is live, the existing "bundled overlay customizations were reset to defaults" warning toast is stale — remove it, or repurpose as a "Customizations restored from snapshot" success toast.
-
-**2. Cross-platform validation**
+**1. Cross-platform validation**
 - [ ] Cross-platform smoke test: verify the app builds, installs, updates, and runs correctly on macOS and Linux. Windows is the primary test platform; macOS + Linux will reveal any path/case/permission assumptions baked into the install + updater paths.
 
 **Conditional — only needed before renaming any existing bundled overlay:**

@@ -1789,6 +1789,27 @@ fn pending_restore_marker_path() -> PathBuf {
     app_data_dir().join(".snapshots").join("pending-restore.txt")
 }
 
+/// Path to the marker file written by `consume_pending_restore_if_armed` on
+/// successful post-update restore. The frontend reads + clears this on the
+/// next launch so it can show a one-shot "Customizations restored" toast.
+fn restore_success_marker_path() -> PathBuf {
+    app_data_dir().join(".snapshots").join("restore-success.txt")
+}
+
+/// Returns true exactly once after a successful post-update restore, then
+/// removes the marker so subsequent launches return false. Used by the
+/// index page to show a one-shot success toast.
+#[tauri::command]
+pub fn consume_restore_success_flag() -> bool {
+    let marker = restore_success_marker_path();
+    if marker.is_file() {
+        let _ = fs::remove_file(&marker);
+        true
+    } else {
+        false
+    }
+}
+
 /// Arm a pending-restore marker. Called by the auto-updater right before
 /// `update.downloadAndInstall()` so that on the post-update relaunch the
 /// snapshot we just took is automatically replayed (re-applies bundled-
@@ -1865,12 +1886,23 @@ pub fn consume_pending_restore_if_armed() {
     }
     log::info!("Replaying post-update snapshot: {snapshot_path}");
     match restore_backup(snapshot_path.clone()) {
-        Ok(summary) => log::info!(
-            "Post-update restore complete: {} user overlays, {} user fonts, {} bundled customizations",
-            summary.user_overlays_restored,
-            summary.user_fonts_restored,
-            summary.bundled_customizations_restored
-        ),
+        Ok(summary) => {
+            log::info!(
+                "Post-update restore complete: {} user overlays, {} user fonts, {} bundled customizations",
+                summary.user_overlays_restored,
+                summary.user_fonts_restored,
+                summary.bundled_customizations_restored
+            );
+            // Drop a one-shot marker so the index page can show a
+            // "Customizations restored" toast on this launch.
+            let success_marker = restore_success_marker_path();
+            if let Some(parent) = success_marker.parent() {
+                let _ = fs::create_dir_all(parent);
+            }
+            if let Err(e) = fs::write(&success_marker, b"ok") {
+                log::warn!("Could not write restore-success marker: {e}");
+            }
+        }
         Err(e) => log::warn!("Post-update restore failed: {e}"),
     }
 }

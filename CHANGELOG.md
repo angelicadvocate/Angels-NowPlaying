@@ -11,6 +11,22 @@ Please be sure to add date, completed tag, `github:[username]`, and version numb
 
 ---------------------------------------------------------------------------------
 
+## v0.10.3 – 2026-04-29
+
+* [x] **Header buttons (GitHub / Tip / Social) now work on every page** 🐛 *FIXED* `github:AngelicAdvocate`
+  * The GitHub, Buy Me a Coffee, and Twitter/Facebook/Reddit/Discord share buttons in the header were dead on the Settings, Store, and Instructions pages. Two compounding causes: (1) Tauri's webview ignores both `<a target="_blank">` navigations and `window.open(..., '_blank')` calls — neither routes to the system browser without an explicit `invoke('open_url')`, and (2) only `index.html` had its own `shareTo*` helpers + a `DOMContentLoaded` delegation handler that intercepted every `target="_blank"` click; the other pages either didn't load `tauri.js` at all (Store, Instructions) or used raw `window.open` for their share buttons (Settings)
+  * Consolidated the share helpers (`shareToTwitter`, `shareOnFacebook`, `shareToReddit`, `shareToDiscord`) and the external-link click delegation into `src/js/tauri.js`, so any page that loads the Tauri bridge gets working header buttons automatically. Added the `tauri.js` import to Store and Instructions, and removed the duplicated/broken inline copies from all four pages
+
+* [x] **Update-available toast on app launch** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * The index page now silently calls the updater plugin on load and, when a newer version is published, surfaces a top-right toast ("Update available — v0.10.3 → v0.10.4") with an **Open Settings** action that jumps straight to the Check for Updates card. Network errors / offline states are swallowed silently — the user only learns about updates if there's actually one to install
+  * Toast styling is keyed off the existing theme variables so it picks up dark/light mode automatically, and uses a dedicated `#launch-toasts` container so future toasts (export complete, restore failed, etc.) can stack into the same slot without restyling
+
+* [x] **"Customizations restored" success toast after auto-updates** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * When `consume_pending_restore_if_armed()` succeeds during post-update startup it now writes a `.snapshots/restore-success.txt` one-shot marker. The new `consume_restore_success_flag` Tauri command is called by the index page on first paint after relaunch — if armed, it shows a green success toast ("Customizations restored — your overlay tweaks and settings carried over from the previous version") and clears the marker so it never re-fires on subsequent launches. Failed restores never set the flag, so the toast can only ever indicate genuine success
+  * Replaces the long-promised but never-shipped "bundled overlay customizations were reset to defaults" warning toast — now that the snapshot/restore wrap is live, that message would have been incorrect on every update
+
+---------------------------------------------------------------------------------
+
 ## v0.10.2 – 2026-04-29
 
 * [x] **Diagnostics: real OS name + version** 🐛 *FIXED* `github:AngelicAdvocate`
