@@ -447,6 +447,73 @@
     </div>
   </div>
 
+  <!-- Update Available / Install Progress modal. Replaces the old native
+       confirm() popups with an in-app modal that morphs through three
+       states: 'prompt' (shows release notes + Install/Later), 'snapshot-fail'
+       (asks whether to install without a pre-update snapshot), and
+       'progress' (download bar + status). The close (×) button is hidden
+       during 'progress' so the user can't accidentally interrupt an
+       in-flight install. -->
+  <div class="modal-overlay" id="updateAvailableModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>
+          <i class="fas fa-cloud-arrow-down" id="updateModalIcon"></i>
+          <span id="updateModalTitle">Update Available</span>
+        </h3>
+        <button class="modal-close" id="updateModalClose" onclick="closeUpdateModal()">×</button>
+      </div>
+      <div class="modal-body">
+
+        <!-- State: prompt — shown when an update is found and the user
+             clicked "Check for Updates". -->
+        <div id="updateStatePrompt">
+          <p style="margin:0 0 1rem; font-size:0.95rem;">
+            A new version of Angels-NowPlaying is available.
+          </p>
+          <div style="display:flex; align-items:center; gap:0.75rem; margin:0 0 1rem; padding:0.75rem 1rem; background:var(--bg-input); border:1px solid var(--border-color); border-radius:6px;">
+            <span id="updateFromVersion" style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; opacity:0.75;">?</span>
+            <i class="fas fa-arrow-right" style="opacity:0.55;"></i>
+            <span id="updateToVersion" style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:var(--highlight); font-weight:600;">?</span>
+          </div>
+          <h4 style="margin:0 0 0.5rem; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.05em; opacity:0.75;">Release notes</h4>
+          <div id="updateReleaseNotes" class="update-release-notes">No release notes provided.</div>
+          <p style="margin:1rem 0 0; font-size:0.85rem; opacity:0.75;">
+            <i class="fas fa-shield-halved" style="margin-right:0.4rem; color:#4ade80;"></i>
+            A pre-update snapshot of your overlays, fonts, and settings will be created automatically. The app will relaunch when the install finishes.
+          </p>
+        </div>
+
+        <!-- State: snapshot-fail — shown when create_backup fails before
+             install. User decides whether to proceed unprotected. -->
+        <div id="updateStateSnapshotFail" style="display:none;">
+          <p style="margin:0 0 0.75rem; padding:0.75rem 0.85rem; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.4); border-radius:6px; line-height:1.45;">
+            <i class="fas fa-triangle-exclamation" style="color:#f59e0b; margin-right:0.4rem;"></i>
+            Could not create a pre-update snapshot.
+          </p>
+          <pre id="updateSnapshotError" style="margin:0 0 1rem; padding:0.75rem; background:var(--bg-input); border:1px solid var(--border-color); border-radius:6px; font-size:0.8rem; line-height:1.4; max-height:160px; overflow:auto; white-space:pre-wrap; word-break:break-word;"></pre>
+          <p style="margin:0; font-size:0.9rem;">
+            Bundled-overlay customizations and settings may need to be reapplied manually after the update. Install the update anyway?
+          </p>
+        </div>
+
+        <!-- State: progress — download + install progress. -->
+        <div id="updateStateProgress" style="display:none;">
+          <p id="updateProgressLabel" style="margin:0 0 0.75rem; font-weight:600;">Preparing update&hellip;</p>
+          <div class="update-progress-track">
+            <div class="update-progress-fill" id="updateProgressFill"></div>
+          </div>
+          <p id="updateProgressDetail" style="margin:0.5rem 0 0; font-size:0.85rem; opacity:0.75; min-height:1.2em;"></p>
+        </div>
+
+      </div>
+      <div class="modal-footer" id="updateModalFooter">
+        <button class="btn-cancel" id="updateBtnCancel" onclick="closeUpdateModal()">Later</button>
+        <button class="btn-submit" id="updateBtnPrimary" onclick="onUpdatePrimaryClick()"><i class="fas fa-download"></i> Install Update</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Restore confirmation modal (shown after the user picks a backup file,
        before we wipe + replace existing data). -->
   <div class="modal-overlay" id="restoreConfirmModal">
@@ -814,77 +881,199 @@
         paintUpdateStatus('available', update.version);
         writeUpdateCache('available', update.version);
 
-        // Only the manual "Check for Updates" click should pop the install
-        // confirmation dialog. The auto-fire on page load just paints the
-        // status text and stops.
+        // Only the manual "Check for Updates" click should open the install
+        // modal. The auto-fire on page load just paints the status text.
         if (!forceFresh) return;
 
         const currentVersion = document.getElementById('version-number')?.textContent || '?';
-        const notes = (update.body || '').trim();
-        const proceed = confirm(
-          `A new version is available:\n\n${currentVersion} → ${update.version}\n\n` +
-          (notes ? `Release notes:\n${notes}\n\n` : '') +
-          'Download and install now? The app will relaunch automatically when finished.'
-        );
-        if (!proceed) {
-          updateStatus.textContent = `Update ${update.version} available — click "Check for Updates" again to install.`;
-          return;
-        }
-
-        // Take a silent pre-update snapshot and arm the post-update restore.
-        // If snapshotting fails the user is warned and asked whether to
-        // proceed unprotected — a failed snapshot must not silently install.
-        updateStatus.textContent = 'Creating pre-update snapshot...';
-        let snapshotPath = null;
-        try {
-          snapshotPath = await window.__TAURI__.invoke('create_backup', { destination: null });
-          await window.__TAURI__.invoke('arm_pending_restore', { snapshotPath });
-        } catch (snapErr) {
-          console.warn('Snapshot failed', snapErr);
-          const proceedAnyway = confirm(
-            'Could not create a pre-update snapshot:\n\n' + (snapErr?.message || snapErr) + '\n\n' +
-            'Bundled-overlay customizations and settings may need to be reapplied manually after the update.\n\n' +
-            'Install the update anyway?'
-          );
-          if (!proceedAnyway) {
-            updateStatus.style.color = '#f87171';
-            updateStatus.textContent = 'Update cancelled — snapshot failed.';
-            return;
-          }
-        }
-
-        updateStatus.textContent = 'Downloading update...';
-        let total = 0;
-        let received = 0;
-        await update.downloadAndInstall((event) => {
-          if (event.event === 'Started') {
-            total = event.data.contentLength || 0;
-            received = 0;
-            updateStatus.textContent = total
-              ? `Downloading update (0 / ${formatBytes(total)})...`
-              : 'Downloading update...';
-          } else if (event.event === 'Progress') {
-            received += event.data.chunkLength || 0;
-            updateStatus.textContent = total
-              ? `Downloading update (${formatBytes(received)} / ${formatBytes(total)})...`
-              : `Downloading update (${formatBytes(received)})...`;
-          } else if (event.event === 'Finished') {
-            updateStatus.textContent = 'Installing update...';
-          }
-        });
-
-        updateStatus.style.color = '#4ade80';
-        updateStatus.textContent = '✓ Update installed. Relaunching...';
-        // Give the user a moment to see the success message before relaunch.
-        setTimeout(() => {
-          window.__TAURI__.process.relaunch().catch(() => {});
-        }, 800);
+        openUpdateModal(update, currentVersion);
       } catch (e) {
         console.error('Update check failed', e);
         updateStatus.style.color = '#f87171';
         updateStatus.textContent = 'Update check failed: ' + (e?.message || e);
       }
     }
+
+    // ---------- Update Available modal -------------------------------------
+    // The modal morphs through three states ('prompt', 'snapshot-fail',
+    // 'progress') driven by setUpdateModalState(). Keeping all the state
+    // here in one closure-ish module section makes the flow easy to follow:
+    //   openUpdateModal -> 'prompt' -> Install
+    //     -> snapshot ok       -> 'progress' -> downloadAndInstall -> relaunch
+    //     -> snapshot failed   -> 'snapshot-fail' -> Install Anyway
+    //                            -> 'progress' -> downloadAndInstall -> relaunch
+    // The currently-pending Update object is held in `pendingUpdate` so the
+    // primary-button click handler can reach it across state transitions.
+    let pendingUpdate = null;
+    let updateInProgress = false;
+
+    function openUpdateModal(update, currentVersion) {
+      pendingUpdate = update;
+
+      document.getElementById('updateFromVersion').textContent = currentVersion;
+      document.getElementById('updateToVersion').textContent = update.version;
+
+      const notesEl = document.getElementById('updateReleaseNotes');
+      const notes = (update.body || '').trim();
+      // textContent (not innerHTML) — the body is fetched from GitHub and
+      // we don't want untrusted markdown turning into live HTML inside the
+      // app shell. white-space: pre-wrap preserves line breaks.
+      notesEl.textContent = notes || 'No release notes provided.';
+
+      setUpdateModalState('prompt');
+      document.getElementById('updateAvailableModal').classList.add('active');
+    }
+
+    function closeUpdateModal() {
+      // Block close while an install is actually in flight so the user
+      // can't accidentally orphan the download.
+      if (updateInProgress) return;
+      document.getElementById('updateAvailableModal').classList.remove('active');
+      pendingUpdate = null;
+    }
+
+    function setUpdateModalState(state) {
+      const prompt = document.getElementById('updateStatePrompt');
+      const snapFail = document.getElementById('updateStateSnapshotFail');
+      const progress = document.getElementById('updateStateProgress');
+      const title = document.getElementById('updateModalTitle');
+      const icon = document.getElementById('updateModalIcon');
+      const closeBtn = document.getElementById('updateModalClose');
+      const cancelBtn = document.getElementById('updateBtnCancel');
+      const primaryBtn = document.getElementById('updateBtnPrimary');
+
+      prompt.style.display = state === 'prompt' ? '' : 'none';
+      snapFail.style.display = state === 'snapshot-fail' ? '' : 'none';
+      progress.style.display = state === 'progress' ? '' : 'none';
+
+      // Reset icon/title to defaults; per-state branches below override.
+      icon.className = 'fas fa-cloud-arrow-down';
+      icon.style.color = '';
+
+      if (state === 'prompt') {
+        title.textContent = 'Update Available';
+        cancelBtn.style.display = '';
+        cancelBtn.textContent = 'Later';
+        primaryBtn.style.display = '';
+        primaryBtn.innerHTML = '<i class="fas fa-download"></i> Install Update';
+        primaryBtn.disabled = false;
+        closeBtn.style.display = '';
+      } else if (state === 'snapshot-fail') {
+        title.textContent = 'Snapshot Failed';
+        icon.className = 'fas fa-triangle-exclamation';
+        icon.style.color = '#f59e0b';
+        cancelBtn.style.display = '';
+        cancelBtn.textContent = 'Cancel';
+        primaryBtn.style.display = '';
+        primaryBtn.innerHTML = '<i class="fas fa-download"></i> Install Anyway';
+        primaryBtn.disabled = false;
+        closeBtn.style.display = '';
+      } else if (state === 'progress') {
+        title.textContent = 'Installing Update';
+        cancelBtn.style.display = 'none';
+        primaryBtn.style.display = 'none';
+        closeBtn.style.display = 'none';
+      }
+    }
+
+    function setUpdateProgress(label, detail, percent) {
+      document.getElementById('updateProgressLabel').textContent = label || '';
+      document.getElementById('updateProgressDetail').textContent = detail || '';
+      const fill = document.getElementById('updateProgressFill');
+      if (percent == null) {
+        fill.classList.add('indeterminate');
+        fill.style.width = '';
+      } else {
+        fill.classList.remove('indeterminate');
+        fill.style.width = Math.max(0, Math.min(100, percent)) + '%';
+      }
+    }
+
+    async function onUpdatePrimaryClick() {
+      const update = pendingUpdate;
+      if (!update) return;
+
+      // From the 'prompt' state: try to take a snapshot first. If that
+      // fails we route the user to 'snapshot-fail' and let them decide.
+      // From 'snapshot-fail': skip the snapshot and go straight to install.
+      const fromSnapshotFail =
+        document.getElementById('updateStateSnapshotFail').style.display !== 'none';
+
+      if (!fromSnapshotFail) {
+        setUpdateModalState('progress');
+        setUpdateProgress('Creating pre-update snapshot…', '', null);
+        updateInProgress = true;
+        try {
+          const snapshotPath = await window.__TAURI__.invoke('create_backup', { destination: null });
+          await window.__TAURI__.invoke('arm_pending_restore', { snapshotPath });
+        } catch (snapErr) {
+          console.warn('Snapshot failed', snapErr);
+          updateInProgress = false;
+          document.getElementById('updateSnapshotError').textContent =
+            String(snapErr?.message || snapErr);
+          setUpdateModalState('snapshot-fail');
+          return;
+        }
+      } else {
+        setUpdateModalState('progress');
+      }
+
+      // Begin the actual download + install. From here on the modal is
+      // locked (no close button, no cancel) until the app relaunches.
+      updateInProgress = true;
+      const updateStatus = document.getElementById('update-status');
+      updateStatus.style.color = 'var(--text-primary)';
+      updateStatus.textContent = 'Installing update...';
+
+      try {
+        let total = 0;
+        let received = 0;
+        setUpdateProgress('Downloading update…', '', null);
+
+        await update.downloadAndInstall((event) => {
+          if (event.event === 'Started') {
+            total = event.data.contentLength || 0;
+            received = 0;
+            setUpdateProgress(
+              'Downloading update…',
+              total ? `0 / ${formatBytes(total)}` : '',
+              total ? 0 : null
+            );
+          } else if (event.event === 'Progress') {
+            received += event.data.chunkLength || 0;
+            const pct = total ? (received / total) * 100 : null;
+            setUpdateProgress(
+              'Downloading update…',
+              total ? `${formatBytes(received)} / ${formatBytes(total)}` : formatBytes(received),
+              pct
+            );
+          } else if (event.event === 'Finished') {
+            setUpdateProgress('Installing update…', 'Almost done', 100);
+          }
+        });
+
+        setUpdateProgress('Update installed', 'Relaunching…', 100);
+        updateStatus.style.color = '#4ade80';
+        updateStatus.textContent = '✓ Update installed. Relaunching...';
+        setTimeout(() => {
+          window.__TAURI__.process.relaunch().catch(() => {});
+        }, 800);
+      } catch (e) {
+        console.error('Update install failed', e);
+        updateInProgress = false;
+        updateStatus.style.color = '#f87171';
+        updateStatus.textContent = 'Update failed: ' + (e?.message || e);
+        // Drop back to prompt so the user can retry or close the modal.
+        setUpdateModalState('prompt');
+        const detail = document.getElementById('updateProgressDetail');
+        if (detail) detail.textContent = '';
+      }
+    }
+
+    // Click outside the modal closes it (but only when not installing).
+    document.getElementById('updateAvailableModal')?.addEventListener('click', function(e) {
+      if (e.target === this) closeUpdateModal();
+    });
 
     function formatBytes(n) {
       if (n < 1024) return `${n} B`;

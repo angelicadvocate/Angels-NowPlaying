@@ -11,6 +11,20 @@ Please be sure to add date, completed tag, `github:[username]`, and version numb
 
 ---------------------------------------------------------------------------------
 
+## v0.11.1 – 2026-04-30
+
+* [x] **In-app Update Available modal** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Replaced the native `confirm()` popups in the update flow with a proper in-app modal that lives in the same `.modal-overlay` / `.modal` system as the rest of the app's dialogs (Configure HTTP Server, Restore Backup, Diagnostics). It picks up the same theme tokens, header/footer styling, click-outside-to-close, and dark-mode behaviour, so the update prompt no longer breaks immersion by suddenly looking like a system / browser dialog
+  * The modal is a single element that morphs through three states driven by `setUpdateModalState()`:
+    * **`prompt`** — current → new version pill, scrollable release-notes panel, and a green-shield note explaining that a pre-update snapshot will be taken automatically. Footer shows **Later** / **Install Update**
+    * **`snapshot-fail`** — amber warning header + the actual snapshot error in a monospace `<pre>` block, primary button changes to **Install Anyway**. Lets the user make an informed decision instead of a yes/no on a tiny native dialog
+    * **`progress`** — animated progress bar (determinate when the updater reports `contentLength`, indeterminate sliding gradient otherwise) with `Downloading update… / X MB / Y MB` detail line. Close button and footer buttons are hidden in this state so an in-flight install can't be orphaned
+  * Release notes are rendered with `textContent` (not `innerHTML`) so untrusted markdown fetched from the GitHub release body can't inject HTML into the app shell. White-space is preserved via `pre-wrap`
+  * Progress bar is built from CSS only — `.update-progress-track` + `.update-progress-fill` with a `--highlight` → `#4ade80` gradient and a `@keyframes update-progress-slide` animation for the indeterminate case. No new dependencies
+  * Small status line under the version number ("Update available: X → Y") still updates as before, so the at-a-glance signal on the Settings page is unchanged when the modal isn't open
+
+---------------------------------------------------------------------------------
+
 ## v0.11.0 – 2026-04-29
 
 * [x] **Serve Overlays over HTTP** ✨ *COMPLETED* `github:AngelicAdvocate`
