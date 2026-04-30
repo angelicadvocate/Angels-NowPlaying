@@ -62,6 +62,11 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Signing keys for the auto-updater. The private key + password are
+          # stored in repo secrets; the matching public key is baked into
+          # tauri.conf.json under plugins.updater.pubkey at build time.
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'Angels NowPlaying v__VERSION__'
@@ -71,4 +76,9 @@ jobs:
             > **macOS note:** macOS builds are produced by CI but have not been hand-tested on real Apple hardware yet. Please report any issues.
           releaseDraft: true
           prerelease: false
+          # Tells tauri-action to upload the updater JSON manifest alongside
+          # the platform installers. The plugin in tauri.conf.json points at
+          # /releases/latest/download/latest.json so the in-app updater can
+          # always fetch the most recent published version.
+          updaterJsonPreferNsis: true
           args: ${{ matrix.args }}

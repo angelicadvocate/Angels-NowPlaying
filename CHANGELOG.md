@@ -11,6 +11,18 @@ Please be sure to add date, completed tag, `github:[username]`, and version numb
 
 ---------------------------------------------------------------------------------
 
+## v0.10.0 – 2026-04-29
+
+* [x] **Auto-Updater wired up (Phase 1)** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Added `tauri-plugin-updater` and `tauri-plugin-process` to `src-tauri/Cargo.toml`, plus the matching `@tauri-apps/plugin-updater` and `@tauri-apps/plugin-process` JS packages. Both plugins are registered in `lib.rs` and surfaced through `src/js/tauri.js` as `window.__TAURI__.updater.check()` and `window.__TAURI__.process.relaunch()` so existing `settings.html` style call sites can use them without becoming module scripts
+  * `tauri.conf.json` now sets `bundle.createUpdaterArtifacts: true` and declares `plugins.updater` with the GitHub Releases endpoint `https://github.com/angelicadvocate/Angels-NowPlaying/releases/latest/download/latest.json` plus the project's ed25519 public key baked in
+  * `capabilities/default.json` now grants `updater:default` and `process:default` so the frontend can actually invoke the plugin commands
+  * Settings → Check for Updates is no longer a 1-second `setTimeout` mock — it calls the real `check()` API, shows a side-by-side "Current → Latest" version row when an update is found, prompts the user with the release notes from `latest.json`, downloads the signed installer with a live byte-progress readout, applies it, and relaunches via the process plugin. Failures show the underlying error message instead of silently succeeding
+  * `.github/workflows/release.yml` now passes `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` from repo secrets into `tauri-action`, and sets `updaterJsonPreferNsis: true` so the manifest is uploaded as a release asset alongside each platform installer
+  * Lays the groundwork for v1.0 — every tagged release now ships with a verifiable updater manifest and existing installs can self-update without a fresh download from the website
+
+---------------------------------------------------------------------------------
+
 ## v0.9.9 – 2026-04-23
 
 * [x] **Fix: editor Save could wipe `main.css` to a bare `:root` block on transient read failure** 🐛 *FIXED* `github:AngelicAdvocate`

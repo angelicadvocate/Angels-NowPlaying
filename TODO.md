@@ -11,10 +11,10 @@ Completed items are moved to CHANGELOG.md at the end of a work session.
 These are changes needed inside the app to support the store correctly.
 See STORE.md for all store site implementation details.
 
-- [ ] **Namespace/source tracking**: record whether each installed overlay is bundled or user-installed. Collisions across namespaces (bundled vs. user) should resolve predictably. Pairs with the collision-safe naming shipped in v0.9.9.
+- [ ] **Namespace/source tracking**: record whether each installed overlay is bundled or user-installed. Collisions across namespaces (bundled vs. user) should resolve predictably.
 - [ ] **External URL install path**: when a catalog entry has an `externalUrl` field (paid/external overlays), the store iframe will post `{ type: 'open-external', url }` to the parent. The app needs to handle this message and call Tauri `shell::open` instead of triggering the install flow. See STORE.md for the full postMessage protocol.
 - [ ] **In-app install from store**: handle `{ type: 'install-overlay', downloadUrl }` postMessage from the store iframe — download the zip to a temp path and pass it to the existing `install_overlay` Tauri command.
-- [ ] **(Long-term)** Refactor overlay install key from folder-name to UUID as the primary internal key. Treat `id` in manifest.json as a human-readable slug only. Prerequisite: collision-safe naming (shipped in v0.9.9) had to be in place first.
+- [ ] **(Long-term)** Refactor overlay install key from folder-name to UUID as the primary internal key. Treat `id` in manifest.json as a human-readable slug only.
 
 ---------------------------------------------------------------------------------
 
@@ -28,20 +28,15 @@ See STORE.md for all store site implementation details.
 
 End-to-end goal: a user clicks **Check for Updates** in Settings, the app calls a real Tauri updater against a signed GitHub Releases manifest, snapshots state via the existing `create_backup(None)`, applies the update, and restores customizations + settings on first launch of the new version. Items below are roughly in build order.
 
-**1. Wire up the Tauri updater plugin**
-- [ ] Configure `tauri.conf.json` with the Tauri updater plugin, generate signing keys, and add a `latest.json` manifest to GitHub Releases so the updater can verify downloads.
-- [ ] Replace the current mock `setTimeout` in the Settings "Check for Updates" handler with a real Tauri updater call against the GitHub Releases endpoint.
-- [ ] Display current version and latest available version side-by-side in the Settings version section once the updater is wired up.
-
-**2. Snapshot / restore around updates**
+**1. Snapshot / restore around updates**
 - [ ] **Auto-updater snapshot integration**: pre-update call to `create_backup(None)` to snapshot state to `AppData/AngelsNowPlaying/.snapshots/update-<unix>.zip`, post-update call to `restore_backup(snapshot_path)` to re-apply bundled customizations + overlay settings only (user overlays / fonts never leave AppData so they don't need re-restoring).
 - [ ] **Snapshot retention**: small cleanup pass over `.snapshots/` that keeps the last N (e.g. 5) so the folder doesn't grow unbounded across many updates.
 - [ ] Once the snapshot/restore wrap is in place, the existing "bundled overlay customizations were reset to defaults" warning toast becomes unnecessary — remove it (or repurpose it as a "Customizations restored from snapshot" success toast).
 
-**3. User-facing surfacing**
+**2. User-facing surfacing**
 - [ ] Toast/popup on the index page when an update is available, with a one-click "Open Settings → Check for Updates" action.
 
-**4. Cross-platform validation**
+**3. Cross-platform validation**
 - [ ] Cross-platform smoke test: verify the app builds, installs, updates, and runs correctly on macOS and Linux. Windows is the primary test platform; macOS + Linux will reveal any path/case/permission assumptions baked into the install + updater paths.
 
 **Conditional — only needed before renaming any existing bundled overlay:**

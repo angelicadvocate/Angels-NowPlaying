@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Angels NowPlaying",
-  "version": "0.9.8",
+  "version": "0.10.0",
   "identifier": "com.angelicadvocate.angelsnowplaying",
   "build": {
     "frontendDist": "../dist",
@@ -26,6 +26,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "resources": {
       "../dist/overlays": "overlays",
       "../dist/fonts": "fonts"
@@ -42,5 +43,13 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDUwNDhBQzdFNzRGN0YxRjkKUldUNThmZDBmcXhJVUJYWTQwUjZvME9RZ0d5Y29BVXMzbVZ5SzloK0c1SjZ5cXhHK2xreXFhVFkK",
+      "endpoints": [
+        "https://github.com/angelicadvocate/Angels-NowPlaying/releases/latest/download/latest.json"
+      ]
+    }
   }
 }

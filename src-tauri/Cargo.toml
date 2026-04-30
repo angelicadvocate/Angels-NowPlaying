@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "0.9.8"
+version = "0.10.0"
 description = "A Tauri App"
 authors = ["you"]
 license = ""
@@ -30,6 +30,8 @@ dirs = "5"
 
 tauri = { version = "2.10.0", features = ["devtools"] }
 tauri-plugin-log = "2"
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
 open = "5"
 rfd = "0.15"
 zip = { version = "2", default-features = false, features = ["deflate"] }

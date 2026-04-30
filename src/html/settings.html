@@ -56,6 +56,7 @@
 
       <div class="settings-item" style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem; flex-direction: column; align-items: flex-start;">
         <p class="template-section-title">Current Version: <strong id="version-number">Loading...</strong></p>
+        <p class="template-section-title" id="latest-version-row" style="display: none; opacity: 0.85;">Latest Version: <strong id="latest-version">—</strong></p>
         <button class="settings-button" onclick="checkForUpdates()" style="width: 100%;">
           <i class="fas fa-download"></i> Check for Updates
         </button>
@@ -484,17 +485,84 @@
       }
     }
 
-    // Check for updates
-    function checkForUpdates() {
+    // Check for updates — calls the real Tauri updater plugin which fetches
+    // latest.json from GitHub Releases, verifies the embedded ed25519 signature
+    // against the pubkey baked into tauri.conf.json, and (on user consent)
+    // downloads + applies the platform-specific installer before relaunching.
+    async function checkForUpdates() {
       const updateStatus = document.getElementById('update-status');
       updateStatus.style.display = 'block';
+      updateStatus.style.color = 'var(--text-primary)';
       updateStatus.textContent = 'Checking for updates...';
 
-      // Simulating API call - in production this would check against a version endpoint
-      setTimeout(() => {
-        updateStatus.textContent = '✓ You are running the latest version!';
+      if (!window.__TAURI__ || !window.__TAURI__.updater) {
+        updateStatus.textContent = 'Updates are only available in the installed app.';
+        return;
+      }
+
+      try {
+        const update = await window.__TAURI__.updater.check();
+        if (!update) {
+          updateStatus.style.color = '#4ade80';
+          updateStatus.textContent = '✓ You are running the latest version!';
+          return;
+        }
+
+        // Update found — show side-by-side current vs latest and prompt.
+        const currentVersion = document.getElementById('version-number')?.textContent || '?';
+        document.getElementById('latest-version').textContent = update.version;
+        document.getElementById('latest-version-row').style.display = 'block';
+        updateStatus.style.color = 'var(--highlight)';
+        updateStatus.textContent = `Update available: ${currentVersion} → ${update.version}`;
+
+        const notes = (update.body || '').trim();
+        const proceed = confirm(
+          `A new version is available:\n\n${currentVersion} → ${update.version}\n\n` +
+          (notes ? `Release notes:\n${notes}\n\n` : '') +
+          'Download and install now? The app will relaunch automatically when finished.'
+        );
+        if (!proceed) {
+          updateStatus.textContent = `Update ${update.version} available — click "Check for Updates" again to install.`;
+          return;
+        }
+
+        updateStatus.textContent = 'Downloading update...';
+        let total = 0;
+        let received = 0;
+        await update.downloadAndInstall((event) => {
+          if (event.event === 'Started') {
+            total = event.data.contentLength || 0;
+            received = 0;
+            updateStatus.textContent = total
+              ? `Downloading update (0 / ${formatBytes(total)})...`
+              : 'Downloading update...';
+          } else if (event.event === 'Progress') {
+            received += event.data.chunkLength || 0;
+            updateStatus.textContent = total
+              ? `Downloading update (${formatBytes(received)} / ${formatBytes(total)})...`
+              : `Downloading update (${formatBytes(received)})...`;
+          } else if (event.event === 'Finished') {
+            updateStatus.textContent = 'Installing update...';
+          }
+        });
+
         updateStatus.style.color = '#4ade80';
-      }, 1000);
+        updateStatus.textContent = '✓ Update installed. Relaunching...';
+        // Give the user a moment to see the success message before relaunch.
+        setTimeout(() => {
+          window.__TAURI__.process.relaunch().catch(() => {});
+        }, 800);
+      } catch (e) {
+        console.error('Update check failed', e);
+        updateStatus.style.color = '#f87171';
+        updateStatus.textContent = 'Update check failed: ' + (e?.message || e);
+      }
+    }
+
+    function formatBytes(n) {
+      if (n < 1024) return `${n} B`;
+      if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+      return `${(n / (1024 * 1024)).toFixed(1)} MB`;
     }
 
     // Apply dark mode setting

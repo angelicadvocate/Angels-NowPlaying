@@ -6,11 +6,21 @@
  * Exposes invoke under two window properties to match existing call-site patterns:
  *   window.tauri.invoke(...)    — used in F1-Editor.html
  *   window.__TAURI__.invoke(...)  — used in settings.html
+ *
+ * Also surfaces the updater + process plugin APIs as
+ *   window.__TAURI__.updater.check()
+ *   window.__TAURI__.process.relaunch()
  */
 import { invoke } from '@tauri-apps/api/core'
+import { check as updaterCheck } from '@tauri-apps/plugin-updater'
+import { relaunch } from '@tauri-apps/plugin-process'
 
 window.tauri = { invoke }
-window.__TAURI__ = { invoke }
+window.__TAURI__ = {
+  invoke,
+  updater: { check: updaterCheck },
+  process: { relaunch },
+}
 
 /**
  * Opens a URL in the user's default system browser.
