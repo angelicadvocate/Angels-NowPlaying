@@ -96,7 +96,7 @@ body {
 #content {
   flex: 1;
   overflow: hidden;
-  margin-right: 110px;
+  margin-right: 95px;
   padding: 0 0 0 var(--content-padding-left);
   box-sizing: border-box;
   display: flex;

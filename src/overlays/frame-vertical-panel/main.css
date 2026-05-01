@@ -192,11 +192,11 @@ p {
 /* Progress bar container — place near the bottom for vertical frame */
 #progress-container {
   position: absolute;
-  bottom: var(--f3-progress-bottom);
+  bottom: var(--f3-progress-bottom, 85px);
   /* center the progress container and scale its width relative to background */
   left: 50%;
   transform: translateX(-50%);
-  width: calc(100% * var(--f3-progress-scale));
+  width: calc(100% * var(--f3-progress-scale, 0.9));
   max-width: calc(100% - 16px); /* keep a small gutter at very small scales */
   height: 10px;
   background-color: rgba(255,255,255,0.08);

@@ -37,16 +37,16 @@
         </select>
 
         <label for="sliderArtistSize" class="info">Artist Name Size</label>
-        <input type="range" min="16" max="64" step="1" value="36" class="slider" id="sliderArtistSize">
+        <input type="range" min="16" max="64" step="1" value="32" class="slider" id="sliderArtistSize">
 
         <label for="sliderSongSize" class="info">Track Title Size</label>
-        <input type="range" min="16" max="72" step="1" value="52" class="slider" id="sliderSongSize">
+        <input type="range" min="16" max="72" step="1" value="49" class="slider" id="sliderSongSize">
 
         <label for="sliderTextSpacing" class="info">Text Vertical Spacing</label>
-        <input type="range" min="-8" max="20" step="1" value="2" class="slider" id="sliderTextSpacing">
+        <input type="range" min="-8" max="20" step="1" value="-5" class="slider" id="sliderTextSpacing">
 
         <label for="sliderTextOffset" class="info">Text Vertical Position</label>
-        <input type="range" min="-100" max="60" step="1" value="-32" class="slider" id="sliderTextOffset">
+        <input type="range" min="-100" max="60" step="1" value="-20" class="slider" id="sliderTextOffset">
 
         <label for="sliderContentPadding" class="info">Content Left Padding</label>
         <input type="range" min="0" max="200" step="1" value="20" class="slider" id="sliderContentPadding">
@@ -61,13 +61,13 @@
         </div>
 
         <label for="sliderImageSize" class="info">Album Art Size</label>
-        <input type="range" min="80" max="300" step="1" value="144" class="slider" id="sliderImageSize">
+        <input type="range" min="80" max="300" step="1" value="109" class="slider" id="sliderImageSize">
 
         <label for="sliderImageMargin" class="info">Image Left Margin</label>
-        <input type="range" min="-150" max="300" step="1" value="160" class="slider" id="sliderImageMargin">
+        <input type="range" min="-150" max="300" step="1" value="85" class="slider" id="sliderImageMargin">
 
         <label for="sliderProgressOffset" class="info">Progress Bar Position</label>
-        <input type="range" min="-30" max="60" step="1" value="24" class="slider" id="sliderProgressOffset">
+        <input type="range" min="-30" max="60" step="1" value="31" class="slider" id="sliderProgressOffset">
 
         <label for="sliderFrameHue" class="info">Frame Hue</label>
         <input type="range" min="-180" max="180" step="1" value="0" class="slider" id="sliderFrameHue">
@@ -209,14 +209,14 @@
         const m = v.match(/(-?\d+\.?\d*)/);
         return m ? parseFloat(m[1]) : fallback;
       }
-      sliderArtistSize.value     = px('--artist-size', 36);
-      sliderSongSize.value       = px('--song-size', 52);
-      sliderTextSpacing.value    = px('--text-spacing', 2);
-      sliderTextOffset.value     = px('--text-vertical-offset', -32);
+      sliderArtistSize.value     = px('--artist-size', 32);
+      sliderSongSize.value       = px('--song-size', 49);
+      sliderTextSpacing.value    = px('--text-spacing', -5);
+      sliderTextOffset.value     = px('--text-vertical-offset', -20);
       sliderContentPadding.value = px('--content-padding-left', 20);
-      sliderImageSize.value      = px('--image-size', 144);
-      sliderImageMargin.value    = px('--image-margin-left', 160);
-      sliderProgressOffset.value = px('--progress-bar-offset', 24);
+      sliderImageSize.value      = px('--image-size', 109);
+      sliderImageMargin.value    = px('--image-margin-left', 85);
+      sliderProgressOffset.value = px('--progress-bar-offset', 31);
 
       // Restore frame hue from --neon-filter if present
       const nf = vars['--neon-filter'] || 'none';

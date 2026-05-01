@@ -10,6 +10,33 @@ Please be sure to add date, completed tag, `github:[username]`, and version numb
 
 ---------------------------------------------------------------------------------
 
+## v0.11.3 – 2026-05-01
+
+* [x] **Manifest schema validation on overlay install** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * `install_overlay` previously trusted whatever `manifest.json` shipped inside a user-supplied zip. A new `validate_manifest()` function in `backend.rs` now runs after the manifest-exists check and before any disk writes. It rejects zips where: required string fields (`id`, `name`, `version`, `entry`, `editor`) are missing or empty; `id` does not match the zip's top-level folder slug; `entry` or `editor` contain path separators (directory-traversal guard); `obsSize.width` or `obsSize.height` are present but not positive integers; any key in `defaults` does not start with `--`. All failures surface as clear error messages to the frontend — the install is aborted and nothing is written to disk
+
+* [x] **`bundle_versions.json` corruption logging** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * `load_bundle_versions()` previously fell back to `Default` silently whenever the file could not be read or parsed. It now distinguishes three cases: file not found (silent — normal on first run), read error (`log::warn!` with path + OS error), and JSON parse error (`log::warn!` with path + serde error + note that all bundled overlays will re-extract). Corrupt or hand-edited files are now visible in the log rather than swallowed
+
+* [x] **Snapshot retention policy confirmed and documented** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Verified that `prune_snapshots(5)` is already called at the end of every snapshot write in `create_backup()`. It sorts `update-*.zip` files newest-first and deletes everything past position 5, capping AppData growth from repeated auto-updates at five zips. Non-snapshot files (`pending-restore.txt`, `restore-success.txt`) are never touched by the pruner. Added a note on this to the session documentation
+
+* [x] **Settings JSON migration policy documentation** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Added a `## Settings migration policy` section to `DEVELOPMENT.md` between "Settings persistence" and "Making changes". Establishes the project convention: forward-only migrations using `#[serde(default)]` and `#[serde(alias)]`; no downgrade support; snapshot/restore as the recovery path for badly-migrated settings; `BACKUP_FORMAT_VERSION` is independent of `CARGO_PKG_VERSION`; overlay folder renames tracked via a rename table rather than a migration framework. Written as a guardrail for future contributors so the pattern stays consistent
+
+* [x] **Diagnostics bundled overlay count fix** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * The Diagnostics modal was reporting "Bundled overlays: 13" when the app ships 12 frames. Root cause: the old `count_subdirs()` helper counted every non-dot subdirectory under the overlays folder, including the `css/` shared-assets folder that `extract_bundled_overlays()` writes alongside the overlay dirs. Replaced with `count_overlay_dirs()` which only counts subdirectories that contain a `manifest.json` file, matching the set of real overlay frames exactly. Dead `count_subdirs()` function removed
+
+* [x] **Vertical panel overlay: progress bar positioning fix** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * In production builds the progress bar snapped to the top of the frame instead of the bottom. Root cause: `--f3-progress-bottom` and `--f3-progress-scale` are "fixed layout constants" that `buildRootBlock` passes through via `vars['--f3-progress-bottom'] || '85px'`. Users who had saved under an older build that lacked the passthrough had those variables stripped from their AppData `main.css`; without a value, `bottom: var(--f3-progress-bottom)` resolved to `bottom: auto`, which caused the absolutely-positioned container to snap to the top of its flex parent. Fixed by adding CSS `var()` fallbacks to `#progress-container` (`bottom: var(--f3-progress-bottom, 85px)`, `width: calc(100% * var(--f3-progress-scale, 0.9))`). Manifest version bumped `1.0.0` → `1.0.1` so per-overlay versioning re-extracts the corrected `main.css` for all existing users on next launch
+
+* [x] **Neon lights overlay: first-load appearance and text cutoff fixes** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * First-load appearance: HTML `value` attributes on all sliders in `editor.html` were stale from an earlier design iteration and did not match the manifest defaults. The editor shell overwrites them via `populateSlidersFromVars()` on init, but there is a brief window before the init message arrives where the HTML defaults are live — and the JS fallbacks inside `populateSlidersFromVars()` were also wrong, meaning a "reset to defaults" using a missing-vars path would restore the wrong values. Updated all eight mismatched attributes and their matching JS fallbacks to agree with `manifest.json` (artist size 36→32, song size 52→49, text spacing 2→−5, text offset −32→−20, image size 144→109, image margin 160→85, progress offset 24→31)
+  * Text cutoff: the `overflow: clip` boundary on `.text-box` was clipping scrolling text ~15px too early. Adjusted `#content`'s `margin-right` from `110px` to `95px` to shift the clip boundary right, giving long titles the full available width before the scroller kicks in
+  * Manifest version bumped `1.0.0` → `1.0.1` so per-overlay versioning re-extracts the corrected files for all existing users on next launch
+
+---------------------------------------------------------------------------------
+
 ## v0.11.2 – 2026-04-30
 
 * [x] **Per-overlay bundled-version tracking** ✨ *COMPLETED* `github:AngelicAdvocate`

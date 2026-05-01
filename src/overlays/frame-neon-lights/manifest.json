@@ -1,9 +1,9 @@
 {
   "id": "frame-neon-lights",
   "name": "Neon Lights",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "created": "2026-04-01",
-  "updated": "2026-04-01",
+  "updated": "2026-05-01",
   "author": "angelicadvocate",
   "entry": "main.html",
   "editor": "editor.html",

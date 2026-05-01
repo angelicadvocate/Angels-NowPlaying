@@ -776,10 +776,29 @@ fn bundle_versions_path() -> PathBuf {
 
 fn load_bundle_versions() -> BundleVersionsFile {
     let path = bundle_versions_path();
-    fs::read_to_string(&path)
-        .ok()
-        .and_then(|s| serde_json::from_str::<BundleVersionsFile>(&s).ok())
-        .unwrap_or_default()
+    let raw = match fs::read_to_string(&path) {
+        Ok(s) => s,
+        Err(e) => {
+            // Missing file is the normal first-run case — don't log.
+            if e.kind() != io::ErrorKind::NotFound {
+                log::warn!(
+                    "Could not read bundle_versions.json ({}): {e}; treating as fresh install",
+                    path.display()
+                );
+            }
+            return BundleVersionsFile::default();
+        }
+    };
+    match serde_json::from_str::<BundleVersionsFile>(&raw) {
+        Ok(f) => f,
+        Err(e) => {
+            log::warn!(
+                "Could not parse bundle_versions.json ({}): {e}; treating as fresh install — every bundled overlay will be re-extracted on this launch",
+                path.display()
+            );
+            BundleVersionsFile::default()
+        }
+    }
 }
 
 fn save_bundle_versions(file: &BundleVersionsFile) -> Result<(), String> {
@@ -1022,6 +1041,102 @@ pub fn extract_bundled_overlays(app_handle: &tauri::AppHandle) -> Result<(), Str
 /// so two unrelated overlays sharing the same slug can coexist. The first install
 /// of a given slug keeps its clean name; only later collisions get suffixed.
 ///
+/// Validates a parsed `manifest.json` for an overlay being installed.
+/// `expected_slug` is the top-level folder name taken from the zip, which the
+/// manifest's `id` field must exactly match.
+///
+/// Rules enforced:
+/// - Required string fields present and non-empty: `id`, `name`, `version`,
+///   `entry`, `editor`.
+/// - `id` equals `expected_slug` (manifest must agree with the zip folder name).
+/// - `entry` and `editor` are plain filenames — no path separators allowed.
+/// - `obsSize`, when present, must be an object whose `width` and `height`
+///   are both positive integers.
+/// - `defaults`, when present, must be an object whose every key starts with
+///   `--` (CSS custom property naming convention).
+fn validate_manifest(manifest_json: &str, expected_slug: &str) -> Result<(), String> {
+    let v: serde_json::Value = serde_json::from_str(manifest_json)
+        .map_err(|e| format!("manifest.json is not valid JSON: {e}"))?;
+    let obj = v
+        .as_object()
+        .ok_or("manifest.json must be a JSON object")?;
+
+    // Required non-empty string fields.
+    for field in &["id", "name", "version", "entry", "editor"] {
+        match obj.get(*field) {
+            None => return Err(format!("manifest.json is missing required field `{field}`")),
+            Some(val) if !val.is_string() => {
+                return Err(format!("manifest.json field `{field}` must be a string"))
+            }
+            Some(val) if val.as_str().unwrap_or("").trim().is_empty() => {
+                return Err(format!("manifest.json field `{field}` must not be empty"))
+            }
+            _ => {}
+        }
+    }
+
+    // `id` must match the zip folder name so the overlay lands at the expected path.
+    let declared_id = obj["id"].as_str().unwrap();
+    if declared_id != expected_slug {
+        return Err(format!(
+            "manifest.json `id` ({declared_id:?}) does not match the zip folder name ({expected_slug:?})"
+        ));
+    }
+
+    // `entry` and `editor` must be plain filenames with no path separators.
+    for field in &["entry", "editor"] {
+        let val = obj[*field].as_str().unwrap();
+        if val.contains('/') || val.contains('\\') {
+            return Err(format!(
+                "manifest.json field `{field}` must be a plain filename, not a path (got {val:?})"
+            ));
+        }
+    }
+
+    // `obsSize`: optional, but when present must have positive integer width + height.
+    if let Some(obs_size) = obj.get("obsSize") {
+        let size_obj = obs_size
+            .as_object()
+            .ok_or("manifest.json `obsSize` must be an object")?;
+        for dim in &["width", "height"] {
+            match size_obj.get(*dim) {
+                None => {
+                    return Err(format!("manifest.json `obsSize` is missing `{dim}`"))
+                }
+                Some(v) => {
+                    let n = v.as_u64().ok_or_else(|| {
+                        format!(
+                            "manifest.json `obsSize.{dim}` must be a positive integer (got {v})"
+                        )
+                    })?;
+                    if n == 0 {
+                        return Err(format!(
+                            "manifest.json `obsSize.{dim}` must be greater than zero"
+                        ));
+                    }
+                }
+            }
+        }
+    }
+
+    // `defaults`: optional, but when present every key must be a CSS custom property.
+    if let Some(defaults) = obj.get("defaults") {
+        let defaults_obj = defaults
+            .as_object()
+            .ok_or("manifest.json `defaults` must be an object")?;
+        for key in defaults_obj.keys() {
+            if !key.starts_with("--") {
+                return Err(format!(
+                    "manifest.json `defaults` key {key:?} does not start with `--`; \
+                     all defaults must be CSS custom properties"
+                ));
+            }
+        }
+    }
+
+    Ok(())
+}
+
 /// Returns the on-disk install id (the folder name actually used). For collision-
 /// free installs this equals the slug from the zip.
 #[tauri::command]
@@ -1063,7 +1178,21 @@ pub fn install_overlay(zip_path: String) -> Result<String, String> {
         return Err(format!("Zip does not contain {manifest_entry}"));
     }
 
-    // Pick a non-colliding install id. Prefer the clean slug; on collision
+    // Read the manifest and run schema validation before touching disk.
+    // Any structural problem is surfaced here as a clear error message rather
+    // than allowing a malformed overlay to reach AppData and crash the editor.
+    {
+        let mut entry = archive
+            .by_name(&manifest_entry)
+            .map_err(|e| format!("Could not open {manifest_entry}: {e}"))?;
+        let mut manifest_json = String::new();
+        entry
+            .read_to_string(&mut manifest_json)
+            .map_err(|e| format!("Could not read {manifest_entry}: {e}"))?;
+        validate_manifest(&manifest_json, &slug)?;
+    }
+
+    // Pick a non-colliding install id.
     // append an 8-char hex suffix from a fresh UUIDv4. Retry a few times in
     // the (astronomically unlikely) case the suffix itself collides.
     let install_id = {

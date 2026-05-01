@@ -136,6 +136,43 @@ The app-level `AppSettings` struct (serve port, export root, etc.) is persisted 
 
 ---
 
+## Settings migration policy
+
+`AppSettings` and `OverlaySettings` use Serde's `#[serde(default)]` and
+`#[serde(alias)]` attributes so that older on-disk files always deserialize
+cleanly into newer structs. **Migrations are forward-only.** Every new field
+must carry `#[serde(default)]` (or `#[serde(default = "fn_name")]`) so a
+settings file written by an older build round-trips through the newer struct
+without error. Field renames must carry `#[serde(alias = "old_field_name")]`
+so the old key continues to be accepted indefinitely — never delete an alias
+once it has shipped in a release.
+
+**Downgrade is not supported.** If a user installs an older app build over a
+settings file written by a newer build, any fields the old build doesn't
+recognise will be silently dropped on the next save. We do not attempt to
+preserve unknown fields, and we make no guarantees about behaviour when
+running a build against a settings file that is newer than it. If someone
+needs to recover from a downgrade (or from any other settings-corruption
+event), **snapshot / restore is the answer**: the auto-updater takes a
+pre-update snapshot under `AppData/.snapshots/update-<unix>.zip`, and
+Settings → Backup & Restore gives users full control over manual snapshots.
+That pipeline is the recovery path — not a migration framework inside Serde.
+
+**`BACKUP_FORMAT_VERSION` is independent of the settings schema.** That
+constant gates the on-disk layout of the backup zip itself (top-level
+members, `backup-info.json` fields, folder structure). It must only be bumped
+for changes that break the zip layout. Pure settings field additions, renames
+handled via `#[serde(alias)]`, and bundled-overlay folder renames (which go
+through the rename table already documented in the CHANGELOG) do **not**
+require a `BACKUP_FORMAT_VERSION` bump.
+
+If you find yourself wanting to write a general migration framework here,
+that is a signal the schema is taking on too much responsibility — prefer
+additive fields and `#[serde(alias)]` first, and open a discussion before
+reaching for anything more complex.
+
+---
+
 ## Making changes
 
 ### App UI pages (`src/`)
