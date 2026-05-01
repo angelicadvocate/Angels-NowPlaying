@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Angel's-NowPlaying Changelog -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Changelog - Angel's-NowPlaying</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/settings.css" />
+  <link rel="stylesheet" href="../css/changelog.css" />
+  <script type="module" src="../js/tauri.js"></script>
+  <script type="module" src="../js/theme.js"></script>
+</head>
+<body>
+
+  <div class="header-container">
+    <!-- Left: Mascot/Title -->
+    <div class="header-center">
+      <img src="../assets/mascot.png" alt="Mascot" class="floating-mascot" />
+      <img src="../assets/header-text.png" alt="Header Text" class="header-text" />
+    </div>
+
+    <!-- Right Action Buttons -->
+    <div class="header-actions">
+      <!-- Support Development Row -->
+      <div class="button-row">
+        <p class="button-row-label">Support Development:</p>
+        <a href="https://streamelements.com/angelicadvocate/tip" target="_blank"><button class="action-button tip-button" title="Buy Me a Coffee"><i class="fas fa-heart" style="font-size: 1.2rem;"></i> Buy Me a Coffee</button></a>
+      </div>
+      <!-- Share Row -->
+      <div class="button-row">
+        <p class="button-row-label">Share this widget:</p>
+        <a href="#" onclick="shareToTwitter(); return false;"><button class="action-button social-button" title="Share on Twitter"><i class="fab fa-twitter"></i></button></a>
+        <a href="#" onclick="shareOnFacebook(); return false;"><button class="action-button social-button" title="Share on Facebook"><i class="fab fa-facebook"></i></button></a>
+        <a href="#" onclick="shareToReddit(); return false;"><button class="action-button social-button" title="Share on Reddit"><i class="fab fa-reddit"></i></button></a>
+        <a href="#" onclick="shareToDiscord(); return false;"><button class="action-button social-button" title="Share on Discord"><i class="fab fa-discord"></i></button></a>
+      </div>
+      <div class="button-row">
+        <a href="https://github.com/angelicadvocate/Angels-NowPlaying" target="_blank"><button class="action-button" title="GitHub"><i class="fab fa-github"></i> GitHub</button></a>
+        <button class="action-button" onclick="openStore()" title="Open Store"><i class="fas fa-store"></i> Store</button>
+        <a href="./settings.html"><button class="action-button" title="Settings"><i class="fas fa-cog"></i> Settings</button></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Changelog toolbar -->
+  <div class="changelog-toolbar">
+    <a href="./settings.html" class="changelog-back-btn">
+      <i class="fas fa-arrow-left"></i> Back to Settings
+    </a>
+    <div class="changelog-toolbar-center">
+      <div class="changelog-search-wrap">
+        <i class="fas fa-search changelog-search-icon"></i>
+        <input type="text" id="changelogSearch" class="changelog-search" placeholder="Search changelog…" autocomplete="off" />
+        <button class="changelog-search-clear" id="searchClear" aria-label="Clear search" title="Clear search" style="display:none;">×</button>
+      </div>
+      <select id="versionJump" class="changelog-version-select" title="Jump to version">
+        <option value="">Jump to version…</option>
+      </select>
+    </div>
+    <div class="changelog-match-count" id="matchCount"></div>
+  </div>
+
+  <!-- Content -->
+  <div class="changelog-page">
+    <div id="changelogContent" class="changelog-content">
+      <div class="changelog-loading">
+        <i class="fas fa-spinner fa-spin"></i> Loading changelog…
+      </div>
+    </div>
+    <div class="changelog-no-results" id="noResults" style="display:none;">
+      <i class="fas fa-search" style="font-size:2rem; opacity:0.3;"></i>
+      <p>No results for "<span id="noResultsTerm"></span>"</p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { marked } from 'marked';
+    import DOMPurify from 'dompurify';
+
+    // ── Marked configuration ──────────────────────────────────────────────
+    marked.setOptions({ breaks: false, gfm: true });
+
+    // ── Load + render ─────────────────────────────────────────────────────
+    async function loadChangelog() {
+      const contentEl = document.getElementById('changelogContent');
+      try {
+        const raw = await window.__TAURI__.invoke('read_changelog');
+        // Strip everything up to and including the marker line so the preamble
+        // / instructions block never appears in the rendered output.
+        const MARKER = '<CHANGELOG MARKER DO NOT DELETE THIS LINE. TEXT ABOVE THIS LINE NOT SHOWN IN APP>';
+        const markerIdx = raw.indexOf(MARKER);
+        const body = markerIdx !== -1 ? raw.slice(markerIdx + MARKER.length) : raw;
+        renderChangelog(body.trimStart(), contentEl);
+      } catch (err) {
+        contentEl.innerHTML = `<div class="changelog-error"><i class="fas fa-exclamation-circle"></i> Failed to load changelog: ${err}</div>`;
+      }
+    }
+
+    function renderChangelog(raw, container) {
+      // Split the raw markdown into per-version sections at every "## " heading.
+      // The first chunk (before the first ##) is the preamble/title block.
+      const chunks = raw.split(/(?=^## )/m);
+      const versionJump = document.getElementById('versionJump');
+
+      container.innerHTML = '';
+
+      chunks.forEach((chunk, i) => {
+        const trimmed = chunk.trim();
+        if (!trimmed) return;
+
+        const section = document.createElement('div');
+        section.className = 'changelog-section';
+
+        // Extract version label from the heading line for the jump dropdown
+        const headingMatch = trimmed.match(/^## (.+)/m);
+        if (headingMatch) {
+          const label = headingMatch[1].trim();
+          section.dataset.version = label;
+
+          const opt = document.createElement('option');
+          opt.value = label;
+          opt.textContent = label;
+          versionJump.appendChild(opt);
+        } else if (i === 0) {
+          section.className += ' changelog-preamble';
+        }
+
+        // Render markdown safely
+        const html = DOMPurify.sanitize(marked.parse(trimmed));
+        section.innerHTML = html;
+        container.appendChild(section);
+
+        // Add a divider between version sections (not after the last one)
+        if (headingMatch) {
+          const hr = document.createElement('div');
+          hr.className = 'changelog-divider';
+          container.appendChild(hr);
+        }
+      });
+    }
+
+    // ── Version jump ──────────────────────────────────────────────────────
+    document.getElementById('versionJump').addEventListener('change', function () {
+      if (!this.value) return;
+      const section = document.querySelector(`.changelog-section[data-version="${CSS.escape(this.value)}"]`);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      // Reset select so it can be used again for the same version
+      this.value = '';
+    });
+
+    // ── Search / filter ───────────────────────────────────────────────────
+    const searchInput = document.getElementById('changelogSearch');
+    const searchClear = document.getElementById('searchClear');
+    const matchCountEl = document.getElementById('matchCount');
+    const noResultsEl = document.getElementById('noResults');
+    const noResultsTerm = document.getElementById('noResultsTerm');
+
+    function applySearch(term) {
+      const sections = document.querySelectorAll('.changelog-section');
+      searchClear.style.display = term ? '' : 'none';
+
+      if (!term) {
+        sections.forEach(s => s.style.display = '');
+        document.querySelectorAll('.changelog-divider').forEach(d => d.style.display = '');
+        matchCountEl.textContent = '';
+        noResultsEl.style.display = 'none';
+        return;
+      }
+
+      const lower = term.toLowerCase();
+      let visible = 0;
+      sections.forEach(s => {
+        const matches = s.textContent.toLowerCase().includes(lower);
+        s.style.display = matches ? '' : 'none';
+        if (matches && s.dataset.version) visible++;
+      });
+
+      // Hide dividers after hidden sections
+      document.querySelectorAll('.changelog-divider').forEach((d, i) => {
+        const prev = d.previousElementSibling;
+        d.style.display = (prev && prev.style.display !== 'none') ? '' : 'none';
+      });
+
+      matchCountEl.textContent = visible ? `${visible} version${visible === 1 ? '' : 's'}` : '';
+      noResultsEl.style.display = visible ? 'none' : '';
+      noResultsTerm.textContent = term;
+    }
+
+    searchInput.addEventListener('input', () => applySearch(searchInput.value.trim()));
+    searchClear.addEventListener('click', () => {
+      searchInput.value = '';
+      applySearch('');
+      searchInput.focus();
+    });
+
+    // ── Kick off ──────────────────────────────────────────────────────────
+    loadChangelog();
+
+    // ── Header share/nav stubs (shared with other pages) ─────────────────
+    window.openStore = () => {
+      if (window.__TAURI__) window.__TAURI__.invoke('navigate_home', { target: 'store' });
+    };
+    window.shareToTwitter = () => {
+      window.openExternalUrl('https://twitter.com/intent/tweet?text=Check%20out%20Angel%27s%20NowPlaying%20-%20a%20beautiful%20now-playing%20overlay%20for%20OBS!%20https%3A//github.com/angelicadvocate/Angels-NowPlaying');
+    };
+    window.shareOnFacebook = () => {
+      window.openExternalUrl('https://www.facebook.com/sharer/sharer.php?u=https%3A//github.com/angelicadvocate/Angels-NowPlaying');
+    };
+    window.shareToReddit = () => {
+      window.openExternalUrl('https://reddit.com/submit?url=https%3A//github.com/angelicadvocate/Angels-NowPlaying&title=Angel%27s%20NowPlaying%20-%20Beautiful%20OBS%20Now%20Playing%20Overlay');
+    };
+    window.shareToDiscord = () => {
+      window.openExternalUrl('https://discord.com/');
+    };
+  </script>
+
+</body>
+</html>

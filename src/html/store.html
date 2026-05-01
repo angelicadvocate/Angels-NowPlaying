@@ -55,6 +55,56 @@
 
   <script>
     // Share helpers + external-link delegation come from tauri.js.
+
+    // ── Store iframe postMessage bridge ───────────────────────────────────
+    // Handles two message types posted by the store iframe:
+    //   { type: 'install-overlay', downloadUrl, catalogId, overlayName }
+    //   { type: 'open-external',   url }
+
+    window.addEventListener('message', async function (e) {
+      // Only accept messages from the store iframe.
+      const iframe = document.getElementById('store-frame');
+      if (iframe && e.source !== iframe.contentWindow) return;
+
+      if (e.data?.type === 'open-external') {
+        const url = e.data.url;
+        if (typeof url === 'string' && (url.startsWith('https://') || url.startsWith('http://'))) {
+          window.openExternalUrl(url);
+        }
+        return;
+      }
+
+      if (e.data?.type === 'install-overlay') {
+        const { downloadUrl, catalogId, overlayName } = e.data;
+        if (typeof downloadUrl !== 'string' || !downloadUrl.startsWith('https://')) {
+          alert('Invalid download URL received from store.');
+          return;
+        }
+        if (typeof catalogId !== 'string' || typeof overlayName !== 'string') {
+          alert('Missing overlay metadata received from store.');
+          return;
+        }
+
+        const confirmed = confirm(
+          `Install "${overlayName}" from the store?\n\n` +
+          `The overlay will be downloaded and installed automatically.\n\n` +
+          `Source: ${downloadUrl}`
+        );
+        if (!confirmed) return;
+
+        try {
+          const installId = await window.__TAURI__.invoke('download_and_install_overlay', {
+            url: downloadUrl,
+            catalogId,
+            overlayName,
+          });
+          alert(`"${overlayName}" installed successfully! Overlay ID: ${installId}`);
+        } catch (err) {
+          alert(`Install failed: ${err}`);
+        }
+        return;
+      }
+    });
   </script>
 
 </body>

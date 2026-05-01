@@ -1,0 +1,268 @@
+/* ── Changelog page ──────────────────────────────────────────────────────── */
+
+body {
+  margin: 0;
+  padding: 0.5rem 2rem 1rem 2rem;
+  font-family: var(--font-main), sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+html {
+  overflow-y: scroll;
+}
+
+html::-webkit-scrollbar { display: none; }
+html { -ms-overflow-style: none; scrollbar-width: none; }
+
+a { color: var(--text-link); text-decoration: none; }
+
+/* ── Toolbar ─────────────────────────────────────────────────────────────── */
+
+.changelog-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: 900px;
+  margin: 1rem auto 0.5rem auto;
+  padding: 0.6rem 1rem;
+  background: var(--bg-card);
+  border-radius: 8px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.3);
+  flex-wrap: wrap;
+}
+
+.changelog-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.changelog-back-btn:hover { background: var(--highlight); color: #fff; }
+
+.changelog-toolbar-center {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.changelog-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.changelog-search-icon {
+  position: absolute;
+  left: 0.6rem;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  pointer-events: none;
+}
+
+.changelog-search {
+  width: 100%;
+  padding: 0.4rem 2rem 0.4rem 2rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+.changelog-search:focus { border-color: var(--highlight); }
+.changelog-search::placeholder { color: var(--text-secondary); }
+
+.changelog-search-clear {
+  position: absolute;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+.changelog-search-clear:hover { color: var(--text-primary); }
+
+.changelog-version-select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.changelog-version-select:focus { outline: none; border-color: var(--highlight); }
+
+.changelog-match-count {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* ── Page layout ─────────────────────────────────────────────────────────── */
+
+.changelog-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding-bottom: 3rem;
+}
+
+/* ── State screens ───────────────────────────────────────────────────────── */
+
+.changelog-loading,
+.changelog-error {
+  padding: 3rem;
+  text-align: center;
+  opacity: 0.6;
+  font-size: 1rem;
+}
+
+.changelog-error { color: #f87171; opacity: 1; }
+
+.changelog-no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 4rem 2rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+/* ── Version sections ────────────────────────────────────────────────────── */
+
+.changelog-section {
+  background: var(--bg-card);
+  border-radius: 10px;
+  padding: 1.5rem 1.75rem;
+  margin-top: 1rem;
+  box-shadow: 0 0 8px rgba(0,0,0,0.25);
+}
+
+.changelog-preamble {
+  background: transparent;
+  box-shadow: none;
+  padding-top: 0.5rem;
+  padding-bottom: 0;
+}
+.changelog-preamble h1 {
+  font-size: 1.4rem;
+  margin: 0 0 0.25rem 0;
+  color: var(--text-primary);
+}
+.changelog-preamble p {
+  margin: 0.25rem 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.changelog-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 0.75rem 0 0 0;
+  opacity: 0.4;
+}
+
+/* ── Rendered markdown typography ────────────────────────────────────────── */
+
+.changelog-section h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+  color: var(--highlight);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+.changelog-section h3 {
+  margin: 1rem 0 0.4rem 0;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.changelog-section p {
+  margin: 0.4rem 0;
+  line-height: 1.6;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+}
+
+.changelog-section ul {
+  margin: 0.5rem 0 0.5rem 1.25rem;
+  padding: 0;
+}
+
+.changelog-section li {
+  margin: 0.4rem 0;
+  line-height: 1.6;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+}
+
+/* Nested list items (implementation details) */
+.changelog-section li > ul {
+  margin-top: 0.3rem;
+  margin-left: 1.25rem;
+}
+.changelog-section li > ul > li {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  list-style-type: disc;
+}
+
+.changelog-section strong { color: var(--text-primary); }
+.changelog-section em { color: var(--text-secondary); font-style: italic; }
+
+.changelog-section code {
+  font-family: 'Courier Prime Regular', 'Courier New', monospace;
+  font-size: 0.85em;
+  background: var(--bg-secondary);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  color: var(--highlight);
+}
+
+.changelog-section a {
+  color: var(--highlight);
+  text-decoration: underline;
+}
+.changelog-section a:hover { opacity: 0.8; }
+
+/* The ✨ COMPLETED badges are inline text — no special treatment needed,
+   they inherit the list item color naturally */
+
+/* Checkbox list items rendered from "- [x]" in the markdown */
+.changelog-section input[type="checkbox"] {
+  margin-right: 0.4rem;
+  accent-color: var(--highlight);
+  pointer-events: none;
+}
+
+/* ── Horizontal rule between preamble and versions ───────────────────────── */
+
+.changelog-section hr {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 0.75rem 0;
+  opacity: 0.4;
+}

@@ -321,3 +321,25 @@ document.querySelectorAll('a[target="_blank"]').forEach(a => {
 // Start
 // ---------------------------------------------------------------------------
 init();
+
+// ---------------------------------------------------------------------------
+// Keyboard shortcuts
+// Ctrl+S        → Save
+// Ctrl+Shift+C  → Copy Path / Copy URL
+// Ctrl+D        → Reset to Defaults
+//   Note: Ctrl+D may be intercepted by the WebView as a bookmark shortcut
+//   in dev mode — production builds are unaffected; use the button in dev.
+// ---------------------------------------------------------------------------
+document.addEventListener('keydown', function (e) {
+  if (!e.ctrlKey) return;
+  if (e.key === 's') {
+    e.preventDefault();
+    document.getElementById('save-btn').click();
+  } else if (e.key === 'C' && e.shiftKey) {
+    e.preventDefault();
+    document.getElementById('copy-url-btn').click();
+  } else if (e.key === 'd') {
+    e.preventDefault();
+    document.getElementById('reset-btn').click();
+  }
+});

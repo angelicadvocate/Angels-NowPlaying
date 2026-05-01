@@ -29,7 +29,8 @@
     "createUpdaterArtifacts": true,
     "resources": {
       "../dist/overlays": "overlays",
-      "../dist/fonts": "fonts"
+      "../dist/fonts": "fonts",
+      "../CHANGELOG.md": "CHANGELOG.md"
     },
     "windows": {
       "nsis": {

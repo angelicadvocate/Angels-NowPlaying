@@ -14,9 +14,7 @@ Drop-in browser sources for [Tuna](https://github.com/univrsal/tuna). Pick a fra
 
 ---
 
-![Home Page](src/assets/Screenshot.png)
-
-> A short demo GIF + per-frame showcase will land here once recorded. For now, scroll down to **Bundled overlays** for the catalogue.
+![Demo](docs/demo.gif)
 
 ---
 
@@ -42,9 +40,9 @@ Drop-in browser sources for [Tuna](https://github.com/univrsal/tuna). Pick a fra
 
 - Reads the currently playing track from **Tuna** — works with any source Tuna supports, including Spotify, Last.fm, YouTube Music Desktop App, Windows Media Player, MPD, local files via VLC, and more.
 - Renders artist, track, album art, and a live progress bar. Bundled frames also do animated cassette reels, spinning vinyl, neon glow, scrolling marquee titles, and a few other styles — see the gallery below.
-- The desktop app includes a per-overlay visual editor — adjust colours, fonts, layout, and animation parameters with sliders and pickers, and see changes in a live preview without touching OBS.
+- The desktop app includes a per-overlay visual editor — adjust colours, fonts, layout, and animation parameters with sliders and pickers, and see changes in a live preview without touching OBS (see the demo above).
 - Saves customizations per-overlay to the overlay's own folder, so reinstalling or updating the app doesn't lose your tweaks.
-- Install custom overlays from a zip via Settings, or build your own using the provided starter template ([FRAME-DEVELOPMENT.md](FRAME-DEVELOPMENT.md)).
+- Install custom overlays from a zip via Settings, or build your own using the provided starter template ([FRAME-DEVELOPMENT.md](docs/FRAME-DEVELOPMENT.md)).
 - Optionally serves all your overlays over HTTP (loopback by default, LAN-wide if you opt in) so you can use **URL** Browser Sources in OBS instead of local file paths — useful when OBS runs on a different PC.
 
 ---
@@ -67,7 +65,7 @@ Drop-in browser sources for [Tuna](https://github.com/univrsal/tuna). Pick a fra
 | [Tuna](https://github.com/univrsal/tuna/releases) | >=1.9.9 | OBS plugin; provides the HTTP track-data endpoint |
 | Music source | — | Any source [Tuna supports](https://github.com/univrsal/tuna/wiki) |
 
-No Node.js or Rust installation is needed to **run** the app — just download the installer. See [DEVELOPMENT.md](DEVELOPMENT.md) if you want to build from source.
+No Node.js or Rust installation is needed to **run** the app — just download the installer. See [DEVELOPMENT.md](docs/DEVELOPMENT.md) if you want to build from source.
 
 ---
 
@@ -114,19 +112,74 @@ If OBS runs on a different PC, or you have a third-party overlay that needs `fet
 
 The app ships with a starter set of frames covering a handful of styles. Pick whichever fits your stream's vibe — you can change it any time without rebuilding the OBS scene.
 
-> Per-frame screenshots and exact `obsSize` recommendations will be filled in here in the next docs pass. In the meantime, every frame's editor shows its target dimensions at the top.
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <img src="docs/overlays/frame-banner-visualizer.png" width="220" alt="Banner Visualizer"/>
+      <br/><b>Banner Visualizer</b><br/>
+      Wide horizontal banner with bar-style audio visualizer.
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/overlays/frame-cassette-tape.png" width="220" alt="Cassette Tape"/>
+      <br/><b>Cassette Tape</b><br/>
+      Retro cassette layout with animated winding reels.
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/overlays/frame-color-bar-visualizer.png" width="220" alt="Color Bar Visualizer"/>
+      <br/><b>Color Bar Visualizer</b><br/>
+      Minimalist coloured-bar visualizer with track info.
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="docs/overlays/frame-glassmorphism-1.png" width="220" alt="Glassmorphism 1"/>
+      <br/><b>Glassmorphism 1</b><br/>
+      Modern frosted-glass panel, variant 1.
+    </td>
+    <td align="center">
+      <img src="docs/overlays/frame-glassmorphism-2.png" width="220" alt="Glassmorphism 2"/>
+      <br/><b>Glassmorphism 2</b><br/>
+      Modern frosted-glass panel, variant 2.
+    </td>
+    <td align="center">
+      <img src="docs/overlays/frame-horizontal-classic.png" width="220" alt="Horizontal Classic"/>
+      <br/><b>Horizontal Classic</b><br/>
+      Clean horizontal bar; a safe default.
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="docs/overlays/frame-horizontal-wide.png" width="220" alt="Horizontal Wide"/>
+      <br/><b>Horizontal Wide</b><br/>
+      Extra-wide horizontal layout with larger artwork.
+    </td>
+    <td align="center">
+      <img src="docs/overlays/frame-neon-lights.png" width="220" alt="Neon Lights"/>
+      <br/><b>Neon Lights</b><br/>
+      Neon-glow aesthetic for synthwave / late-night streams.
+    </td>
+    <td align="center">
+      <img src="docs/overlays/frame-program-window.png" width="220" alt="Program Window"/>
+      <br/><b>Program Window</b><br/>
+      Styled like a desktop app window.
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="docs/overlays/frame-retro-vinyl.png" width="220" alt="Retro Vinyl"/>
+      <br/><b>Retro Vinyl</b><br/>
+      Spinning vinyl record with track info on the sleeve.
+    </td>
+    <td align="center">
+      <img src="docs/overlays/frame-vertical-panel.png" width="120" alt="Vertical Panel"/>
+      <br/><b>Vertical Panel</b><br/>
+      Narrow vertical layout for sidebars.
+    </td>
+    <td></td>
+  </tr>
+</table>
 
-- **Banner Visualizer** — wide horizontal banner with bar-style audio visualizer.
-- **Cassette Tape** — retro cassette layout with animated winding reels.
-- **Color Bar Visualizer** — minimalist coloured-bar visualizer with track info.
-- **Glassmorphism 1 / 2** — modern frosted-glass panel, two variants.
-- **Horizontal Classic** — clean horizontal bar; a safe default.
-- **Horizontal Wide** — extra-wide horizontal layout with larger artwork.
-- **Neon Lights** — neon-glow aesthetic for synthwave / late-night streams.
-- **Program Window** — styled like a desktop app window.
-- **Retro Vinyl** — spinning vinyl record with track info on the sleeve.
-- **Vertical Panel** — narrow vertical layout for sidebars.
-- **Frame Template Starter** — annotated reference frame for [FRAME-DEVELOPMENT.md](FRAME-DEVELOPMENT.md).
+> Building your own frame? See the annotated [Frame Template Starter](docs/FRAME-DEVELOPMENT.md) as a starting point.
 
 ---
 
@@ -134,17 +187,16 @@ The app ships with a starter set of frames covering a handful of styles. Pick wh
 
 A condensed view of what's coming. The full working list lives in [TODO.md](TODO.md).
 
-- **Community overlay store** — browse and install community-contributed frames from inside the app. Catalogue plan in [STORE.md](STORE.md).
+- **Community overlay store** — browse and install community-contributed frames from inside the app. Catalogue plan in [STORE.md](docs/STORE.md).
 - **Logging coverage + in-app log viewer** — a Settings panel that surfaces recent app events, useful for bug reports.
 - **Modularization audit** — review long files (modal system, backend.rs, toast system) and split anything that's clearly reusable into its own module.
 - **Cross-platform smoke test** — full end-to-end verification on macOS and Linux once hardware is available.
-- **Accessibility + keyboard shortcuts** across the app UI.
 
 ---
 
 ## Building from source
 
-See [DEVELOPMENT.md](DEVELOPMENT.md) for full instructions.
+See [DEVELOPMENT.md](docs/DEVELOPMENT.md) for full instructions.
 
 Quick start:
 
@@ -163,13 +215,13 @@ cargo tauri dev
 
 Overlays are self-contained folders under `src/overlays/`. Each is a small HTML/CSS/JS app that runs in OBS and optionally exposes a visual editor inside the Angels-NowPlaying app.
 
-See [FRAME-DEVELOPMENT.md](FRAME-DEVELOPMENT.md) for the recommended workflow, file conventions, and the annotated `frame-template-starter` reference overlay.
+See [FRAME-DEVELOPMENT.md](docs/FRAME-DEVELOPMENT.md) for the recommended workflow, file conventions, and the annotated `frame-template-starter` reference overlay.
 
 ---
 
 ## Contributing & feedback
 
-Contributions are welcome — see [DEVELOPMENT.md](DEVELOPMENT.md) for how to set up a dev build, the project structure, and the conventions used throughout the codebase. For overlay contributions specifically, read [FRAME-DEVELOPMENT.md](FRAME-DEVELOPMENT.md) first.
+Contributions are welcome — see [DEVELOPMENT.md](docs/DEVELOPMENT.md) for how to set up a dev build, the project structure, and the conventions used throughout the codebase. For overlay contributions specifically, read [FRAME-DEVELOPMENT.md](docs/FRAME-DEVELOPMENT.md) first.
 
 - **Found a bug?** [Open an issue](https://github.com/angelicadvocate/Angels-NowPlaying/issues/new) — diagnostics output from **Settings → Diagnostics** is enormously helpful.
 - **Have an idea?** Feature requests go in the same issue tracker; pick the relevant template.

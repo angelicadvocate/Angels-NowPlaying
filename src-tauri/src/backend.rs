@@ -2328,6 +2328,194 @@ pub fn arm_pending_restore(snapshot_path: String) -> Result<(), String> {
         .map_err(|e| format!("write pending-restore marker: {e}"))
 }
 
+/// Returns the full text of CHANGELOG.md bundled with the app.
+/// In release builds, reads from the Tauri resource directory.
+/// In debug builds, reads from the project root (workspace root, one level
+/// above src-tauri/) so dev reloads reflect the live file without a rebuild.
+#[tauri::command]
+pub fn read_changelog(app: tauri::AppHandle) -> Result<String, String> {
+    #[cfg(not(debug_assertions))]
+    {
+        let path = app
+            .path()
+            .resource_dir()
+            .map_err(|e| format!("resource_dir error: {e}"))?
+            .join("CHANGELOG.md");
+        return fs::read_to_string(&path)
+            .map_err(|e| format!("Failed to read CHANGELOG.md: {e}"));
+    }
+    #[cfg(debug_assertions)]
+    {
+        let _ = app; // not needed in debug
+        let path = project_root()
+            .map_err(|e| format!("project_root error: {e}"))?
+            .join("CHANGELOG.md");
+        fs::read_to_string(&path)
+            .map_err(|e| format!("Failed to read CHANGELOG.md: {e}"))
+    }
+}
+
+// ── Store: download and install overlay from URL ──────────────────────────────
+
+/// Downloads a zip from `url`, writes a `_store_meta.json` marker into the
+/// installed folder, and installs it using the same extraction + validation
+/// logic as `install_overlay`.
+///
+/// If an existing user overlay already has a `_store_meta.json` whose
+/// `catalog_id` matches the requested `catalog_id`, that folder is replaced
+/// in-place (update flow). Otherwise the zip is installed fresh using the
+/// slug from the zip as the folder name.
+///
+/// The caller (JS) is responsible for showing a confirmation dialog *before*
+/// calling this command — no further prompting happens here.
+#[tauri::command]
+pub fn download_and_install_overlay(url: String, catalog_id: String, overlay_name: String) -> Result<String, String> {
+    // Basic input validation — catalog_id is used as a JSON value and as a
+    // folder-name component; reject anything that could be path-traversal or
+    // JSON-injection material.
+    if catalog_id.contains("..") || catalog_id.contains('/') || catalog_id.contains('\\')
+        || catalog_id.contains('"') || catalog_id.contains('\n')
+    {
+        return Err("Invalid catalog_id".to_string());
+    }
+
+    // --- Download the zip to a temp file ---
+    let response = reqwest::blocking::get(&url)
+        .map_err(|e| format!("Failed to download overlay: {e}"))?;
+    if !response.status().is_success() {
+        return Err(format!("Download failed: HTTP {}", response.status()));
+    }
+    let zip_bytes = response.bytes().map_err(|e| format!("Failed to read download: {e}"))?;
+
+    // --- Parse the zip and determine slug ---
+    let cursor = std::io::Cursor::new(&zip_bytes);
+    let mut archive = zip::ZipArchive::new(cursor).map_err(|e| format!("Invalid zip: {e}"))?;
+
+    let slug = {
+        let first = archive.by_index(0).map_err(|e| e.to_string())?;
+        let normalized = first.name().replace('\\', "/");
+        let parts: Vec<&str> = normalized.splitn(2, '/').collect();
+        if parts.is_empty() || parts[0].is_empty() {
+            return Err("Zip must contain a single top-level folder".to_string());
+        }
+        parts[0].to_string()
+    };
+
+    if slug.contains("..") || slug.contains('/') || slug.contains('\\') {
+        return Err("Invalid overlay id in zip".to_string());
+    }
+
+    // --- Validate manifest ---
+    let manifest_entry = format!("{}/manifest.json", slug);
+    let has_manifest = (0..archive.len()).any(|i| {
+        archive.by_index(i)
+            .map(|e| e.name().replace('\\', "/") == manifest_entry)
+            .unwrap_or(false)
+    });
+    if !has_manifest {
+        return Err(format!("Zip does not contain {manifest_entry}"));
+    }
+    {
+        let mut entry = archive.by_name(&manifest_entry)
+            .map_err(|e| format!("Could not open {manifest_entry}: {e}"))?;
+        let mut manifest_json = String::new();
+        entry.read_to_string(&mut manifest_json)
+            .map_err(|e| format!("Could not read {manifest_entry}: {e}"))?;
+        validate_manifest(&manifest_json, &slug)?;
+    }
+
+    // --- Check for an existing store install of this catalog_id (update path) ---
+    let dest_root = user_overlays_dir();
+    let mut existing_dir: Option<PathBuf> = None;
+    if dest_root.is_dir() {
+        for entry in fs::read_dir(&dest_root).map_err(|e| e.to_string())? {
+            let entry = entry.map_err(|e| e.to_string())?;
+            let marker_path = entry.path().join("_store_meta.json");
+            if marker_path.is_file() {
+                if let Ok(content) = fs::read_to_string(&marker_path) {
+                    if let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) {
+                        if json.get("catalog_id").and_then(|v| v.as_str()) == Some(&catalog_id) {
+                            existing_dir = Some(entry.path());
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // --- Determine install destination ---
+    let install_id = if let Some(ref existing) = existing_dir {
+        // Update: reuse the existing folder name
+        existing.file_name()
+            .and_then(|n| n.to_str())
+            .map(|s| s.to_string())
+            .ok_or_else(|| "Could not read existing install folder name".to_string())?
+    } else {
+        // Fresh install: use the slug directly (catalog guarantees uniqueness).
+        // Guard: if a folder with the same slug already exists but has no
+        // _store_meta.json, it was installed manually. Refuse to overwrite it
+        // so the user's customizations aren't silently destroyed.
+        let clean = dest_root.join(&slug);
+        if clean.exists() && !clean.join("_store_meta.json").exists() {
+            return Err(format!(
+                "An overlay named '{}' is already installed manually. \
+                Remove it in Settings → Overlay Management before installing \
+                this version from the store.",
+                slug
+            ));
+        }
+        slug.clone()
+    };
+
+    let dest = dest_root.join(&install_id);
+
+    // For updates, remove the old folder contents before re-extracting so
+    // stale files from older versions don't linger.
+    if existing_dir.is_some() && dest.exists() {
+        fs::remove_dir_all(&dest).map_err(|e| format!("Failed to remove old install: {e}"))?;
+    }
+    fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
+
+    // --- Extract ---
+    for i in 0..archive.len() {
+        let mut file = archive.by_index(i).map_err(|e| e.to_string())?;
+        let name = file.name().replace('\\', "/");
+        let relative = match name.strip_prefix(&format!("{}/", slug)) {
+            Some(r) => r.to_string(),
+            None => continue,
+        };
+        if relative.is_empty() { continue; }
+        if relative.split('/').any(|part| part == "..") {
+            return Err(format!("Unsafe path in zip: {name}"));
+        }
+        let out_path = dest.join(&relative);
+        if file.is_dir() {
+            fs::create_dir_all(&out_path).map_err(|e| e.to_string())?;
+        } else {
+            if let Some(parent) = out_path.parent() {
+                fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+            }
+            let mut out_file = fs::File::create(&out_path).map_err(|e| e.to_string())?;
+            io::copy(&mut file, &mut out_file).map_err(|e| e.to_string())?;
+        }
+    }
+
+    // --- Write store marker ---
+    let marker = serde_json::json!({
+        "catalog_id": catalog_id,
+        "overlay_name": overlay_name,
+        "source": "store",
+    });
+    fs::write(
+        dest.join("_store_meta.json"),
+        serde_json::to_string_pretty(&marker).map_err(|e| e.to_string())?,
+    ).map_err(|e| format!("Failed to write store marker: {e}"))?;
+
+    log::info!("[store] installed overlay '{}' (catalog_id={}) → {}", overlay_name, catalog_id, install_id);
+    Ok(install_id)
+}
+
 /// Keep the most recent `keep` snapshot zips under `.snapshots/`, deleting
 /// the rest. Called automatically after every silent snapshot so the folder
 /// can't grow unbounded across many updates. Returns the number of files

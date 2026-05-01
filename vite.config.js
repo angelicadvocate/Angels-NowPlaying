@@ -70,6 +70,7 @@ export default defineConfig({
         settings: resolve(root, 'html/settings.html'),
         instructions: resolve(root, 'html/instructions.html'),
         store: resolve(root, 'html/store.html'),
+        changelog: resolve(root, 'html/changelog.html'),
         // Editor shell — single shared entry point for all overlay editors
         'editor-shell': resolve(root, 'html/editor-shell.html'),
       }

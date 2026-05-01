@@ -8,6 +8,32 @@ Only completed and released work goes in this file.
 Please be sure to add date, completed tag, `github:[username]`, and version number change if needed
 (see below for formatting example)
 
+<CHANGELOG MARKER DO NOT DELETE THIS LINE. TEXT ABOVE THIS LINE NOT SHOWN IN APP>
+---------------------------------------------------------------------------------
+
+## v0.11.4 – 2026-05-01
+
+* [x] **In-app changelog page** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Repurposed the GitHub button in the Settings About card into a dedicated "Changelog" button (the GitHub link remains accessible from the app header). The button opens a full in-app changelog page (`changelog.html`) that renders `CHANGELOG.md` bundled with the app via a new `read_changelog` Tauri command — content always reflects the installed version rather than a remote URL
+  * Markdown is rendered safely using `marked` + `DOMPurify` (`marked.parse()` → `DOMPurify.sanitize()` before `innerHTML`). A marker line in `CHANGELOG.md` (`<CHANGELOG MARKER ...>`) hides the preamble block from the rendered output so only real version entries are shown
+  * Toolbar includes a version-jump `<select>` (auto-built from `## vX.Y.Z` headings), a live search/filter input that hides non-matching sections and shows a match count, and a back button returning to Settings
+  * Page inherits the shared header and theme system (`theme.js`, `theme.css`) so it responds correctly to light/dark mode
+
+* [x] **In-app Credits modal** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * Repurposed the Support button in the Settings About card into a "Credits" button (the Support link remains accessible from the app header). The button opens a Credits modal listing: contributing authors, open-source libraries with license notes (Tauri, tiny_http, jQuery, marked, DOMPurify, Font Awesome), and bundled fonts with attribution. Modal follows the existing open/close/click-outside pattern used by Diagnostics and other modals in Settings. Structured so new entries are straightforward to add as the project grows
+
+* [x] **Keyboard shortcuts and accessibility improvements** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * **ARIA labels**: audited all interactive elements across `settings.html`, `editor-shell.html`, and `changelog.html` — added `aria-label` to all 10 modal close (`×`) buttons, all 5 toggle switches, the four editor action buttons (Save, Reset, Copy, Home), and the changelog search-clear button
+  * **`Escape` to close modals**: a single `keydown` listener in `settings.html` finds the active `.modal-overlay` and clicks its close button, covering all modals (Diagnostics, Backup, Credits, Restore, Fonts, HTTP server, etc.) without duplicating close logic
+  * **Editor keyboard shortcuts** (`editor-shell.js`): `Ctrl+S` saves, `Ctrl+Shift+C` copies the path/URL, `Ctrl+D` resets to defaults. Note: `Ctrl+D` may conflict with the WebView bookmark shortcut in dev mode — production builds are unaffected
+
+* [x] **App-side store integration prerequisites** ✨ *COMPLETED* `github:AngelicAdvocate`
+  * **In-app install from store**: new `download_and_install_overlay(url, catalog_id, overlay_name)` Tauri command downloads a zip from any HTTPS URL, runs the same manifest validation as manual installs, extracts to the user overlays directory, and writes a `_store_meta.json` marker (`catalog_id`, `overlay_name`, `source: "store"`) into the installed folder. Added `reqwest` (blocking + rustls-tls) as a new dependency
+  * **Update flow**: on install, the command scans existing user overlays for a `_store_meta.json` whose `catalog_id` matches — if found, the old folder is replaced in-place rather than installing alongside it, making repeat installs from the store behave as updates
+  * **Manual-install collision guard**: if the target slug folder exists but has no `_store_meta.json` (i.e. it was installed manually), the command returns a clear error directing the user to remove the manual install first via Settings → Overlay Management
+  * **External URL flow** (`open-external` postMessage): the store iframe can post `{ type: 'open-external', url }` to open paid/external overlay pages in the system browser via the existing `openExternalUrl` helper in `tauri.js`
+  * **postMessage bridge in `store.html`**: handles both `install-overlay` and `open-external` message types. The install path validates the URL and fields, shows a `confirm()` dialog with the overlay name and source URL before proceeding, and reports success/failure via `alert()`
+
 ---------------------------------------------------------------------------------
 
 ## v0.11.3 – 2026-05-01

@@ -51,7 +51,7 @@
 
       <div class="settings-item">
         <p class="template-section-title"><i class="fas fa-moon" id="dark-mode-icon"></i> Dark Mode</p>
-        <button class="toggle-switch active" id="dark-mode-toggle" title="Toggle Dark Mode"></button>
+        <button class="toggle-switch active" id="dark-mode-toggle" aria-label="Toggle Dark Mode" title="Toggle Dark Mode"></button>
       </div>
 
       <div class="settings-item settings-section-divider">
@@ -93,7 +93,7 @@
       <div class="settings-item settings-section-divider">
         <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
           <p class="template-section-title" style="margin: 0;"><i class="fas fa-network-wired"></i> Serve Overlays over HTTP</p>
-          <button class="toggle-switch" id="serve-http-toggle" title="Toggle HTTP Server"></button>
+          <button class="toggle-switch" id="serve-http-toggle" aria-label="Toggle HTTP Server" title="Toggle HTTP Server"></button>
         </div>
         <!-- Status placeholder. JS will swap class + textContent based on
              backend state. Default = OFF (grey). Sits above the button so
@@ -128,11 +128,11 @@
       </div>
 
       <div class="about-links">
-        <a href="https://github.com/angelicadvocate/Angels-NowPlaying" target="_blank" title="GitHub Repository">
-          <i class="fab fa-github"></i> GitHub
+        <a href="./changelog.html" title="View Changelog">
+          <i class="fas fa-scroll"></i> Changelog
         </a>
-        <a href="https://streamelements.com/angelicadvocate/tip" target="_blank" title="Support">
-          <i class="fas fa-heart"></i> Support
+        <a href="#" onclick="openCreditsModal(); return false;" title="Credits &amp; Licenses">
+          <i class="fas fa-heart"></i> Credits
         </a>
       </div>
 
@@ -149,11 +149,11 @@
         <div class="overlay-section">
           <div class="settings-item">
             <p class="template-section-title"><i class="fas fa-eye"></i> User-installed overlays</p>
-            <button class="toggle-switch active" id="show-user-overlays-toggle" title="Show/hide user-installed overlays on the home page"></button>
+            <button class="toggle-switch active" id="show-user-overlays-toggle" aria-label="Show or hide user-installed overlays on the home page" title="Show/hide user-installed overlays on the home page"></button>
           </div>
           <div class="settings-item" style="margin-top:0.75rem;">
             <p class="template-section-title"><i class="fas fa-code"></i> Show Developer Overlay</p>
-            <button class="toggle-switch" id="show-template-starter-toggle" title="Show/hide the frame-template-starter overlay on the home page"></button>
+            <button class="toggle-switch" id="show-template-starter-toggle" aria-label="Show or hide the developer template starter overlay on the home page" title="Show/hide the frame-template-starter overlay on the home page"></button>
           </div>
           <button class="settings-button" onclick="openAppDataDir()" title="Open the AppData folder where overlays, fonts, and settings are stored" style="width:100%; margin-top:auto;">
             <i class="fas fa-folder-open"></i> Open AppData Folder
@@ -242,7 +242,7 @@
     <div class="modal">
       <div class="modal-header">
         <h3><i class="fas fa-cloud-upload-alt"></i> Upload New Template</h3>
-        <button class="modal-close" onclick="closeUploadModal()">×</button>
+        <button class="modal-close" aria-label="Close" onclick="closeUploadModal()">×</button>
       </div>
       <div class="modal-body">
         <form id="uploadForm">
@@ -307,7 +307,7 @@
     <div class="modal">
       <div class="modal-header">
         <h3><i class="fas fa-font"></i> Font Management</h3>
-        <button class="modal-close" onclick="closeFontsModal()">×</button>
+        <button class="modal-close" aria-label="Close" onclick="closeFontsModal()">×</button>
       </div>
       <div class="modal-body">
         <p style="font-size:0.9rem; opacity:0.85; margin:0 0 1.25rem;">
@@ -353,7 +353,7 @@
     <div class="modal">
       <div class="modal-header">
         <h3><i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i> Reset All App Data</h3>
-        <button class="modal-close" onclick="closeResetAppDataModal()">×</button>
+        <button class="modal-close" aria-label="Close" onclick="closeResetAppDataModal()">×</button>
       </div>
       <div class="modal-body">
         <p style="margin:0 0 1rem;">
@@ -381,7 +381,7 @@
     <div class="modal">
       <div class="modal-header">
         <h3><i class="fas fa-hourglass-half"></i> <span id="comingSoonTitle">Coming Soon</span></h3>
-        <button class="modal-close" onclick="closeComingSoonModal()">×</button>
+        <button class="modal-close" aria-label="Close" onclick="closeComingSoonModal()">×</button>
       </div>
       <div class="modal-body">
         <p id="comingSoonMessage" style="margin:0;">This feature isn't ready yet. Stay tuned for a future release!</p>
@@ -397,7 +397,7 @@
     <div class="modal">
       <div class="modal-header">
         <h3><i class="fas fa-network-wired"></i> Configure HTTP Server</h3>
-        <button class="modal-close" onclick="closeServeHttpModal()">×</button>
+        <button class="modal-close" aria-label="Close" onclick="closeServeHttpModal()">×</button>
       </div>
       <div class="modal-body">
         <p style="margin:0 0 1rem; font-size:0.9rem; opacity:0.85;">
@@ -420,7 +420,7 @@
             <label style="margin:0 0 0.25rem;">Allow access from other devices on my network</label>
             <p style="font-size:0.8rem; opacity:0.75; margin:0;">When OFF, the server is loopback-only (<code>127.0.0.1</code>). When ON, it binds to <code>0.0.0.0</code> so other devices on your LAN can reach it.</p>
           </div>
-          <button class="toggle-switch" id="serveHttpLanToggle" title="Toggle LAN Access" style="flex-shrink:0; margin-top:0.25rem;"></button>
+          <button class="toggle-switch" id="serveHttpLanToggle" aria-label="Toggle LAN Access" title="Toggle LAN Access" style="flex-shrink:0; margin-top:0.25rem;"></button>
         </div>
 
         <!-- LAN warning, only shown when LAN toggle is ON -->
@@ -461,7 +461,7 @@
           <i class="fas fa-cloud-arrow-down" id="updateModalIcon"></i>
           <span id="updateModalTitle">Update Available</span>
         </h3>
-        <button class="modal-close" id="updateModalClose" onclick="closeUpdateModal()">×</button>
+        <button class="modal-close" id="updateModalClose" aria-label="Close" onclick="closeUpdateModal()">×</button>
       </div>
       <div class="modal-body">
 
@@ -520,7 +520,7 @@
     <div class="modal">
       <div class="modal-header">
         <h3><i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i> Restore Backup</h3>
-        <button class="modal-close" onclick="closeRestoreConfirmModal()">×</button>
+        <button class="modal-close" aria-label="Close" onclick="closeRestoreConfirmModal()">×</button>
       </div>
       <div class="modal-body">
         <p style="margin:0 0 0.75rem;">
@@ -545,7 +545,7 @@
     <div class="modal">
       <div class="modal-header">
         <h3><i class="fas fa-circle-check" style="color:#16a34a;"></i> Restore Complete</h3>
-        <button class="modal-close" onclick="closeRestoreSummaryModal()">×</button>
+        <button class="modal-close" aria-label="Close" onclick="closeRestoreSummaryModal()">×</button>
       </div>
       <div class="modal-body">
         <div id="restoreSummaryBody"></div>
@@ -560,7 +560,7 @@
   <div class="modal-overlay" id="diagnosticsModal">    <div class="modal modal--large">
       <div class="modal-header">
         <h3><i class="fas fa-stethoscope"></i> Diagnostics / System Info</h3>
-        <button class="modal-close" onclick="closeDiagnosticsModal()">×</button>
+        <button class="modal-close" aria-label="Close" onclick="closeDiagnosticsModal()">×</button>
       </div>
       <div class="modal-body">
         <p style="margin:0 0 0.75rem; font-size:0.85rem; opacity:0.8;">
@@ -575,6 +575,78 @@
         <button class="btn-cancel" onclick="closeDiagnosticsModal()">Close</button>
         <button class="settings-button" onclick="copyDiagnostics('json')"><i class="fas fa-code"></i> Copy as JSON</button>
         <button class="settings-button" onclick="copyDiagnostics('markdown')"><i class="fab fa-markdown"></i> Copy as Markdown</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Credits Modal -->
+  <div class="modal-overlay" id="creditsModal" onclick="if(event.target===this)closeCreditsModal()">
+    <div class="modal modal--large">
+      <div class="modal-header">
+        <h3><i class="fas fa-heart"></i> Credits &amp; Licenses</h3>
+        <button class="modal-close" aria-label="Close" onclick="closeCreditsModal()">×</button>
+      </div>
+      <div class="modal-body">
+
+        <div class="credits-section">
+          <h4 class="credits-heading"><i class="fas fa-user"></i> Created by</h4>
+          <div class="credits-entry">
+            <img src="https://avatars.githubusercontent.com/u/202484976?v=4" alt="angelicadvocate" class="credits-avatar" />
+            <div>
+              <strong>AngelicAdvocate</strong><br>
+              <a href="#" onclick="window.openExternalUrl('https://github.com/angelicadvocate'); return false;">github.com/angelicadvocate</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="credits-section">
+          <h4 class="credits-heading"><i class="fas fa-code"></i> Application</h4>
+          <p class="credits-license-note">Angels-NowPlaying is licensed under the <strong>GNU General Public License v3.0</strong>.</p>
+        </div>
+
+        <div class="credits-section">
+          <h4 class="credits-heading"><i class="fas fa-puzzle-piece"></i> Third-party libraries</h4>
+          <table class="credits-table">
+            <thead><tr><th>Component</th><th>License</th></tr></thead>
+            <tbody>
+              <tr><td><a href="#" onclick="window.openExternalUrl('https://tauri.app'); return false;">Tauri 2</a></td><td>Apache 2.0 / MIT</td></tr>
+              <tr><td><a href="#" onclick="window.openExternalUrl('https://github.com/http-rs/tiny_http'); return false;">tiny_http</a></td><td>Apache 2.0 / MIT</td></tr>
+              <tr><td><a href="#" onclick="window.openExternalUrl('https://github.com/rust-lang/socket2'); return false;">socket2</a></td><td>Apache 2.0 / MIT</td></tr>
+              <tr><td><a href="#" onclick="window.openExternalUrl('https://github.com/serde-rs/serde'); return false;">serde / serde_json</a></td><td>Apache 2.0 / MIT</td></tr>
+              <tr><td><a href="#" onclick="window.openExternalUrl('https://github.com/zip-rs/zip2'); return false;">zip</a></td><td>MIT</td></tr>
+              <tr><td><a href="#" onclick="window.openExternalUrl('https://github.com/dirs-dev/dirs-rs'); return false;">dirs</a></td><td>Apache 2.0 / MIT</td></tr>
+              <tr><td><a href="#" onclick="window.openExternalUrl('https://github.com/EstebanBorai/local-ip-address'); return false;">local-ip-address</a></td><td>MIT</td></tr>
+              <tr><td><a href="#" onclick="window.openExternalUrl('https://jquery.com'); return false;">jQuery 3.5.1</a></td><td>MIT</td></tr>
+              <tr><td><a href="#" onclick="window.openExternalUrl('https://marked.js.org'); return false;">marked</a></td><td>MIT</td></tr>
+              <tr><td><a href="#" onclick="window.openExternalUrl('https://github.com/cure53/DOMPurify'); return false;">DOMPurify</a></td><td>Apache 2.0 / MPL 2.0</td></tr>
+              <tr><td><a href="#" onclick="window.openExternalUrl('https://fontawesome.com'); return false;">Font Awesome 6.4.0</a></td><td>Icons: CC BY 4.0 · Fonts: SIL OFL · Code: MIT</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="credits-section">
+          <h4 class="credits-heading"><i class="fas fa-font"></i> Bundled fonts</h4>
+          <table class="credits-table">
+            <thead><tr><th>Family</th><th>License</th><th>Source</th></tr></thead>
+            <tbody>
+              <tr><td>Arimo</td><td>Apache 2.0</td><td>Google Fonts</td></tr>
+              <tr><td>Comic Relief</td><td>SIL OFL 1.1</td><td>Google Fonts</td></tr>
+              <tr><td>Courier Prime</td><td>SIL OFL 1.1</td><td>Google Fonts</td></tr>
+              <tr><td>Fascinate Inline</td><td>SIL OFL 1.1</td><td>Google Fonts</td></tr>
+              <tr><td>Gelasio</td><td>SIL OFL 1.1</td><td>Google Fonts</td></tr>
+              <tr><td>Mogra</td><td>SIL OFL 1.1</td><td>Google Fonts</td></tr>
+              <tr><td>Montserrat</td><td>SIL OFL 1.1</td><td>Google Fonts</td></tr>
+              <tr><td>Playwrite Norge</td><td>SIL OFL 1.1</td><td>Google Fonts</td></tr>
+              <tr><td>Sekuya</td><td>SIL OFL 1.1</td><td>Google Fonts</td></tr>
+              <tr><td>Tinos</td><td>Apache 2.0</td><td>Google Fonts</td></tr>
+            </tbody>
+          </table>
+          <p class="credits-license-note">Individual license files are preserved in <code>src/fonts/&lt;Family&gt;/</code>. Full attribution details in <a href="#" onclick="window.openExternalUrl('https://github.com/angelicadvocate/Angels-NowPlaying/blob/main/LICENSES.md'); return false;">LICENSES.md</a>.</p>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeCreditsModal()">Close</button>
       </div>
     </div>
   </div>
@@ -1487,6 +1559,13 @@
       if (e.target === this) closeDiagnosticsModal();
     });
 
+    function openCreditsModal() {
+      document.getElementById('creditsModal').classList.add('active');
+    }
+    function closeCreditsModal() {
+      document.getElementById('creditsModal').classList.remove('active');
+    }
+
     function formatDiagnosticsForDisplay(d) {
       const lines = [];
       const push = (label, value) => lines.push(label.padEnd(26) + String(value ?? '—'));
@@ -1782,6 +1861,15 @@
       }
       setTimeout(() => { status.style.display = 'none'; }, 4000);
     }
+
+    // ── Escape key: close whichever modal is open ─────────────────────────
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      const active = document.querySelector('.modal-overlay.active');
+      if (!active) return;
+      const closeBtn = active.querySelector('.modal-close');
+      if (closeBtn) closeBtn.click();
+    });
   </script>
 
 </body>
